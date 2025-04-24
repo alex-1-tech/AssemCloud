@@ -1,0 +1,5 @@
+.vscode/*
+
+# assembler ( Django project )
+assembler/.venv
+assembler/.venv/*

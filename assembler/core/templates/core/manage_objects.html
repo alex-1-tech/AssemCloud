@@ -1,0 +1,103 @@
+{% extends 'core/base.html' %} {% block content %}
+<h1>Manage Machines, Assemblies, and Parts</h1>
+
+<div id="machines"></div>
+
+<button id="add-machine-btn">Add Machine</button>
+
+<template id="machine-template">
+  <div class="machine">
+    <input
+      type="text"
+      name="machine_name"
+      placeholder="Machine name"
+      required
+    />
+    <button class="add-assembly-btn">Add Assembly</button>
+    <div class="assemblies"></div>
+  </div>
+</template>
+
+<template id="assembly-template">
+  <div class="assembly">
+    <input
+      type="text"
+      name="assembly_name"
+      placeholder="Assembly name"
+      required
+    />
+    <button class="add-part-btn">Add Part</button>
+    <div class="parts"></div>
+  </div>
+</template>
+
+<template id="part-template">
+  <div class="part">
+    <input type="text" name="part_name" placeholder="Part name" required />
+  </div>
+</template>
+
+<button onclick="submitData()">Save All</button>
+
+<script>
+  $(document).ready(function () {
+    $("#add-machine-btn").on("click", function () {
+      const machine = $("#machine-template").prop("content").cloneNode(true);
+      $("#machines").append(machine);
+    });
+
+    $("#machines").on("click", ".add-assembly-btn", function () {
+      const assembly = $("#assembly-template").prop("content").cloneNode(true);
+      $(this).siblings(".assemblies").append(assembly);
+    });
+
+    $("#machines").on("click", ".add-part-btn", function () {
+      const part = $("#part-template").prop("content").cloneNode(true);
+      $(this).siblings(".parts").append(part);
+    });
+  });
+
+  function submitData() {
+    const machines = [];
+
+    $("#machines .machine").each(function () {
+      const machineName = $(this).find('input[name="machine_name"]').val();
+      const machineData = { name: machineName, assemblies: [] };
+
+      $(this)
+        .find(".assemblies .assembly")
+        .each(function () {
+          const assemblyName = $(this)
+            .find('input[name="assembly_name"]')
+            .val();
+          const assemblyData = { name: assemblyName, parts: [] };
+
+          $(this)
+            .find(".parts .part")
+            .each(function () {
+              const partName = $(this).find('input[name="part_name"]').val();
+              assemblyData.parts.push({ name: partName });
+            });
+
+          machineData.assemblies.push(assemblyData);
+        });
+
+      machines.push(machineData);
+    });
+
+    console.log("Submitting:", machines);
+
+    fetch('{% url "save_all_objects" %}', {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ csrf_token }}",
+      },
+      body: JSON.stringify({ machines }),
+    })
+      .then((res) => res.json())
+      .then((data) => alert("Saved successfully!"))
+      .catch((err) => alert("Error saving: " + err));
+  }
+</script>
+{% endblock %}
