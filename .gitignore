@@ -28,6 +28,7 @@ build/
 venv/
 env/
 ENV/
+.env
 
 # VSCode settings
 .vscode/
