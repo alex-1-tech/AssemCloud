@@ -4,9 +4,10 @@ from core.models import Assembly
 from core.forms import AssemblyForm
 from django.db.models import Q
 
+
 class AssemblyListView(ListView):
     model = Assembly
-    template_name = 'core/list_assemblies.html'
+    template_name = 'core/assemblies/list.html'
     context_object_name = 'assemblies'
 
     def get_queryset(self):
@@ -23,5 +24,5 @@ class AssemblyListView(ListView):
 class AssemblyCreateView(CreateView):
     model = Assembly
     form_class = AssemblyForm
-    template_name = 'core/add_assembly.html'
+    template_name = 'core/assemblies/add.html'
     success_url = reverse_lazy('list_assemblies')

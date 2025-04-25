@@ -5,7 +5,7 @@ from core.forms import MachineForm
 
 class MachineListView(ListView):
     model = Machine
-    template_name = 'core/list_machines.html'
+    template_name = 'core/machines/list.html'
     context_object_name = 'machines'
 
     def get_queryset(self):
@@ -21,5 +21,5 @@ class MachineListView(ListView):
 class MachineCreateView(CreateView):
     model = Machine
     form_class = MachineForm
-    template_name = 'core/add_machine.html'
+    template_name = 'core/machines/add.html'
     success_url = reverse_lazy('list_machines')

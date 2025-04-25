@@ -6,7 +6,7 @@ from django.db.models import Q
 
 class PartListView(ListView):
     model = Part
-    template_name = 'core/list_parts.html'
+    template_name = 'core/parts/list.html'
     context_object_name = 'parts'
 
     def get_queryset(self):
@@ -23,5 +23,5 @@ class PartListView(ListView):
 class PartCreateView(CreateView):
     model = Part
     form_class = PartForm
-    template_name = 'core/add_part.html'
+    template_name = 'core/parts/add.html'
     success_url = reverse_lazy('list_parts')

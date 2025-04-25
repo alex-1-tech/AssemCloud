@@ -1,0 +1,30 @@
+{% extends 'base.html' %} {% block content %}
+<h2>Assemblies</h2>
+
+<form method="get" class="mb-3">
+  <input
+    type="text"
+    name="q"
+    class="form-control"
+    placeholder="Search by name or machine..."
+    value="{{ query|default_if_none:'' }}"
+  />
+</form>
+
+<a href="{% url 'add_assembly' %}" class="btn btn-success mb-3">Add Assembly</a>
+
+<ul class="list-group">
+  {% for assembly in assemblies %}
+  <li class="list-group-item">
+    <strong>{{ assembly.name|default:"(no name)" }}</strong><br />
+    <small>
+      Machine: {{ assembly.machine.name|default:"(no machine)" }}
+      {% if assembly.parent_assembly and assembly.parent_assembly.name %} —
+      Parent: {{ assembly.parent_assembly.name }} {% endif %}
+    </small>
+  </li>
+  {% empty %}
+  <li class="list-group-item">No assemblies found.</li>
+  {% endfor %}
+</ul>
+{% endblock %}

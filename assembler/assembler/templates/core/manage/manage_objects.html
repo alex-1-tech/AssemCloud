@@ -1,5 +1,4 @@
-{% extends 'core/base.html' %}
-{% block content %}
+{% extends 'base.html' %} {% block content %}
 <h1>Manage a Machine and Nested Assemblies</h1>
 
 <div class="machine">
@@ -40,7 +39,8 @@
 <button onclick="submitData()">Save All</button>
 
 <style>
-  .assembly, .part {
+  .assembly,
+  .part {
     margin-left: 30px;
     padding: 10px;
     border-left: 2px dashed #aaa;
@@ -54,7 +54,6 @@
       $(this).siblings(".assemblies").append(assembly);
     });
 
-
     $(".machine").on("click", ".add-part-btn", function () {
       const part = $("#part-template").prop("content").cloneNode(true);
       $(this).siblings(".parts").append(part);
@@ -63,22 +62,28 @@
 
   function buildAssemblyTree($element) {
     const name = $element.children('input[name="assembly_name"]').val().trim();
-    if (!name) return null;  // Пропускаем пустую сборку
-  
+    if (!name) return null; // Пропускаем пустую сборку
+
     const parts = [];
-    $element.children('.parts').children('.part').each(function () {
-      const partName = $(this).find('input[name="part_name"]').val().trim();
-      if (partName) {
-        parts.push({ name: partName });
-      }
-    });
-  
+    $element
+      .children(".parts")
+      .children(".part")
+      .each(function () {
+        const partName = $(this).find('input[name="part_name"]').val().trim();
+        if (partName) {
+          parts.push({ name: partName });
+        }
+      });
+
     const subAssemblies = [];
-    $element.children('.assemblies').children('.assembly').each(function () {
-      const child = buildAssemblyTree($(this));
-      if (child) subAssemblies.push(child);
-    });
-  
+    $element
+      .children(".assemblies")
+      .children(".assembly")
+      .each(function () {
+        const child = buildAssemblyTree($(this));
+        if (child) subAssemblies.push(child);
+      });
+
     return { name, parts, sub_assemblies: subAssemblies };
   }
 

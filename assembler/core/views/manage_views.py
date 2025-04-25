@@ -8,7 +8,7 @@ from core.models import Machine
 from core.services.save_machine import save_machine
 
 class ManageObjectsView(TemplateView):
-    template_name = 'core/manage_objects.html'
+    template_name = 'core/manage/manage_objects.html'
 
 
 @method_decorator(csrf_exempt, name='dispatch')
