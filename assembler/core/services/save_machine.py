@@ -1,4 +1,4 @@
-from .models import Machine, Assembly, Part
+from core.models import Machine, Assembly, Part
 
 def create_assembly(data, machine, parent_assembly=None):
     assembly_name = data.get('name', '').strip()
@@ -22,3 +22,9 @@ def create_assembly(data, machine, parent_assembly=None):
     
     for sub in data.get('sub_assemblies', []):
         create_assembly(sub, machine, assembly)
+
+def save_machine(machine_data):
+    machine = Machine.objects.create(name=machine_data['name'])
+    for assembly in machine_data.get('assemblies', []):
+        create_assembly(assembly, machine)
+    return machine
