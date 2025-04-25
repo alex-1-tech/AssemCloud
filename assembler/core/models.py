@@ -16,6 +16,7 @@ class Machine(models.Model):
     name = models.CharField(max_length=100)
 
     class Meta:
+        ordering = ['-name']
         managed = False
         db_table = 'machine'
 

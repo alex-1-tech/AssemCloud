@@ -1,22 +1,19 @@
-{% extends 'core/base.html' %} {% block content %}
-<h1>Manage Machines, Assemblies, and Parts</h1>
+{% extends 'core/base.html' %}
+{% block content %}
+<h1>Manage a Machine and Nested Assemblies</h1>
 
-<div id="machines"></div>
-
-<button id="add-machine-btn">Add Machine</button>
-
-<template id="machine-template">
-  <div class="machine">
-    <input
-      type="text"
-      name="machine_name"
-      placeholder="Machine name"
-      required
-    />
-    <button class="add-assembly-btn">Add Assembly</button>
-    <div class="assemblies"></div>
-  </div>
-</template>
+<div class="machine">
+  <label><strong>Machine Name:</strong></label>
+  <input
+    type="text"
+    id="machine-name"
+    name="machine_name"
+    placeholder="Machine name"
+    required
+  />
+  <button class="add-assembly-btn">Add Assembly</button>
+  <div class="assemblies"></div>
+</div>
 
 <template id="assembly-template">
   <div class="assembly">
@@ -26,7 +23,9 @@
       placeholder="Assembly name"
       required
     />
+    <button class="add-assembly-btn">Add Sub-Assembly</button>
     <button class="add-part-btn">Add Part</button>
+    <div class="assemblies"></div>
     <div class="parts"></div>
   </div>
 </template>
@@ -37,55 +36,66 @@
   </div>
 </template>
 
+<br />
 <button onclick="submitData()">Save All</button>
+
+<style>
+  .assembly, .part {
+    margin-left: 30px;
+    padding: 10px;
+    border-left: 2px dashed #aaa;
+  }
+</style>
 
 <script>
   $(document).ready(function () {
-    $("#add-machine-btn").on("click", function () {
-      const machine = $("#machine-template").prop("content").cloneNode(true);
-      $("#machines").append(machine);
-    });
-
-    $("#machines").on("click", ".add-assembly-btn", function () {
+    $(".machine").on("click", ".add-assembly-btn", function () {
       const assembly = $("#assembly-template").prop("content").cloneNode(true);
       $(this).siblings(".assemblies").append(assembly);
     });
 
-    $("#machines").on("click", ".add-part-btn", function () {
+
+    $(".machine").on("click", ".add-part-btn", function () {
       const part = $("#part-template").prop("content").cloneNode(true);
       $(this).siblings(".parts").append(part);
     });
   });
 
+  function buildAssemblyTree($element) {
+    const name = $element.children('input[name="assembly_name"]').val().trim();
+    if (!name) return null;  // Пропускаем пустую сборку
+  
+    const parts = [];
+    $element.children('.parts').children('.part').each(function () {
+      const partName = $(this).find('input[name="part_name"]').val().trim();
+      if (partName) {
+        parts.push({ name: partName });
+      }
+    });
+  
+    const subAssemblies = [];
+    $element.children('.assemblies').children('.assembly').each(function () {
+      const child = buildAssemblyTree($(this));
+      if (child) subAssemblies.push(child);
+    });
+  
+    return { name, parts, sub_assemblies: subAssemblies };
+  }
+
   function submitData() {
-    const machines = [];
+    const machineName = $("#machine-name").val();
+    const assemblies = [];
 
-    $("#machines .machine").each(function () {
-      const machineName = $(this).find('input[name="machine_name"]').val();
-      const machineData = { name: machineName, assemblies: [] };
-
-      $(this)
-        .find(".assemblies .assembly")
-        .each(function () {
-          const assemblyName = $(this)
-            .find('input[name="assembly_name"]')
-            .val();
-          const assemblyData = { name: assemblyName, parts: [] };
-
-          $(this)
-            .find(".parts .part")
-            .each(function () {
-              const partName = $(this).find('input[name="part_name"]').val();
-              assemblyData.parts.push({ name: partName });
-            });
-
-          machineData.assemblies.push(assemblyData);
-        });
-
-      machines.push(machineData);
+    $(".machine > .assemblies > .assembly").each(function () {
+      assemblies.push(buildAssemblyTree($(this)));
     });
 
-    console.log("Submitting:", machines);
+    const payload = {
+      name: machineName,
+      assemblies,
+    };
+
+    console.log("Submitting payload:", payload);
 
     fetch('{% url "save_all_objects" %}', {
       method: "POST",
@@ -93,7 +103,7 @@
         "Content-Type": "application/json",
         "X-CSRFToken": "{{ csrf_token }}",
       },
-      body: JSON.stringify({ machines }),
+      body: JSON.stringify({ machine: payload }),
     })
       .then((res) => res.json())
       .then((data) => alert("Saved successfully!"))

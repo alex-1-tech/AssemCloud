@@ -56,14 +56,35 @@ def add_part(request):
         return redirect('list_parts')
     return render(request, 'core/add_part.html', {'form': form})
 
+def create_assembly(data, machine, parent_assembly=None):
+    name = data.get('name', '').strip()
+    if not name:
+        return
+
+    assembly = Assembly.objects.create(
+        name=name,
+        machine=machine,
+        parent_assembly=parent_assembly
+    )
+
+    for part in data.get('parts', []):
+        part_name = part.get('name', '').strip()
+        if part_name:
+            Part.objects.create(name=part_name, assembly=assembly)
+
+    for sub in data.get('sub_assemblies', []):
+        create_assembly(sub, machine, assembly)
+
+
 @csrf_exempt
 def save_all_objects(request):
     if request.method == 'POST':
-        data = json.loads(request.body)
-        for m in data.get('machines', []):
-            machine = Machine.objects.create(name=m['name'])
-            for a in m.get('assemblies', []):
-                assembly = Assembly.objects.create(name=a['name'], machine=machine)
-                for p in a.get('parts', []):
-                    Part.objects.create(name=p['name'], assembly=assembly)
+        payload = json.loads(request.body)
+        machine_data = payload.get('machine')
+        machine = Machine.objects.create(name=machine_data['name'])
+        for assembly_data in machine_data.get('assemblies', []):
+            create_assembly(assembly_data, machine)
         return JsonResponse({'status': 'success'})
+
+def manage_objects_view(request):
+    return render(request, 'core/manage_objects.html')

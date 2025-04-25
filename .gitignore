@@ -3,3 +3,8 @@
 # assembler ( Django project )
 assembler/.venv
 assembler/.venv/*
+
+assembler/core/migrations/
+assembler/core/__pycache__/
+
+assembler/assembler/__pycache__/
