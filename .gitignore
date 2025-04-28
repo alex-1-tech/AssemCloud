@@ -12,6 +12,8 @@ dist/
 build/
 .eggs/
 *.loggit 
+*.cfg
+*.toml
 
 # Django
 *.sqlite3
