@@ -1,118 +1,53 @@
-{% extends 'base.html' %} {% block content %}
-<h1>Manage a Machine and Nested Assemblies</h1>
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Manage Machine{% endblock %}
 
-<div class="machine">
-  <label><strong>Machine Name:</strong></label>
-  <input
-    type="text"
-    id="machine-name"
-    name="machine_name"
-    placeholder="Machine name"
-    required
-  />
-  <button class="add-assembly-btn">Add Assembly</button>
-  <div class="assemblies"></div>
+{% block content %}
+
+<div class="container py-4">
+  <h2 class="mb-4">Manage Machine</h2>
+
+  <input type="text" id="machine-name" class="form-control mb-3" placeholder="Machine Name" required>
+
+  <button type="button" class="btn btn-primary mb-4" id="add-root-assembly">+ Add Assembly</button>
+
+  <div id="assemblies-root"></div>
+
+  <template id="assembly-template">
+    <div class="border-start ps-3 mt-3 assembly">
+      <div class="d-flex align-items-center gap-2 mb-2">
+        <input type="text" name="assembly_name" class="form-control" placeholder="Assembly Name" required>
+        <button type="button" class="btn btn-sm btn-outline-primary add-sub-assembly" title="Add Sub-Assembly">
+          <i class="bi bi-boxes"></i>
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-success add-part" title="Add Part">
+          <i class="bi bi-box"></i>
+        </button>
+      </div>
+      <div class="sub-assemblies"></div>
+      <div class="parts"></div>
+    </div>
+  </template>
+
+  <template id="part-template">
+    <div class="border-start ps-3 mt-2 part">
+      <div class="d-flex align-items-center gap-2 mb-2">
+        <input type="text" name="part_name" class="form-control" placeholder="Part Name" required>
+      </div>
+    </div>
+  </template>
+
+  <button type="button" class="btn btn-success mt-4" onclick="submitData()">Save All</button>
 </div>
 
-<template id="assembly-template">
-  <div class="assembly">
-    <input
-      type="text"
-      name="assembly_name"
-      placeholder="Assembly name"
-      required
-    />
-    <button class="add-assembly-btn">Add Sub-Assembly</button>
-    <button class="add-part-btn">Add Part</button>
-    <div class="assemblies"></div>
-    <div class="parts"></div>
-  </div>
-</template>
-
-<template id="part-template">
-  <div class="part">
-    <input type="text" name="part_name" placeholder="Part name" required />
-  </div>
-</template>
-
-<br />
-<button onclick="submitData()">Save All</button>
-
-<style>
-  .assembly,
-  .part {
-    margin-left: 30px;
-    padding: 10px;
-    border-left: 2px dashed #aaa;
-  }
-</style>
-
-<script>
-  $(document).ready(function () {
-    $(".machine").on("click", ".add-assembly-btn", function () {
-      const assembly = $("#assembly-template").prop("content").cloneNode(true);
-      $(this).siblings(".assemblies").append(assembly);
-    });
-
-    $(".machine").on("click", ".add-part-btn", function () {
-      const part = $("#part-template").prop("content").cloneNode(true);
-      $(this).siblings(".parts").append(part);
-    });
-  });
-
-  function buildAssemblyTree($element) {
-    const name = $element.children('input[name="assembly_name"]').val().trim();
-    if (!name) return null; // Пропускаем пустую сборку
-
-    const parts = [];
-    $element
-      .children(".parts")
-      .children(".part")
-      .each(function () {
-        const partName = $(this).find('input[name="part_name"]').val().trim();
-        if (partName) {
-          parts.push({ name: partName });
-        }
-      });
-
-    const subAssemblies = [];
-    $element
-      .children(".assemblies")
-      .children(".assembly")
-      .each(function () {
-        const child = buildAssemblyTree($(this));
-        if (child) subAssemblies.push(child);
-      });
-
-    return { name, parts, sub_assemblies: subAssemblies };
-  }
-
-  function submitData() {
-    const machineName = $("#machine-name").val();
-    const assemblies = [];
-
-    $(".machine > .assemblies > .assembly").each(function () {
-      assemblies.push(buildAssemblyTree($(this)));
-    });
-
-    const payload = {
-      name: machineName,
-      assemblies,
-    };
-
-    console.log("Submitting payload:", payload);
-
-    fetch('{% url "save_all_objects" %}', {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": "{{ csrf_token }}",
-      },
-      body: JSON.stringify({ machine: payload }),
-    })
-      .then((res) => res.json())
-      .then((data) => alert("Saved successfully!"))
-      .catch((err) => alert("Error saving: " + err));
-  }
-</script>
 {% endblock %}
+
+{% block extra_scripts %}
+<script>
+  const saveUrl = "{% url 'save_all_objects' %}";
+  const csrfToken = "{{ csrf_token }}";
+</script>
+<script src="{% static 'core/js/manage.js' %}"></script>
+{% endblock %}
+
+

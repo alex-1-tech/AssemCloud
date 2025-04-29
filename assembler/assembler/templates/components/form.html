@@ -1,0 +1,9 @@
+<form method="get" class="mb-4">
+  <input
+    type="text"
+    name="q"
+    class="form-control"
+    placeholder="{{ placeholder }}"
+    value="{{ query|default_if_none:'' }}"
+  />
+</form>

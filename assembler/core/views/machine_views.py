@@ -1,8 +1,18 @@
 from django.views.generic import ListView, CreateView
 from django.urls import reverse_lazy
-from core.models import Machine
+from core.models import Machine, Assembly, Part
 from core.forms import MachineForm
+from django.db.models import Prefetch
 
+def recursive_assembly_prefetch():
+    return Prefetch(
+        'sub_assemblies',
+        queryset=Assembly.objects.all().prefetch_related(
+            'part_set',
+            Prefetch('sub_assemblies', queryset=Assembly.objects.all().prefetch_related('part_set'))
+        ),
+        to_attr='prefetched_sub_assemblies'
+    )
 
 class MachineListView(ListView):
     model = Machine
@@ -11,10 +21,19 @@ class MachineListView(ListView):
 
     def get_queryset(self):
         query = self.request.GET.get("q", "")
-        return (
-            Machine.objects.filter(name__icontains=query)
-            if query
-            else Machine.objects.all()
+        qs = Machine.objects.all()
+        if query:
+            qs = qs.filter(name__icontains=query)
+
+        return qs.prefetch_related(
+            Prefetch(
+                'assembly_set',
+                queryset=Assembly.objects.filter(parent_assembly__isnull=True).prefetch_related(
+                    'part_set',
+                    recursive_assembly_prefetch()
+                ),
+                to_attr='root_assemblies'
+            )
         )
 
     def get_context_data(self, **kwargs):

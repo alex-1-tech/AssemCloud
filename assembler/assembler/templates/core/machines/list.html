@@ -1,20 +1,48 @@
-{% extends 'base.html' %} {% block content %}
-<h2>Machines</h2>
-<form method="get" class="mb-3">
-  <input
-    type="text"
-    name="q"
-    class="form-control"
-    placeholder="Search machines..."
-    value="{{ query }}"
-  />
-</form>
-<a href="/machines/add/" class="btn btn-success mb-3">Add Machine</a>
-<ul class="list-group">
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Machines{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2>Machines</h2>
+  <a href="/machines/add/" class="btn btn-primary">+ Add</a>
+</div>
+
+{% include 'components/form.html' with placeholder="Search machines..." %}
+
+<div class="list-group">
   {% for machine in machines %}
-  <li class="list-group-item">{{ machine.name }}</li>
+    <div class="list-group-item">
+      <div class="d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">{{ machine.name }}</h5>
+        <button class="btn btn-sm btn-outline-info toggle-info" data-id="{{ machine.id }}" title="Show Details">
+          <i class="bi bi-chevron-down"></i>
+        </button>
+      </div>
+
+      <div id="machine-details-{{ machine.id }}" class="machine-details collapse mt-2">
+        {% if machine.assembly_set.all %}
+          <ul class="list-group list-group-flush">
+            {% for assembly in machine.assembly_set.all %}
+              {% if not assembly.parent_assembly %}
+                {% include "components/assembly_tree.html" with assembly=assembly %}
+              {% endif %}
+            {% endfor %}
+          </ul>
+        {% else %}
+          <div class="text-muted mt-2">No assemblies for this machine.</div>
+        {% endif %}
+      </div>
+    </div>
   {% empty %}
-  <li class="list-group-item">No machines found.</li>
+    <div class="text-muted">No machines found.</div>
   {% endfor %}
-</ul>
+</div>
 {% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'core/js/machines.js' %}"></script>
+{% endblock %}
+
+

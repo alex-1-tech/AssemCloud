@@ -22,11 +22,14 @@ def create_assembly(data, machine, parent_assembly=None):
             )
 
     for sub in data.get("sub_assemblies", []):
+        print("Second init:", sub, assembly)
         create_assembly(sub, machine, assembly)
 
 
 def save_machine(machine_data):
+    print(machine_data)
     machine = Machine.objects.create(name=machine_data["name"])
     for assembly in machine_data.get("assemblies", []):
+        print("First init:", assembly)
         create_assembly(assembly, machine)
     return machine

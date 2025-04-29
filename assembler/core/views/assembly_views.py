@@ -13,13 +13,14 @@ class AssemblyListView(ListView):
     def get_queryset(self):
         query = self.request.GET.get("q", "")
         qs = Assembly.objects.select_related("machine", "parent_assembly")
-        return (
+        qs = (
             qs.filter(
                 Q(name__icontains=query) | Q(machine__name__icontains=query)
             )
             if query
             else qs
         )
+        return qs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
