@@ -1,3 +1,7 @@
+html {
+    overflow-y: scroll;
+}
+
 body {
     background: #fff;
     font-family: 'Helvetica Neue', sans-serif;
@@ -72,4 +76,40 @@ h3 {
     max-width: 800px;
     margin: 0 auto;
     padding: 2rem 1rem;
+}
+
+.list-group-item {
+    border: none;
+    border-bottom: 1px solid #f0f0f0;
+    padding: 8px 0;
+    font-size: 14px;
+}
+
+.list-group-item strong {
+    font-weight: 500;
+}
+
+.machine-details ul {
+    border-left: 2px solid #eee;
+    padding-left: 10px;
+    margin-top: 4px;
+    margin-bottom: 0;
+}
+
+.machine-details li {
+    margin-bottom: 4px;
+}
+
+.machine-details li:last-child {
+    margin-bottom: 0;
+}
+
+.machine-details {
+    overflow-anchor: none;
+    transition: all 0.3s ease;
+}
+
+.list-group-item {
+    margin-bottom: 10px;
+    transition: margin 0.2s ease;
 }

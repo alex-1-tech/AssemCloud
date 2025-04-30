@@ -1,17 +1,17 @@
-<li class="list-group-item">
-  <strong>{{ assembly.name }}</strong>
+<li class="list-group-item py-1 px-0 border-0">
+  <strong class="text-dark small">{{ assembly.name }}</strong>
 
   {% if assembly.part_set.all %}
-    <ul class="list-unstyled ms-3">
+    <ul class="list-unstyled ms-3 mb-1">
       {% for part in assembly.part_set.all %}
-        <li>{{ part.name }}</li>
+        <li class="text-muted small">{{ part.name }}</li>
       {% endfor %}
     </ul>
   {% endif %}
 
   {% with sub_assemblies=assembly.sub_assemblies.all %}
     {% if sub_assemblies %}
-      <ul class="list-group ms-3 mt-2">
+      <ul class="list-group ms-3 mt-1 mb-0">
         {% for sub_assembly in sub_assemblies %}
           {% include 'components/assembly_tree.html' with assembly=sub_assembly %}
         {% endfor %}
