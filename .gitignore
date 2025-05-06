@@ -23,7 +23,7 @@ build/
 *.tmp
 
 # Django migrations (если не хотите трекать)
-**/migrations/
+# **/migrations/
 !**/migrations/__init__.py
 
 # Virtual Environments
