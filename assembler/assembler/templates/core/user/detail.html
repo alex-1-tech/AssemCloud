@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block title %}Профиль{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-body">
+    <h2 class="card-title">Профиль</h2>
+    <p><strong>Имя:</strong> {{ user_profile.first_name }}</p>
+    <p><strong>Фамилия:</strong> {{ user_profile.last_name }}</p>
+    <p><strong>Email:</strong> {{ user_profile.email }}</p>
+    <p><strong>Телефон:</strong> {{ user_profile.phone }}</p>
+    <p><strong>Адрес:</strong> {{ user_profile.address }}</p>
+    <p><strong>Дата регистрации:</strong> {{ user_profile.date_joined|date:"d.m.Y H:i" }}</p>
+
+    <a href="{% url 'user_edit' %}" class="btn btn-secondary mt-3">Редактировать</a>
+  </div>
+</div>
+{% endblock %}

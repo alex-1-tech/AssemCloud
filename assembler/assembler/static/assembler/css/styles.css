@@ -89,26 +89,6 @@ h3 {
     font-weight: 500;
 }
 
-.machine-details ul {
-    border-left: 2px solid #eee;
-    padding-left: 10px;
-    margin-top: 4px;
-    margin-bottom: 0;
-}
-
-.machine-details li {
-    margin-bottom: 4px;
-}
-
-.machine-details li:last-child {
-    margin-bottom: 0;
-}
-
-.machine-details {
-    overflow-anchor: none;
-    transition: all 0.3s ease;
-}
-
 .list-group-item {
     margin-bottom: 10px;
     transition: margin 0.2s ease;

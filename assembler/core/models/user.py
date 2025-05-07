@@ -61,28 +61,28 @@ class User(ReprMixin, NormalizeMixin, AbstractBaseUser, PermissionsMixin):
     """
 
     # Имя пользователя (обязательное поле).
-    first_name = models.CharField(max_length=100)
+    first_name = models.CharField(_("Имя"), max_length=100)
     
     # Фамилия пользователя (обязательное поле).
-    last_name = models.CharField(max_length=100)
+    last_name = models.CharField(_("Фамилия"), max_length=100)
     
     # Электронная почта пользователя (уникальное поле).
-    email = models.EmailField(unique=True, blank=False, null=False)
+    email = models.EmailField(_("Почта"), unique=True, blank=False, null=False)
     
     # Телефон пользователя (необязательное поле с валидацией).
-    phone = models.CharField(max_length=20, blank=True, validators=[PHONE_VALIDATOR])
+    phone = models.CharField(_("Телефон"), max_length=20, blank=True, validators=[PHONE_VALIDATOR])
 
     # Адрес пользователя (необязательное поле).
-    address = models.TextField(blank=True)
+    address = models.TextField(_("Адрес"), blank=True)
     
     # Флаг активности пользователя (по умолчанию True).
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(_("Активен"), default=True)
     
     # Флаг того, является ли пользователь сотрудником (по умолчанию False).
-    is_staff = models.BooleanField(default=False)
+    is_staff = models.BooleanField(_("Сотрудник"), default=False)
     
     # Дата регистрации пользователя (по умолчанию текущая дата и время).
-    date_joined = models.DateTimeField(default=timezone.now)
+    date_joined = models.DateTimeField(_("Дата регистрации"), default=timezone.now)
 
     # Менеджер для работы с пользователями.
     objects = UserManager()
@@ -124,3 +124,5 @@ class User(ReprMixin, NormalizeMixin, AbstractBaseUser, PermissionsMixin):
 
     class Meta:
         db_table = 'users'
+        verbose_name = "Пользователь"
+        verbose_name_plural = "Пользователи"

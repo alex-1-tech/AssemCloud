@@ -2,10 +2,14 @@
   <div class="container">
     <a class="navbar-brand" href="/">AssemblyCloud</a>
     <div>
-      <a class="nav-link d-inline" href="/machines/">Machines</a>
-      <a class="nav-link d-inline" href="/assemblies/">Assemblies</a>
-      <a class="nav-link d-inline" href="/parts/">Parts</a>
-      <a class="nav-link d-inline" href="/manage/">Manage</a>
+      <a class="nav-link d-inline" href="{% url 'user_profile' %}">Профиль</a>
+      <a class="nav-link d-inline" href="{% url 'user_edit' %}">Редактировать</a>
+      <a class="nav-link d-inline" href="{% url 'password_change' %}">Сменить пароль</a>
+      {% if user.is_authenticated %}
+        <a href="{% url 'logout' %}" class="btn btn-outline-danger">Выйти</a>
+      {% else %}
+        <a href="{% url 'login' %}" class="btn btn-outline-success">Войти</a>
+      {% endif %}
     </div>
   </div>
 </nav>
