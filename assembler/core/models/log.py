@@ -1,4 +1,5 @@
-from core.models.base import _, models, ReprMixin
+from core.models.base import ReprMixin, _, models
+
 
 class ChangesLog(ReprMixin, models.Model):
     """
@@ -33,19 +34,23 @@ class ChangesLog(ReprMixin, models.Model):
 
     # Ссылка на пользователя, который произвёл изменение
     changed_by = models.ForeignKey(
-        'User', on_delete=models.SET_NULL, null=True, blank=True, verbose_name=_("Пользователь, который изменил")
+        "User",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name=_("Пользователь, который изменил"),
     )
 
     def __str__(self):
         return f"Change Log {self.log_id} | {self.table_name} - {self.column_name}"
 
     class Meta:
-        db_table = 'changes_log'
+        db_table = "changes_log"
         verbose_name = _("Журнал изменений")
         verbose_name_plural = _("Журналы изменений")
-        ordering = ['-changed_on']
+        ordering = ["-changed_on"]
         indexes = [
-            models.Index(fields=['table_name']),
-            models.Index(fields=['record_id']),
-            models.Index(fields=['changed_on']),
+            models.Index(fields=["table_name"]),
+            models.Index(fields=["record_id"]),
+            models.Index(fields=["changed_on"]),
         ]

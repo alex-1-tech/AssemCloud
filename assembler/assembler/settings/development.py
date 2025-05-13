@@ -1,15 +1,15 @@
 from .base import *
 
 DEBUG = True
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ["*"]
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'assembler_db',
-        'USER': 'alex',
-        'PASSWORD': 'ysn;r35',
-        'HOST': 'localhost',
-        'PORT': '3306',
+    "default": {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": "assembler_db",
+        "USER": "alex",
+        "PASSWORD": config("PASSWORD"),
+        "HOST": "localhost",
+        "PORT": "3306",
     }
 }

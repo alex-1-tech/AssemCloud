@@ -1,4 +1,4 @@
-from core.models.base import _, models, NormalizeMixin, ReprMixin
+from core.models.base import NormalizeMixin, ReprMixin, _, models
 from core.models.client import Client
 
 
@@ -18,21 +18,26 @@ class Machine(ReprMixin, NormalizeMixin, models.Model):
     version = models.CharField(_("Версия машины"), max_length=50)
 
     # Множество клиентов, связанных с данной машиной. Используется промежуточная модель MachineClient.
-    clients = models.ManyToManyField(Client, through='MachineClient', related_name='machines', verbose_name=_("Клиент"))
-   
+    clients = models.ManyToManyField(
+        Client,
+        through="MachineClient",
+        related_name="machines",
+        verbose_name=_("Клиент"),
+    )
+
     def __str__(self):
         return f"{self.name} #{self.pk} — Версия {self.version or 'N/A'}"
 
     class Meta:
-        db_table = 'machines'
-        verbose_name = _('Машина')
-        verbose_name_plural = _('Машины')
+        db_table = "machines"
+        verbose_name = _("Машина")
+        verbose_name_plural = _("Машины")
         constraints = [
             models.UniqueConstraint(
-                fields=["name", "version"],
-                name='unique_name_per_version'
+                fields=["name", "version"], name="unique_name_per_version"
             )
         ]
+
 
 class MachineClient(ReprMixin, models.Model):
     """
@@ -44,13 +49,19 @@ class MachineClient(ReprMixin, models.Model):
     """
 
     # Ссылка на модель машины
-    machine = models.ForeignKey(Machine, on_delete=models.CASCADE, verbose_name=_("Машина"))
+    machine = models.ForeignKey(
+        Machine, on_delete=models.CASCADE, verbose_name=_("Машина")
+    )
 
     # Ссылка на модель клиента
-    client = models.ForeignKey(Client, on_delete=models.CASCADE, verbose_name=_("Клиент"))
+    client = models.ForeignKey(
+        Client, on_delete=models.CASCADE, verbose_name=_("Клиент")
+    )
 
     # Дата и время добавления этой связи
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Дата добавления"))
+    created_at = models.DateTimeField(
+        auto_now_add=True, verbose_name=_("Дата добавления")
+    )
 
     # Комментарий, который можно оставить к связи
     comment = models.TextField(blank=True, verbose_name=_("Комментарий"))
@@ -59,7 +70,7 @@ class MachineClient(ReprMixin, models.Model):
         return f"{self.client} <-> {self.machine}"
 
     class Meta:
-        db_table = 'machine_clients'
+        db_table = "machine_clients"
         verbose_name = _("Связь Машина-Клиент")
         verbose_name_plural = _("Связи Машина-Клиент")
-        unique_together = ('machine', 'client')
+        unique_together = ("machine", "client")

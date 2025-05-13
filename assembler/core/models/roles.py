@@ -1,5 +1,6 @@
-from core.models.base import _, models, NormalizeMixin, ReprMixin
+from core.models.base import NormalizeMixin, ReprMixin, _, models
 from core.models.user import User
+
 
 class Role(ReprMixin, NormalizeMixin, models.Model):
     """
@@ -9,10 +10,10 @@ class Role(ReprMixin, NormalizeMixin, models.Model):
     Роли могут включать информацию о названии и описание, что помогает системно
     классифицировать права доступа и обязанности пользователей.
     """
-    
+
     # Название роли (уникальное).
     name = models.CharField(_("Название роли"), max_length=50, unique=True)
-    
+
     # Описание роли (необязательное поле).
     description = models.TextField(_("Описание роли"), blank=True)
 
@@ -20,10 +21,10 @@ class Role(ReprMixin, NormalizeMixin, models.Model):
         return self.name
 
     class Meta:
-        db_table = 'roles'
-        verbose_name = _('Роль')
-        verbose_name_plural = _('Роли')
-        ordering = ['name']
+        db_table = "roles"
+        verbose_name = _("Роль")
+        verbose_name_plural = _("Роли")
+        ordering = ["name"]
 
 
 class UserRole(ReprMixin, models.Model):
@@ -36,11 +37,11 @@ class UserRole(ReprMixin, models.Model):
     """
 
     # Связь с моделью 'User', указывающая, какой пользователь имеет эту роль.
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='roles')
-    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="roles")
+
     # Связь с моделью 'Role', указывающая, какую роль имеет пользователь.
-    role = models.ForeignKey(Role, on_delete=models.CASCADE, related_name='users')
-    
+    role = models.ForeignKey(Role, on_delete=models.CASCADE, related_name="users")
+
     # Описание роли для конкретного пользователя (необязательное поле).
     role_description = models.TextField(_("Индивидуальное описание роли"), blank=True)
 
@@ -48,9 +49,9 @@ class UserRole(ReprMixin, models.Model):
         return f"{self.user} — {self.role}"
 
     class Meta:
-        db_table = 'user_roles'
+        db_table = "user_roles"
         verbose_name = _("Связь Роль-Пользователь")
         verbose_name_plural = _("Связи Роль-Пользователь")
         constraints = [
-            models.UniqueConstraint(fields=['user', 'role'], name='unique_user_role')
+            models.UniqueConstraint(fields=["user", "role"], name="unique_user_role")
         ]

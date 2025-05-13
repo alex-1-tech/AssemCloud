@@ -1,5 +1,21 @@
 from .user import (
-    UserRegisterView, UserLoginView, UserUpdateView,
-    UserDetailView, UserPasswordChangeView, verify_email_view,
-    ResendVerificationView, CustomPasswordResetConfirmView,
+    CustomPasswordResetConfirmView,
+    ResendVerificationView,
+    UserDetailView,
+    UserLoginView,
+    UserPasswordChangeView,
+    UserRegisterView,
+    UserUpdateView,
+    verify_email_view,
 )
+
+__all__ = [
+    CustomPasswordResetConfirmView,
+    ResendVerificationView,
+    UserDetailView,
+    UserLoginView,
+    UserPasswordChangeView,
+    UserRegisterView,
+    UserUpdateView,
+    verify_email_view,
+]

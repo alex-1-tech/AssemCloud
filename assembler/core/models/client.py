@@ -1,4 +1,5 @@
-from core.models.base import _, models, NormalizeMixin, PHONE_VALIDATOR, ReprMixin
+from core.models.base import PHONE_VALIDATOR, NormalizeMixin, ReprMixin, _, models
+
 
 class Client(ReprMixin, NormalizeMixin, models.Model):
     """
@@ -18,13 +19,13 @@ class Client(ReprMixin, NormalizeMixin, models.Model):
         return f"{self.name} ({self.country})" if self.country else self.name
 
     class Meta:
-        db_table = 'clients'
+        db_table = "clients"
         verbose_name = _("Клиент")
         verbose_name_plural = _("Клиенты")
-        ordering = ['name']
+        ordering = ["name"]
         indexes = [
-            models.Index(fields=['name']),
-            models.Index(fields=['country']),
+            models.Index(fields=["name"]),
+            models.Index(fields=["country"]),
         ]
 
 
@@ -49,7 +50,7 @@ class Manufacturer(ReprMixin, NormalizeMixin, models.Model):
         return f"{self.name} ({self.country})" if self.country else self.name
 
     class Meta:
-        db_table = 'manufacturers'
+        db_table = "manufacturers"
         verbose_name = _("Производитель")
         verbose_name_plural = _("Производители")
-        ordering = ['name']
+        ordering = ["name"]

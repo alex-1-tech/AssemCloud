@@ -1,24 +1,30 @@
-from django.shortcuts import redirect, render
-from django.views import View
-from django.views.generic.edit import FormView, UpdateView
-from django.views.generic.detail import DetailView
-from django.urls import reverse_lazy
-from django.contrib.auth import login
-from django.contrib.auth.views import PasswordChangeView, PasswordResetConfirmView
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
+from django.contrib.auth import login
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.views import PasswordChangeView, PasswordResetConfirmView
+from django.shortcuts import redirect, render
+from django.urls import reverse_lazy
+from django.views import View
+from django.views.generic.detail import DetailView
+from django.views.generic.edit import FormView, UpdateView
+
+from core.forms import (
+    UserLoginForm,
+    UserPasswordChangeForm,
+    UserRegistrationForm,
+    UserSetPasswordForm,
+    UserUpdateForm,
+)
 from core.models import User
 from core.services import send_verification_email, verify_email
-from core.forms import (
-    UserRegistrationForm, UserLoginForm, UserUpdateForm, 
-    UserPasswordChangeForm, UserSetPasswordForm,
-)
+
 
 class UserRegisterView(FormView):
     """
     Представление для регистрации пользователя с использованием формы `UserRegistrationForm`.
     Отображает форму регистрации и обрабатывает её отправку.
     """
+
     template_name = "core/user/register.html"
     form_class = UserRegistrationForm
     success_url = reverse_lazy("user_profile")
@@ -29,14 +35,19 @@ class UserRegisterView(FormView):
         """
         user = form.save()
         send_verification_email(user, self.request)
-        messages.success(self.request, "Вы успешно зарегистрированы. Подтвердите email по ссылке, отправленной на почту.")
+        messages.success(
+            self.request,
+            "Вы успешно зарегистрированы. Подтвердите email по ссылке, отправленной на почту.",
+        )
         return super().form_valid(form)
+
 
 class UserLoginView(FormView):
     """
     Класс-представление для входа пользователя в систему.
     Использует форму `UserLoginForm` и метод `login` из Django.
     """
+
     template_name = "core/user/login.html"
     form_class = UserLoginForm
     success_url = reverse_lazy("user_profile")
@@ -56,6 +67,7 @@ class UserLoginView(FormView):
             return redirect(next_url)
         return super().form_valid(form)
 
+
 class UserUpdateView(LoginRequiredMixin, UpdateView):
     """
     Представление для редактирования профиля текущего пользователя.
@@ -66,18 +78,20 @@ class UserUpdateView(LoginRequiredMixin, UpdateView):
     form_class = UserUpdateForm
     template_name = "core/user/edit.html"
     success_url = reverse_lazy("user_profile")
-    
+
     def get_object(self, queryset=None):
         """
         Возвращает текущего пользователя вместо поиска по ID.
         """
         return self.request.user
 
+
 class UserDetailView(LoginRequiredMixin, DetailView):
     """
     Представление для отображения профиля текущего пользователя.
     Использует DetailView, доступно только авторизованным пользователям.
     """
+
     model = User
     template_name = "core/user/detail.html"
     context_object_name = "user_profile"
@@ -87,11 +101,12 @@ class UserDetailView(LoginRequiredMixin, DetailView):
         Возвращает текущего авторизованного пользователя.
         """
         return self.request.user
-    
+
     def get_context_data(self, **kwargs):
         contex = super().get_context_data(**kwargs)
         contex["user_roles"] = self.request.user.roles.select_related("role")
         return contex
+
 
 class UserPasswordChangeView(PasswordChangeView):
     """
@@ -110,17 +125,19 @@ class UserPasswordChangeView(PasswordChangeView):
         """
         return super().form_valid(form)
 
-def verify_email_view(request, token):
+
+def verify_email_view(request, uidb64, token):
     """
     Представление для верификации почты.
     """
-    return verify_email(request, token)
+    return verify_email(request, uidb64, token)
 
 
 class ResendVerificationView(View):
     """
     Представления для повторного запроса письма верификации почты.
     """
+
     def get(self, request):
         return render(request, "core/user/resend_verification.html")
 
@@ -137,6 +154,7 @@ class ResendVerificationView(View):
         else:
             messages.error(request, "Пользователь с таким email не найден.")
         return redirect("login")
+
 
 class CustomPasswordResetConfirmView(PasswordResetConfirmView):
     form_class = UserSetPasswordForm

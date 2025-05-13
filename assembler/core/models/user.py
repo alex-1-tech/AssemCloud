@@ -1,7 +1,16 @@
+from django.contrib.auth.models import (
+    AbstractBaseUser,
+    BaseUserManager,
+    Group,
+    PermissionsMixin,
+)
+from django.db import models
 from django.urls import reverse
 from django.utils import timezone
-from core.models.base import _, models, NormalizeMixin, PHONE_VALIDATOR, normalize_email, ReprMixin
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.utils.translation import gettext_lazy as _
+
+from core.models.base import PHONE_VALIDATOR, NormalizeMixin, ReprMixin, normalize_email
+
 
 class UserManager(BaseUserManager):
     """
@@ -22,7 +31,7 @@ class UserManager(BaseUserManager):
         :return: Созданный пользователь.
         """
         if not email:
-            raise ValueError(_('Email обязателен'))
+            raise ValueError(_("Email обязателен"))
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)  # Создание пользователя.
         user.set_password(password)
@@ -54,33 +63,44 @@ class User(ReprMixin, NormalizeMixin, AbstractBaseUser, PermissionsMixin):
     """
     Кастомная модель пользователя с расширениями.
 
-    Модель пользователя, которая расширяет стандартную модель Django `AbstractBaseUser` 
-    для использования email в качестве уникального идентификатора и добавляет 
+    Модель пользователя, которая расширяет стандартную модель Django `AbstractBaseUser`
+    для использования email в качестве уникального идентификатора и добавляет
     дополнительные поля, такие как имя, фамилия, телефон, адрес и статус.
     Также включает методы для работы с именами и сохранением.
     """
 
+    groups = models.ManyToManyField(
+        Group,
+        related_name="custom_user_set",
+        related_query_name="custom_user",
+        blank=True,
+        help_text="Группы, к которым принадлежит пользователь.",
+        verbose_name="группы",
+    )
+
     # Имя пользователя (обязательное поле).
     first_name = models.CharField(_("Имя"), max_length=100)
-    
+
     # Фамилия пользователя (обязательное поле).
     last_name = models.CharField(_("Фамилия"), max_length=100)
-    
+
     # Электронная почта пользователя (уникальное поле).
     email = models.EmailField(_("Почта"), unique=True, blank=False, null=False)
-    
+
     # Телефон пользователя (необязательное поле с валидацией).
-    phone = models.CharField(_("Телефон"), max_length=20, blank=True, validators=[PHONE_VALIDATOR])
+    phone = models.CharField(
+        _("Телефон"), max_length=20, blank=True, validators=[PHONE_VALIDATOR]
+    )
 
     # Адрес пользователя (необязательное поле).
     address = models.TextField(_("Адрес"), blank=True)
-    
+
     # Флаг активности пользователя (по умолчанию True).
     is_active = models.BooleanField(_("Активен"), default=True)
-    
+
     # Флаг того, является ли пользователь сотрудником (по умолчанию False).
     is_staff = models.BooleanField(_("Сотрудник"), default=False)
-    
+
     # Дата регистрации пользователя (по умолчанию текущая дата и время).
     date_joined = models.DateTimeField(_("Дата регистрации"), default=timezone.now)
 
@@ -91,10 +111,10 @@ class User(ReprMixin, NormalizeMixin, AbstractBaseUser, PermissionsMixin):
     objects = UserManager()
 
     # Поле для использования в качестве уникального идентификатора пользователя.
-    USERNAME_FIELD = 'email'
-    
+    USERNAME_FIELD = "email"
+
     # Дополнительные обязательные поля, помимо USERNAME_FIELD.
-    REQUIRED_FIELDS = ['first_name', 'last_name']
+    REQUIRED_FIELDS = ["first_name", "last_name"]
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
@@ -126,6 +146,7 @@ class User(ReprMixin, NormalizeMixin, AbstractBaseUser, PermissionsMixin):
         return self.first_name or self.email or ""
 
     class Meta:
-        db_table = 'users'
+        db_table = "users"
         verbose_name = "Пользователь"
         verbose_name_plural = "Пользователи"
+        app_label = "core"

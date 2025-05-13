@@ -1,5 +1,13 @@
-from core.models.base import _, models, TimeStampedModelWithUser, NormalizeMixin, ReprMixin
 from django.core.validators import MinLengthValidator
+
+from core.models.base import (
+    NormalizeMixin,
+    ReprMixin,
+    TimeStampedModelWithUser,
+    _,
+    models,
+)
+
 
 class Module(ReprMixin, NormalizeMixin, TimeStampedModelWithUser):
     """
@@ -13,19 +21,19 @@ class Module(ReprMixin, NormalizeMixin, TimeStampedModelWithUser):
 
     # Связь с моделью 'Machine'. Машина, к которой относится модуль.
     machine = models.ForeignKey(
-        'Machine',
+        "Machine",
         on_delete=models.CASCADE,
-        related_name='modules',
-        verbose_name=_("Машина")
+        related_name="modules",
+        verbose_name=_("Машина"),
     )
 
     # Связь с моделью 'Blueprint'. Каждый модуль связан с конкретным чертежом.
     blueprint = models.OneToOneField(
-        'Blueprint',
+        "Blueprint",
         on_delete=models.CASCADE,
         null=True,
         blank=True,
-        verbose_name=_("Чертёж")
+        verbose_name=_("Чертёж"),
     )
 
     # Артикул модуля. Уникальное поле с минимальной длиной 3 символа.
@@ -35,7 +43,7 @@ class Module(ReprMixin, NormalizeMixin, TimeStampedModelWithUser):
         unique=True,
         null=True,
         blank=True,
-        validators=[MinLengthValidator(3)]
+        validators=[MinLengthValidator(3)],
     )
 
     # Серийный номер модуля (обязательное поле).
@@ -52,12 +60,12 @@ class Module(ReprMixin, NormalizeMixin, TimeStampedModelWithUser):
 
     # Родительский модуль (если данный модуль является подмодулем).
     parent = models.ForeignKey(
-        'self',
+        "self",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='submodules',
-        verbose_name=_("Родительский модуль")
+        related_name="submodules",
+        verbose_name=_("Родительский модуль"),
     )
 
     # Версия модуля (обязательное поле).
@@ -67,36 +75,32 @@ class Module(ReprMixin, NormalizeMixin, TimeStampedModelWithUser):
     )
 
     # Описание модуля (необязательное поле).
-    description = models.TextField(
-        _("Описание"),
-        null=True,
-        blank=True
-    )
+    description = models.TextField(_("Описание"), null=True, blank=True)
 
     # Статус модуля. Возможные значения: в разработке, завершен, отменен.
     class ModuleStatus(models.TextChoices):
-        IN_PROGRESS = 'in_progress', _('В разработке')
-        COMPLETED = 'completed', _('Завершен')
-        CANCELLED = 'cancelled', _('Отменен')
+        IN_PROGRESS = "in_progress", _("В разработке")
+        COMPLETED = "completed", _("Завершен")
+        CANCELLED = "cancelled", _("Отменен")
 
     module_status = models.CharField(
         _("Статус"),
         max_length=20,
         choices=ModuleStatus.choices,
-        default=ModuleStatus.IN_PROGRESS
+        default=ModuleStatus.IN_PROGRESS,
     )
 
     def __str__(self):
         return f"{self.name or 'Без названия'} (S/N: {self.serial or 'нет'})"
 
     class Meta:
-        db_table = 'modules'
-        ordering = ['-updated_on']
+        db_table = "modules"
+        ordering = ["-updated_on"]
         verbose_name = _("Модуль")
         verbose_name_plural = _("Модули")
         indexes = [
-            models.Index(fields=['serial']),
-            models.Index(fields=['part_number']),
-            models.Index(fields=['name']),
-            models.Index(fields=['machine', 'serial']),
+            models.Index(fields=["serial"]),
+            models.Index(fields=["part_number"]),
+            models.Index(fields=["name"]),
+            models.Index(fields=["machine", "serial"]),
         ]
