@@ -1,13 +1,17 @@
+from django.shortcuts import redirect, render
+from django.views import View
 from django.views.generic.edit import FormView, UpdateView
 from django.views.generic.detail import DetailView
 from django.urls import reverse_lazy
-from core.models import User
-from django.shortcuts import redirect
 from django.contrib.auth import login
-from django.contrib.auth.views import PasswordChangeView
+from django.contrib.auth.views import PasswordChangeView, PasswordResetConfirmView
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib import messages
+from core.models import User
+from core.services import send_verification_email, verify_email
 from core.forms import (
-    UserRegistrationForm, UserLoginForm, UserUpdateForm, UserPasswordChangeForm
+    UserRegistrationForm, UserLoginForm, UserUpdateForm, 
+    UserPasswordChangeForm, UserSetPasswordForm,
 )
 
 class UserRegisterView(FormView):
@@ -23,7 +27,9 @@ class UserRegisterView(FormView):
         """
         Если форма прошла валидацию — сохранить пользователя и продолжить обработку.
         """
-        form.save()
+        user = form.save()
+        send_verification_email(user, self.request)
+        messages.success(self.request, "Вы успешно зарегистрированы. Подтвердите email по ссылке, отправленной на почту.")
         return super().form_valid(form)
 
 class UserLoginView(FormView):
@@ -39,7 +45,12 @@ class UserLoginView(FormView):
         """
         Если форма прошла валидацию — логинить пользователя и продолжить обработку.
         """
-        login(self.request, form.user)
+        user = form.user
+
+        # Логин
+        login(self.request, user)
+
+        # Редирект
         next_url = self.request.GET.get("next")
         if next_url:
             return redirect(next_url)
@@ -76,6 +87,11 @@ class UserDetailView(LoginRequiredMixin, DetailView):
         Возвращает текущего авторизованного пользователя.
         """
         return self.request.user
+    
+    def get_context_data(self, **kwargs):
+        contex = super().get_context_data(**kwargs)
+        contex["user_roles"] = self.request.user.roles.select_related("role")
+        return contex
 
 class UserPasswordChangeView(PasswordChangeView):
     """
@@ -93,3 +109,34 @@ class UserPasswordChangeView(PasswordChangeView):
         Сохраняет новый пароль и вызывает logout+login при необходимости.
         """
         return super().form_valid(form)
+
+def verify_email_view(request, token):
+    """
+    Представление для верификации почты.
+    """
+    return verify_email(request, token)
+
+
+class ResendVerificationView(View):
+    """
+    Представления для повторного запроса письма верификации почты.
+    """
+    def get(self, request):
+        return render(request, "core/user/resend_verification.html")
+
+    def post(self, request):
+        email = request.POST.get("email")
+        user = User.objects.filter(email=email).first()
+
+        if user:
+            if user.is_email_verified:
+                messages.info(request, "Email уже подтверждён.")
+            else:
+                send_verification_email(user, request)
+                messages.success(request, "Письмо отправлено повторно.")
+        else:
+            messages.error(request, "Пользователь с таким email не найден.")
+        return redirect("login")
+
+class CustomPasswordResetConfirmView(PasswordResetConfirmView):
+    form_class = UserSetPasswordForm

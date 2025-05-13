@@ -84,6 +84,9 @@ class User(ReprMixin, NormalizeMixin, AbstractBaseUser, PermissionsMixin):
     # Дата регистрации пользователя (по умолчанию текущая дата и время).
     date_joined = models.DateTimeField(_("Дата регистрации"), default=timezone.now)
 
+    # Подтверждение почты пользователя
+    is_email_verified = models.BooleanField(default=False)
+
     # Менеджер для работы с пользователями.
     objects = UserManager()
 

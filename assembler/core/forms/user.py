@@ -2,7 +2,7 @@ from django import forms
 from core.models import User
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import authenticate
-from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth.forms import PasswordChangeForm, SetPasswordForm
 from django.contrib.auth.password_validation import validate_password
 
 class UserRegistrationForm(forms.ModelForm):
@@ -126,6 +126,10 @@ class UserLoginForm(forms.Form):
             user = authenticate(email=email, password=password)
             if not user:
                 raise forms.ValidationError(_("Неверный email или пароль"))
+            
+            if not getattr(user, 'is_email_verified', False):
+                raise forms.ValidationError(_("Email не подтверждён. Проверьте почту."))
+            
             self.user = user
         return cleaned_data
 
@@ -176,6 +180,12 @@ class UserPasswordChangeForm(PasswordChangeForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        labels = {
+            'old_password': 'Старый пароль',
+            'new_password1': 'Новый пароль',
+            'new_password2': 'Подтверждение нового пароля',
+        }
+
         placeholders = {
             'old_password': 'Введите текущий пароль',
             'new_password1': 'Новый пароль',
@@ -183,6 +193,31 @@ class UserPasswordChangeForm(PasswordChangeForm):
         }
 
         for name, placeholder in placeholders.items():
+            self.fields[name].label = labels.get(name, self.fields[name].label)
+            self.fields[name].widget.attrs.update({
+                'class': 'form-control',
+                'placeholder': placeholder
+            })
+
+class UserSetPasswordForm(SetPasswordForm):
+    """
+    Форма для установки нового пароля после сброса.
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        labels = {
+            'new_password1': 'Новый пароль',
+            'new_password2': 'Подтверждение нового пароля',
+        }
+
+        placeholders = {
+            'new_password1': 'Введите новый пароль',
+            'new_password2': 'Повторите новый пароль',
+        }
+
+        for name, placeholder in placeholders.items():
+            self.fields[name].label = labels.get(name)
             self.fields[name].widget.attrs.update({
                 'class': 'form-control',
                 'placeholder': placeholder

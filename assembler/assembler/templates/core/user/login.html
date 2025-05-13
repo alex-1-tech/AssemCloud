@@ -3,21 +3,44 @@
 {% block title %}Вход{% endblock %}
 
 {% block content %}
-<div class="mb-4">
-  <h2>Вход</h2>
-</div>
+<div class="row justify-content-center mt-5">
+  <div class="col-md-6">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h3 class="card-title mb-4 text-center">Вход</h3>
 
-<form method="post" class="mb-4">
-  {% csrf_token %}
-  {% for field in form %}
-    <div class="form-group mb-3">
-      {{ field.label_tag }}
-      {{ field }}
-      {% if field.errors %}
-        <div class="text-danger">{{ field.errors }}</div>
-      {% endif %}
+        <form method="post">
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+              {% for error in form.non_field_errors %}
+                <div>{{ error }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          {% for field in form %}
+            <div class="mb-3">
+              {{ field.label_tag }}
+              {{ field }}
+              {% if field.errors %}
+                <div class="text-danger small">{{ field.errors }}</div>
+              {% endif %}
+            </div>
+          {% endfor %}
+
+          <div class="d-grid mb-3">
+            <button type="submit" class="btn btn-primary">Войти</button>
+          </div>
+
+          <div class="text-center">
+            <a href="{% url 'resend_verification' %}" class="d-block small mb-1 text-warning">Запросить новое письмо</a>
+            <a href="{% url 'password_reset' %}" class="d-block small text-muted">Забыли пароль?</a>
+          </div>
+        </form>
+      </div>
     </div>
-  {% endfor %}
-  <button type="submit" class="btn btn-primary">Login</button>
-</form>
+  </div>
+</div>
 {% endblock %}

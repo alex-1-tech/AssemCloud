@@ -25,7 +25,7 @@ class ModulePartInline(admin.TabularInline):
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
-    list_display = ('email', 'first_name', 'last_name', 'is_active', 'date_joined')
+    list_display = ('email', 'first_name', 'last_name', 'is_active', 'date_joined', 'is_email_verified')
     search_fields = ('email', 'first_name', 'last_name')
     list_filter = ('is_active', 'is_staff')
     readonly_fields = ('date_joined', 'last_login')
@@ -147,7 +147,7 @@ class ModulePartAdmin(admin.ModelAdmin):
 @admin.register(ChangesLog)
 class ChangesLogAdmin(admin.ModelAdmin):
     list_display = (
-        'log_id', 'table_name', 'record_id', 'column_name',
+        'log_id', 'table_name', 'linked_id_record', 'column_name',
         'old_value', 'new_value', 'linked_user', 'changed_on',
     )
     search_fields = ('table_name', 'changed_by__email', 'changed_on')
@@ -166,10 +166,23 @@ class ChangesLogAdmin(admin.ModelAdmin):
             return format_html(
                 '<a href="/admin/core/user/{}/change/">{}</a>',
                 obj.changed_by.pk,
-                obj.changed_by.email
+                obj.changed_by.email,
             )
         return "-"
     linked_user.short_description = _("Пользователь")
+
+    # Ссылка на измененнную запись
+    def linked_id_record(self, obj):
+        if obj.record_id:
+            return format_html(
+                '<a href="/admin/core/{}/{}/change/">{}</a>',
+                obj.table_name.lower(),
+                obj.record_id,
+                obj.record_id,
+            )
+        return "-"
+    linked_id_record.short_description = _("ID записи")
+
 
     # Запрет добавления логов вручную
     def has_add_permission(self, request):

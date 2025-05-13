@@ -3,17 +3,34 @@
 {% block title %}Профиль{% endblock %}
 
 {% block content %}
-<div class="card">
-  <div class="card-body">
-    <h2 class="card-title">Профиль</h2>
-    <p><strong>Имя:</strong> {{ user_profile.first_name }}</p>
-    <p><strong>Фамилия:</strong> {{ user_profile.last_name }}</p>
-    <p><strong>Email:</strong> {{ user_profile.email }}</p>
-    <p><strong>Телефон:</strong> {{ user_profile.phone }}</p>
-    <p><strong>Адрес:</strong> {{ user_profile.address }}</p>
-    <p><strong>Дата регистрации:</strong> {{ user_profile.date_joined|date:"d.m.Y H:i" }}</p>
+<div class="row justify-content-center mt-5">
+  <div class="col-md-10">
+    <div class="card shadow-sm">
+      <div class="card-body p-5">
+        <h3 class="card-title mb-4 text-center">Профиль</h3>
+        
+        <p><strong>Имя:</strong> {{ user_profile.first_name }}</p>
+        <p><strong>Фамилия:</strong> {{ user_profile.last_name }}</p>
+        <p><strong>Email:</strong> {{ user_profile.email }}</p>
+        <p><strong>Телефон:</strong> {{ user_profile.phone }}</p>
+        <p><strong>Адрес:</strong> {{ user_profile.address }}</p>
+        <p><strong>Дата регистрации:</strong> {{ user_profile.date_joined|date:"d.m.Y H:i" }}</p>
+        <p><strong>Роли:</strong>
+            {% if user_roles %}
+              {% for user_role in user_roles %}
+                {{ user_role.role.name }}{% if not forloop.last %}, {% endif %}
+              {% endfor %}
+            {% else %}
+              Для получения роли обратитесь к администратору
+            {% endif %}
+        </p>
 
-    <a href="{% url 'user_edit' %}" class="btn btn-secondary mt-3">Редактировать</a>
+        <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+          <a href="{% url 'user_edit' %}" class="btn btn-primary btn-lg me-md-2">Редактировать</a>
+          <a href="{% url 'password_change' %}" class="btn btn-warning btn-lg">Сменить пароль</a>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 {% endblock %}
