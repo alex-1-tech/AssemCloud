@@ -7,15 +7,22 @@ from core.models.base import (
 )
 
 
-class PartManufacture(ReprMixin, TimeStampedModelWithUser):
+class Part(ReprMixin, NormalizeMixin, TimeStampedModelWithUser):
     """
-    Модель для хранения информации о производстве деталей.
+    Модель для хранения информации о детали и её производстве.
 
-    Эта модель хранит информацию о процессе производства деталей, включая данные о
-    производителе, описание детали, используемый материал и дату производства.
+    Эта модель описывает отдельную деталь, которая используется в различных модулях
+    и включает в себя всю необходимую информацию о производственном процессе, 
+    включая производителя, дату производства, материал и описание.
+
+    Используется в связке с моделью ModulePart для определения количества 
+    и размещения деталей в модулях.
     """
 
-    # Связь с моделью 'Manufacturer', указывающая, какой производитель изготовил деталь.
+    # Название детали (обязательное поле)
+    name = models.CharField(_("Название"), max_length=255)
+
+    # Связь с моделью 'Manufacturer', указывающая, кто изготовил деталь
     manufacturer = models.ForeignKey(
         "Manufacturer",
         on_delete=models.SET_NULL,
@@ -25,48 +32,17 @@ class PartManufacture(ReprMixin, TimeStampedModelWithUser):
         verbose_name=_("Производитель"),
     )
 
-    # Описание детали (необязательное поле).
+    # Описание детали (необязательное текстовое поле)
     part_description = models.TextField(_("Описание детали"), blank=True, null=True)
 
-    # Материал, из которого изготовлена деталь (необязательное поле).
+    # Материал, из которого изготовлена деталь (необязательное поле)
     material = models.CharField(_("Материал"), max_length=100, blank=True)
 
-    # Дата производства детали (необязательное поле).
+    # Дата производства детали (необязательное поле)
     manufacture_date = models.DateField(_("Дата производства"), blank=True, null=True)
 
     def __str__(self):
-        return f"{self.manufacturer or _('Без производителя')} / {self.material or _('Материал не указан')}"
-
-    class Meta:
-        db_table = "part_manufacture"
-        verbose_name = _("Описание детали")
-        verbose_name_plural = _("Описание деталей")
-        ordering = ["-manufacture_date"]
-        indexes = [models.Index(fields=["manufacture_date"])]
-
-
-class Part(ReprMixin, NormalizeMixin, TimeStampedModelWithUser):
-    """
-    Модель для хранения информации о деталях.
-
-    Модель описывает отдельную деталь, которая может быть связана с производственным процессом
-    и относится к конкретному модулю. Включает информацию о названии и производстве детали.
-    """
-
-    # Название детали.
-    name = models.CharField(_("Название"), max_length=255)
-
-    # Связь с моделью 'PartManufacture', указывающая, в рамках какого производства была изготовлена деталь.
-    part_manufacture = models.ForeignKey(
-        PartManufacture,
-        on_delete=models.SET_NULL,
-        blank=True,
-        null=True,
-        related_name="parts",
-        verbose_name=_("Производство"),
-    )
-
-    def __str__(self):
+        # Возвращает строковое представление детали — её название
         return self.name
 
     class Meta:
@@ -74,13 +50,19 @@ class Part(ReprMixin, NormalizeMixin, TimeStampedModelWithUser):
         verbose_name = _("Деталь")
         verbose_name_plural = _("Детали")
         ordering = ["name"]
+        indexes = [
+            # Индекс для оптимизации фильтрации по дате
+            models.Index(fields=["manufacture_date"]),
+        ]
+
 
 
 class ModulePart(ReprMixin, models.Model):
     """
     Модель для связывания деталей с модулями.
 
-    Эта модель представляет связь между деталью и модулем, описывая количество каждой детали,
+    Эта модель представляет связь между деталью и модулем, 
+    описывая количество каждой детали,
     которая используется в конкретном модуле.
     """
 

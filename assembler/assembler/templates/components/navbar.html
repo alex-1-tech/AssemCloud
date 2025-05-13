@@ -3,8 +3,8 @@
         <a class="navbar-brand" href="/">AssemblyCloud</a>
         <div>
             {% comment %} <a class="nav-link d-inline" href="{% url 'user_edit' %}">Редактировать</a> {% endcomment %}
-            {% comment %} <a class="nav-link d-inline" href="{% url 'password_change' %}">Сменить пароль</a> {% endcomment %}
             {% if user.is_authenticated %}
+                <a class="nav-link d-inline" href="{% url 'manufacturer_list' %}">Производители</a>
                 <a class="nav-link d-inline" href="{% url 'user_profile' %}">Профиль</a>
                 <a href="{% url 'logout' %}" class="btn btn-outline-danger">Выйти</a>
             {% else %}

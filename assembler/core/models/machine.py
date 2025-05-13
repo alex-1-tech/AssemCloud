@@ -17,7 +17,8 @@ class Machine(ReprMixin, NormalizeMixin, models.Model):
     # Версия машины (обязательное поле)
     version = models.CharField(_("Версия машины"), max_length=50)
 
-    # Множество клиентов, связанных с данной машиной. Используется промежуточная модель MachineClient.
+    # Множество клиентов, связанных с данной машиной. 
+    # Используется промежуточная модель MachineClient.
     clients = models.ManyToManyField(
         Client,
         through="MachineClient",

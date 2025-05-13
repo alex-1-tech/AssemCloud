@@ -1,4 +1,11 @@
-from .user import (
+from core.views.manufacturer import (
+    ManufacturerCreateView,
+    ManufacturerDeleteView,
+    ManufacturerDetailView,
+    ManufacturerListView,
+    ManufacturerUpdateView,
+)
+from core.views.user import (
     CustomPasswordResetConfirmView,
     ResendVerificationView,
     UserDetailView,
@@ -18,4 +25,10 @@ __all__ = [
     UserRegisterView,
     UserUpdateView,
     verify_email_view,
+
+    ManufacturerCreateView,
+    ManufacturerListView,
+    ManufacturerDetailView,
+    ManufacturerUpdateView,
+    ManufacturerDeleteView,
 ]

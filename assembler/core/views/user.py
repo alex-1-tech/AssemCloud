@@ -21,7 +21,8 @@ from core.services import send_verification_email, verify_email
 
 class UserRegisterView(FormView):
     """
-    Представление для регистрации пользователя с использованием формы `UserRegistrationForm`.
+    Представление для регистрации пользователя 
+    с использованием формы `UserRegistrationForm`.
     Отображает форму регистрации и обрабатывает её отправку.
     """
 
@@ -37,7 +38,8 @@ class UserRegisterView(FormView):
         send_verification_email(user, self.request)
         messages.success(
             self.request,
-            "Вы успешно зарегистрированы. Подтвердите email по ссылке, отправленной на почту.",
+            "Вы успешно зарегистрированы. \
+                Подтвердите email по ссылке, отправленной на почту.",
         )
         return super().form_valid(form)
 

@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}Производители{% endblock %}
+{% block content %}
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-10">
+            <div class="card shadow-sm">
+                <div class="card-body p-5">
+                    <h3 class="card-title mb-4 text-center">Список производителей</h3>
+                    {% if manufacturers %}
+                        <ul class="list-group list-group-flush">
+                            {% for manufacturer in manufacturers %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ manufacturer.name }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ manufacturer.country }}</small>
+                                    </div>
+                                    <div class="btn-group" role="group" aria-label="Действия">
+                                        <a href="{% url 'manufacturer_detail' manufacturer.pk %}"
+                                           class="btn btn-sm btn-outline-primary"
+                                           title="Просмотр">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a href="{% url 'manufacturer_edit' manufacturer.pk %}"
+                                           class="btn btn-sm btn-outline-secondary"
+                                           title="Редактировать">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <a href="{% url 'manufacturer_delete' manufacturer.pk %}"
+                                           class="btn btn-sm btn-outline-danger"
+                                           title="Удалить"
+                                           onclick="return confirm('Удалить {{ manufacturer.name }}?');">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-center text-muted">Производители не найдены.</p>
+                    {% endif %}
+                    <div class="d-grid mt-4">
+                        <a href="{% url 'manufacturer_add' %}" class="btn btn-success btn-lg">Добавить производителя</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

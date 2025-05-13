@@ -47,7 +47,8 @@ class Blueprint(ReprMixin, NormalizeMixin, models.Model):
     # Производитель, связанный с данным чертежом
     manufacturer = models.ForeignKey(
         Manufacturer,
-        on_delete=models.RESTRICT,  # Запрет на удаление производителя, если есть связанные чертежи
+        # Запрет на удаление производителя, если есть связанные чертежи
+        on_delete=models.RESTRICT,
         blank=True,
         null=True,
         verbose_name=_("Производитель"),

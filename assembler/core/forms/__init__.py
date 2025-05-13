@@ -1,4 +1,5 @@
-from .user import (
+from core.forms.manufacturer import ManufacturerForm
+from core.forms.user import (
     UserLoginForm,
     UserPasswordChangeForm,
     UserRegistrationForm,
@@ -12,4 +13,5 @@ __all__ = [
     UserRegistrationForm,
     UserSetPasswordForm,
     UserUpdateForm,
+    ManufacturerForm,
 ]

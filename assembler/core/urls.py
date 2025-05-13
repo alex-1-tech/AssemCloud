@@ -2,8 +2,13 @@ from django.contrib.auth import views as auth_views
 from django.contrib.auth.views import LogoutView as UserLogoutView
 from django.urls import path
 
-from .views import (
+from core.views import (
     CustomPasswordResetConfirmView,
+    ManufacturerCreateView,
+    ManufacturerDeleteView,
+    ManufacturerDetailView,
+    ManufacturerListView,
+    ManufacturerUpdateView,
     ResendVerificationView,
     UserDetailView,
     UserLoginView,
@@ -20,6 +25,9 @@ urlpatterns = [
     path("users/logout/", UserLogoutView.as_view(next_page="login"), name="logout"),
     path("users/edit/", UserUpdateView.as_view(), name="user_edit"),
     path("users/detail/", UserDetailView.as_view(), name="user_profile"),
+]
+
+urlpatterns += [
     # passwords
     path("password_change/", UserPasswordChangeView.as_view(), name="password_change"),
     path(
@@ -50,6 +58,9 @@ urlpatterns = [
         ),
         name="password_reset_complete",
     ),
+]
+
+urlpatterns += [
     # verify email
     path("verify/<str:uidb64>/<str:token>/", verify_email_view, name="verify_email"),
     path(
@@ -57,6 +68,37 @@ urlpatterns = [
         ResendVerificationView.as_view(),
         name="resend_verification",
     ),
+]
+
+objects = [
+    "manufacturer",
+    "part",
+]
+
+for object in objects:
+    urlpatterns += [
+        path(f"{object}s/", ManufacturerListView.as_view(), name=f"{object}_list"),
+        path(
+            f"{object}s/add/", ManufacturerCreateView.as_view(), name=f"{object}_add"
+        ),
+        path(
+            f"{object}s/<int:pk>/edit/",
+            ManufacturerUpdateView.as_view(),
+            name=f"{object}_edit",
+        ),
+        path(
+            f"{object}s/<int:pk>/",
+            ManufacturerDetailView.as_view(),
+            name=f"{object}_detail",
+        ),
+        path(
+            f"{object}s/<int:pk>/delete/",
+            ManufacturerDeleteView.as_view(),
+            name=f"{object}_delete",
+        ),
+    ]
+
+urlpatterns += [
     # other
     path("", UserRegisterView.as_view(), name="register"),
 ]

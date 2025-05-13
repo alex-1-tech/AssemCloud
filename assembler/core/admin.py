@@ -12,7 +12,6 @@ from core.models import (
     Module,
     ModulePart,
     Part,
-    PartManufacture,
     Role,
     User,
     UserRole,
@@ -175,19 +174,11 @@ class ModuleAdmin(admin.ModelAdmin):
 # =================== PART ===================
 
 
-@admin.register(PartManufacture)
-class PartManufacturerAdmin(admin.ModelAdmin):
-    list_display = ("id", "manufacturer")
-    search_fields = ("id",)
-    list_filter = ("manufacturer",)
-    autocomplete_fields = ("manufacturer",)
-
-
 @admin.register(Part)
 class PartAdmin(admin.ModelAdmin):
-    list_display = ("name", "part_manufacture")
-    search_fields = ("name__icontains",)
-    autocomplete_fields = ("part_manufacture",)
+    list_display = ("name", "manufacturer")
+    search_fields = ("name__icontains", "manufacturer",)
+    autocomplete_fields = ("manufacturer",)
 
 
 @admin.register(ModulePart)

@@ -53,7 +53,8 @@ class UserRegistrationForm(forms.ModelForm):
 
     def clean_email(self):
         """
-        Проверка на уникальность email. Если пользователь с таким email уже есть — ошибка.
+        Проверка на уникальность email.
+        Если пользователь с таким email уже есть — ошибка.
         """
         email = self.cleaned_data.get("email")
         if User.objects.filter(email=email).exists():
@@ -68,7 +69,8 @@ class UserRegistrationForm(forms.ModelForm):
     def clean(self):
         """
         Проверка совпадения паролей.
-        Если введены оба пароля, но они не совпадают — добавляется ошибка в поле password2.
+        Если введены оба пароля, 
+        но они не совпадают — добавляется ошибка в поле password2.
         """
         cleaned_data = super().clean()
 
