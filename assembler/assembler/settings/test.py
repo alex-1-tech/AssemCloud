@@ -1,11 +1,11 @@
-from .base import *
+from .base import * # noqa: F403 I001
 
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
         "NAME": "test_assembler_db",
         "USER": "alex",
-        "PASSWORD": config("PASSWORD"),
+        "PASSWORD": config("PASSWORD"), # noqa: F405
         "HOST": "localhost",
         "PORT": "3306",
     }

@@ -2,13 +2,9 @@ from django.contrib.auth import views as auth_views
 from django.contrib.auth.views import LogoutView as UserLogoutView
 from django.urls import path
 
+from core import views
 from core.views import (
     CustomPasswordResetConfirmView,
-    ManufacturerCreateView,
-    ManufacturerDeleteView,
-    ManufacturerDetailView,
-    ManufacturerListView,
-    ManufacturerUpdateView,
     ResendVerificationView,
     UserDetailView,
     UserLoginView,
@@ -18,8 +14,8 @@ from core.views import (
     verify_email_view,
 )
 
+# users
 urlpatterns = [
-    # users
     path("users/register/", UserRegisterView.as_view(), name="register"),
     path("users/login/", UserLoginView.as_view(), name="login"),
     path("users/logout/", UserLogoutView.as_view(next_page="login"), name="logout"),
@@ -27,8 +23,8 @@ urlpatterns = [
     path("users/detail/", UserDetailView.as_view(), name="user_profile"),
 ]
 
+# passwords 
 urlpatterns += [
-    # passwords
     path("password_change/", UserPasswordChangeView.as_view(), name="password_change"),
     path(
         "password_reset/",
@@ -60,8 +56,8 @@ urlpatterns += [
     ),
 ]
 
+# verify email
 urlpatterns += [
-    # verify email
     path("verify/<str:uidb64>/<str:token>/", verify_email_view, name="verify_email"),
     path(
         "users/resend-verification/",
@@ -70,33 +66,45 @@ urlpatterns += [
     ),
 ]
 
-objects = [
-    "manufacturer",
+# objects
+model_names = [
+    "manufacturer", 
     "part",
+    "blueprint",
+    "client",
+    "machine",
+    "module",
 ]
 
-for object in objects:
-    urlpatterns += [
-        path(f"{object}s/", ManufacturerListView.as_view(), name=f"{object}_list"),
-        path(
-            f"{object}s/add/", ManufacturerCreateView.as_view(), name=f"{object}_add"
-        ),
-        path(
-            f"{object}s/<int:pk>/edit/",
-            ManufacturerUpdateView.as_view(),
-            name=f"{object}_edit",
-        ),
-        path(
-            f"{object}s/<int:pk>/",
-            ManufacturerDetailView.as_view(),
-            name=f"{object}_detail",
-        ),
-        path(
-            f"{object}s/<int:pk>/delete/",
-            ManufacturerDeleteView.as_view(),
-            name=f"{object}_delete",
-        ),
-    ]
+view_types = {""
+    "list": "ListView",
+    "add": "CreateView",
+    "edit": "UpdateView",
+    "detail": "DetailView",
+    "delete": "DeleteView",
+}
+
+for model in model_names:
+    class_prefix = model.capitalize()  # "manufacturer" → "Manufacturer"
+
+    for action, suffix in view_types.items():
+        class_name = f"{class_prefix}{suffix}"  # e.g. ManufacturerListView
+        view_class = getattr(views, class_name)
+
+        if action == "list":
+            pattern = f"{model}s/"
+        elif action == "add":
+            pattern = f"{model}s/add/"
+        elif action == "edit":
+            pattern = f"{model}s/<int:pk>/edit/"
+        elif action == "detail":
+            pattern = f"{model}s/<int:pk>/"
+        elif action == "delete":
+            pattern = f"{model}s/<int:pk>/delete/"
+
+        urlpatterns.append(
+            path(pattern, view_class.as_view(), name=f"{model}_{action}")
+        )
 
 urlpatterns += [
     # other

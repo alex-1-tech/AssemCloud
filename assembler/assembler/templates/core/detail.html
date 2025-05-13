@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-10">
+            <div class="card shadow-sm">
+                <div class="card-body p-5 ">
+                    <h3 class="card-title mb-3 text-center">{{ title }}</h3>
+                    {% if fields.0.value %}<h5 class="text-center mb-4">{{ fields.0.value }}</h5>{% endif %}
+                    {% for field in fields %}
+                        <p>
+                            <strong>{{ field.label }}:</strong> {{ field.value }}
+                        </p>
+                    {% endfor %}
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-start mt-5">
+                        {% if edit_url %}<a href="{{ edit_url }}" class="btn btn-primary btn-lg me-md-2">Редактировать</a>{% endif %}
+                        {% if delete_url %}<a href="{{ delete_url }}" class="btn btn-danger btn-lg">Удалить</a>{% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -33,7 +33,7 @@ class Part(ReprMixin, NormalizeMixin, TimeStampedModelWithUser):
     )
 
     # Описание детали (необязательное текстовое поле)
-    part_description = models.TextField(_("Описание детали"), blank=True, null=True)
+    description = models.TextField(_("Описание детали"), blank=True, null=True)
 
     # Материал, из которого изготовлена деталь (необязательное поле)
     material = models.CharField(_("Материал"), max_length=100, blank=True)

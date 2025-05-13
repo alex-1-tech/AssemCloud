@@ -1,4 +1,4 @@
-from .base import *
+from .base import * # noqa: F403 I001
 
 DEBUG = False
 ALLOWED_HOSTS = ["-"]
@@ -9,7 +9,7 @@ DATABASES = {
         "ENGINE": "django.db.backends.mysql",
         "NAME": "assembler_db",
         "USER": "alex",
-        "PASSWORD": config("PASSWORD"),
+        "PASSWORD": config("PASSWORD"), # noqa: F405
         "HOST": "localhost",
         "PORT": "3306",
     }
@@ -25,4 +25,4 @@ EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = ""
-EMAIL_HOST_PASSWORD = config("")
+EMAIL_HOST_PASSWORD = config("") # noqa: F405

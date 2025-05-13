@@ -13,7 +13,9 @@ class Client(ReprMixin, NormalizeMixin, models.Model):
     country = models.CharField(_("Страна"), max_length=100)
 
     # Телефон клиента (необязательное поле, с валидацией по формату PHONE_VALIDATOR)
-    phone = models.CharField(max_length=20, blank=True, validators=[PHONE_VALIDATOR])
+    phone = models.CharField(
+        _("Телефон"), max_length=20, blank=True, validators=[PHONE_VALIDATOR]
+    )
 
     def __str__(self):
         return f"{self.name} ({self.country})" if self.country else self.name
