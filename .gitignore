@@ -22,7 +22,6 @@ build/
 *.swp
 *.tmp
 
-# Django migrations (если не хотите трекать)
 # **/migrations/
 !**/migrations/__init__.py
 
@@ -32,6 +31,7 @@ venv/
 env/
 ENV/
 .env
+**/media/
 
 # VSCode settings
 .vscode/

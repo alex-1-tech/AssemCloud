@@ -1,10 +1,10 @@
 from django.db import models
-from django.db.models.signals import pre_save
+from django.db.models.signals import post_migrate, pre_save
 from django.dispatch import receiver
 from django.forms.models import model_to_dict
 
 from core.middleware import get_current_user
-from core.models import ChangesLog
+from core.models import ChangesLog, Role
 
 
 @receiver(pre_save)
@@ -40,3 +40,27 @@ def log_model_changes(sender, instance, **kwargs):
                 new_value=str(new_value),
                 changed_by=get_current_user(),
             )
+
+@receiver(post_migrate)
+def create_roles(sender, **kwargs):
+    roles = [
+        {
+            "name": "Конструктор", 
+            "description": "Ответственный за разработку и проектирование."
+        },
+        {
+            "name": "Программист", 
+            "description": "Разрабатывает программное обеспечение для проекта."
+        },
+        {
+            "name": "Тестировщик", 
+            "description": "Проверяет систему на наличие багов и ошибок."
+        },
+        {
+            "name": "Директор", 
+            "description": "Руководит проектом и принимает ключевые решения."
+        },
+    ]
+    
+    for role in roles:
+        Role.objects.get_or_create(name=role["name"], description=role["description"])

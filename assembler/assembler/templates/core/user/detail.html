@@ -36,7 +36,8 @@
                         {% endif %}
                     </p>
                     <div class="d-grid gap-2 d-md-flex justify-content-md-start">
-                        <a href="{% url 'user_edit' %}" class="btn btn-primary btn-lg me-md-2">Редактировать</a>
+                        <a href="{% url 'user_edit' pk=user.pk %}"
+                           class="btn btn-primary btn-lg me-md-2">Редактировать</a>
                         <a href="{% url 'password_change' %}" class="btn btn-warning btn-lg">Сменить пароль</a>
                     </div>
                 </div>

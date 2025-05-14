@@ -1,3 +1,5 @@
+from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.views import LogoutView as UserLogoutView
 from django.urls import path
@@ -7,6 +9,7 @@ from core.views import (
     CustomPasswordResetConfirmView,
     ResendVerificationView,
     UserDetailView,
+    UserListView,
     UserLoginView,
     UserPasswordChangeView,
     UserRegisterView,
@@ -19,8 +22,11 @@ urlpatterns = [
     path("users/register/", UserRegisterView.as_view(), name="register"),
     path("users/login/", UserLoginView.as_view(), name="login"),
     path("users/logout/", UserLogoutView.as_view(next_page="login"), name="logout"),
-    path("users/edit/", UserUpdateView.as_view(), name="user_edit"),
-    path("users/detail/", UserDetailView.as_view(), name="user_profile"),
+    path('users/edit/<int:pk>/', UserUpdateView.as_view(), name='user_edit'),
+    path(
+        'users/detail/<int:pk>/', UserDetailView.as_view(), name='user_profile'
+        ),
+    path("users/list/", UserListView.as_view(), name="user_list"),
 ]
 
 # passwords 
@@ -108,5 +114,9 @@ for model in model_names:
 
 urlpatterns += [
     # other
-    path("", UserRegisterView.as_view(), name="register"),
+    path("", UserRegisterView.as_view(), name="machines_list"),
 ]
+
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

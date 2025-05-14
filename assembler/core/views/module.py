@@ -21,7 +21,7 @@ class ModuleListView(ListView):
         items = [
             {
                 "title": module.name,
-                "subtitle": module.serial,
+                "subtitle": "s/n: " + module.serial,
                 "view_url": reverse("module_detail", args=[module.pk]),
                 "edit_url": reverse("module_edit", args=[module.pk]),
                 "delete_url": reverse("module_delete", args=[module.pk]),

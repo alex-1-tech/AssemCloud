@@ -146,12 +146,12 @@ class UserViewsTest(TestCase):
         self.assertEqual(response.status_code, 302)
 
     def test_profile_view_unauthorized(self):
-        response = self.client.get(reverse("user_profile"))
+        response = self.client.get(reverse("user_profile", kwargs={'pk': self.user.pk}))
         self.assertEqual(response.status_code, 302)
 
     def test_profile_view_authorized(self):
         self.client.login(email="user@example.com", password="password123")
-        response = self.client.get(reverse("user_profile"))
+        response = self.client.get(reverse("user_profile", kwargs={'pk': self.user.pk}))
         self.assertEqual(response.status_code, 200)
 
     def test_update_profile_view(self):
@@ -161,7 +161,9 @@ class UserViewsTest(TestCase):
             "last_name": "Name",
             "email": "user@example.com",
         }
-        response = self.client.post(reverse("user_edit"), data)
+        response = self.client.post(
+            reverse("user_edit", kwargs={'pk': self.user.pk}), data
+        )
         self.assertEqual(response.status_code, 302)
         self.user.refresh_from_db()
         self.assertEqual(self.user.first_name, "Updated")
@@ -231,12 +233,12 @@ class AuthFlowTest(TestCase):
             reverse("login"),
             {"email": "test@example.com", "password": "complexpass123"},
         )
-        response = self.client.get(reverse("user_profile"))
+        response = self.client.get(reverse("user_profile", kwargs={'pk': user.pk}))
         self.assertEqual(response.status_code, 200)
 
         # Update profile
         self.client.post(
-            reverse("user_edit"),
+            reverse("user_edit", kwargs={'pk': user.pk}),
             {
                 "first_name": "Updated",
                 "last_name": "Name",
@@ -248,5 +250,5 @@ class AuthFlowTest(TestCase):
 
         # Logout
         self.client.logout()
-        response = self.client.get(reverse("user_profile"))
+        response = self.client.get(reverse("user_profile", kwargs={'pk': user.pk}))
         self.assertEqual(response.status_code, 302)

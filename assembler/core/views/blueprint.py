@@ -20,10 +20,10 @@ class BlueprintListView(ListView):
         context = super().get_context_data(**kwargs)
         items = [
             {
-                "title": str(bp),
+                "title": str(bp.naming_scheme) + ' - ' + str(bp.version),
                 "subtitle": (
                     f"Производитель: \
-                        {bp.manufacturer}" if bp.manufacturer else "Без производителя",
+                        {bp.manufacturer}" if bp.manufacturer else "Без производителя"
                 ),
                 "view_url": reverse("blueprint_detail", args=[bp.pk]),
                 "edit_url": reverse("blueprint_edit", args=[bp.pk]),
@@ -60,7 +60,7 @@ class BlueprintCreateView(CreateView):
 class BlueprintUpdateView(UpdateView):
     model = Blueprint
     form_class = BlueprintForm
-    template_name = "core/edit.html"
+    template_name = "core/blueprints/edit.html"
     success_url = reverse_lazy("blueprint_list")
 
     def get_context_data(self, **kwargs):
@@ -74,28 +74,69 @@ class BlueprintUpdateView(UpdateView):
 
 class BlueprintDetailView(DetailView):
     model = Blueprint
-    template_name = "core/detail.html"
+    template_name = "core/blueprints/detail.html"
 
     def get_context_data(self, **kwargs):
         bp = self.object
+        request = self.request
         context = super().get_context_data(**kwargs)
+
+        # Ссылки на файлы чертежей
+        scheme_url = request.build_absolute_uri(bp.scheme_file.url) \
+            if bp.scheme_file else None
+        step_url = request.build_absolute_uri(bp.step_file.url) \
+            if bp.step_file else None
+
+        # Ссылки на профили пользователей
+        developer_url = reverse("user_profile", args=[bp.developer.pk]) \
+            if bp.developer else None
+        validator_url = reverse("user_profile", args=[bp.validator.pk]) \
+            if bp.validator else None
+        lead_designer_url = reverse("user_profile", args=[bp.lead_designer.pk]) \
+            if bp.lead_designer else None
+        chief_designer_url = reverse("user_profile", args=[bp.chief_designer.pk]) \
+            if bp.chief_designer else None
+        approver_url = reverse("user_profile", args=[bp.approver.pk]) \
+            if bp.approver else None
+
+
         context.update({
             "title": "Чертеж",
+                    "scheme_url": scheme_url,
+        "step_url": step_url,
             "fields": [
                 {"label": "Вес", "value": bp.weight},
                 {"label": "Масштаб", "value": bp.scale},
                 {"label": "Версия", "value": bp.version},
                 {"label": "Схема наименования", "value": bp.naming_scheme},
-                {"label": "Разработчик", "value": bp.developer},
-                {"label": "Проверяющий", "value": bp.validator},
-                {"label": "Главный конструктор", "value": bp.chief_designer},
+                {
+                    "label": "Разработчик", "value": bp.developer, 
+                    "profile_url": developer_url
+                },
+                {
+                    "label": "Проверяющий", "value": bp.validator, 
+                    "profile_url": validator_url
+                },
+                {
+                    "label": "Ведущий конструктор", "value": bp.lead_designer, 
+                    "profile_url": lead_designer_url
+                },
+                {
+                    "label": "Главный конструктор", "value": bp.chief_designer, 
+                    "profile_url": chief_designer_url
+                },
+                {
+                    "label": "Утвердивший", "value": bp.approver, 
+                    "profile_url": approver_url
+                },
+                {"label": "Производитель", "value": bp.manufacturer},
                 {
                     "label": "Файл (PDF)", 
-                    "value": bp.scheme_file.url if bp.scheme_file else None
+                    "value": scheme_url
                 },
                 {
                     "label": "Файл (STEP)", 
-                    "value": bp.step_file.url if bp.step_file else None
+                    "value": step_url
                 },
             ],
             "edit_url": reverse("blueprint_edit", args=[bp.pk]),
