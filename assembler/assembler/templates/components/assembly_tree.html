@@ -1,0 +1,3 @@
+<!-- DO NOT FORMAT THE FILE. BREAKS THE LOGIC OF THE OUTPUT -->
+{% with indent=indent|default:"" %}{{ indent }}└─ Модуль: <a href="{% url 'module_detail' node.module.id %}">{{ node.module.name }}</a> (id={{ node.module.id }}){% for part in node.parts %}
+{{ indent }}   ├─ Деталь: <a href="{% url 'part_detail' part.part.id %}">{{ part.part.name }}</a> (<a href="{% url 'modulepart_detail' part.part.id %}">x{{ part.quantity }}</a>) [id={{ part.part.id }}]{% endfor %}{% for sub in node.submodules %}{% include "components/assembly_tree.html" with node=sub indent=indent|add:"    " %}{% endfor %}{% endwith %}

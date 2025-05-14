@@ -9,6 +9,7 @@ from django.views.generic import (
 
 from core.forms import ModuleForm  # Предполагается, что форма создана
 from core.models import Module
+from core.services.assembly_tree import build_module_tree
 
 
 class ModuleListView(ListView):
@@ -75,10 +76,12 @@ class ModuleDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         module = self.object
+        module_tree = build_module_tree(module)
         context = super().get_context_data(**kwargs)
         context.update({
             "title": "Модуль",
             "fields": [
+                {"label": "Машина", "value": module.machine},
                 {"label": "Название модуля", "value": module.name},
                 {"label": "Артикул", "value": module.part_number},
                 {"label": "Серийный номер", "value": module.serial},
@@ -93,6 +96,7 @@ class ModuleDetailView(DetailView):
                     "value": module.parent if module.parent else "Нет родителя"
                 },
             ],
+            "module_tree": module_tree,
             "edit_url": reverse("module_edit", args=[module.pk]),
             "delete_url": reverse("module_delete", args=[module.pk]),
         })

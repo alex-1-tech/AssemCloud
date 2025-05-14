@@ -7,8 +7,9 @@ from django.views.generic import (
     UpdateView,
 )
 
-from core.forms import MachineForm  # Предполагается, что форма создана
+from core.forms import MachineForm
 from core.models import Machine
+from core.services.assembly_tree import build_machine_tree
 
 
 class MachineListView(ListView):
@@ -75,6 +76,7 @@ class MachineDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         machine = self.object
+        machine_tree = build_machine_tree(machine)
         context = super().get_context_data(**kwargs)
         context.update({
             "title": "Машина",
@@ -88,6 +90,7 @@ class MachineDetailView(DetailView):
                     )
                 },
             ],
+            "machine_tree": machine_tree,
             "edit_url": reverse("machine_edit", args=[machine.pk]),
             "delete_url": reverse("machine_delete", args=[machine.pk]),
         })
