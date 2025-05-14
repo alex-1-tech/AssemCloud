@@ -19,36 +19,45 @@
                             </p>
                         {% endif %}
                     {% endfor %}
-
                     <!-- Серый блок для файлов -->
-                    <div class="border rounded p-4 mb-4 bg-light shadow-sm" style="background: #f8f9fa;">
+                    <div class="border rounded p-4 mb-4 bg-light shadow-sm"
+                         style="background: #f8f9fa">
                         <h5 class="mb-3 text-center text-primary" style="font-weight: 600;">Файлы чертежа</h5>
-
                         {% if object.scheme_file %}
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <strong class="me-3">Файл (PDF):</strong>
                                 <div class="d-flex">
-                                    <a href="{{ scheme_url }}" target="_blank" class="btn btn-outline-primary btn-sm me-2" title="{{ object.scheme_file.name|slice:'11:' }}">Открыть</a>
-                                    <a href="{{ scheme_url }}" download class="btn btn-outline-success btn-sm" title="{{ object.scheme_file.name|slice:'11:' }}">Скачать</a>
+                                    <a href="{{ scheme_url }}"
+                                       target="_blank"
+                                       class="btn btn-outline-primary btn-sm me-2"
+                                       title="{{ object.scheme_file.name|slice:'11:' }}">Открыть</a>
+                                    <a href="{{ scheme_url }}"
+                                       download
+                                       class="btn btn-outline-success btn-sm"
+                                       title="{{ object.scheme_file.name|slice:'11:' }}">Скачать</a>
                                 </div>
                             </div>
                         {% else %}
                             <p class="text-center text-muted">PDF-файл не загружен.</p>
                         {% endif %}
-
                         {% if object.step_file %}
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <strong class="me-3">Файл (STEP):</strong>
                                 <div class="d-flex">
-                                    <a href="https://sharecad.org/cadframe/load?url={{ step_url }}" target="_blank" class="btn btn-outline-primary btn-sm me-2" title="{{ object.step_file.name|slice:'6:' }}">Открыть</a>
-                                    <a href="{{ step_url }}" download class="btn btn-outline-success btn-sm" title="{{ object.step_file.name|slice:'6:' }}">Скачать</a>
+                                    <a href="https://sharecad.org/cadframe/load?url={{ step_url }}"
+                                       target="_blank"
+                                       class="btn btn-outline-primary btn-sm me-2"
+                                       title="{{ object.step_file.name|slice:'6:' }}">Открыть</a>
+                                    <a href="{{ step_url }}"
+                                       download
+                                       class="btn btn-outline-success btn-sm"
+                                       title="{{ object.step_file.name|slice:'6:' }}">Скачать</a>
                                 </div>
                             </div>
                         {% else %}
                             <p class="text-center text-muted">STEP-файл не загружен.</p>
                         {% endif %}
                     </div>
-
                     <div class="d-grid gap-2 d-md-flex justify-content-md-start mt-5">
                         {% if edit_url %}<a href="{{ edit_url }}" class="btn btn-primary btn-lg me-md-2">Редактировать</a>{% endif %}
                         {% if delete_url %}<a href="{{ delete_url }}" class="btn btn-danger btn-lg">Удалить</a>{% endif %}

@@ -3,6 +3,7 @@ from core.forms.client import ClientForm
 from core.forms.machine import MachineForm
 from core.forms.manufacturer import ManufacturerForm
 from core.forms.module import ModuleForm
+from core.forms.modulepart import ModulePartForm
 from core.forms.part import PartForm
 from core.forms.user import (
     UserLoginForm,
@@ -20,6 +21,7 @@ __all__ = [
     UserUpdateForm,
     ManufacturerForm,
     PartForm,
+    ModulePartForm,
     BlueprintForm,
     ClientForm,
     MachineForm,

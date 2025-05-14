@@ -33,7 +33,14 @@ from core.views.module import (
     ModuleListView,
     ModuleUpdateView,
 )
-from core.views.parts import (
+from core.views.modulepart import (
+    ModulePartCreateView,
+    ModulePartDeleteView,
+    ModulePartDetailView,
+    ModulePartListView,
+    ModulePartUpdateView,
+)
+from core.views.part import (
     PartCreateView,
     PartDeleteView,
     PartDetailView,
@@ -98,4 +105,10 @@ __all__ = [
     BlueprintDetailView,
     BlueprintUpdateView,
     BlueprintDeleteView,
+
+    ModulePartCreateView,
+    ModulePartDeleteView,
+    ModulePartDetailView,
+    ModulePartListView,
+    ModulePartUpdateView,
 ]

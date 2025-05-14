@@ -80,9 +80,10 @@ model_names = [
     "client",
     "machine",
     "module",
+    'modulepart',
 ]
 
-view_types = {""
+view_types = {
     "list": "ListView",
     "add": "CreateView",
     "edit": "UpdateView",
@@ -92,6 +93,9 @@ view_types = {""
 
 for model in model_names:
     class_prefix = model.capitalize()  # "manufacturer" → "Manufacturer"
+
+    if class_prefix == "Modulepart": # исключение
+        class_prefix = "ModulePart"
 
     for action, suffix in view_types.items():
         class_name = f"{class_prefix}{suffix}"  # e.g. ManufacturerListView
