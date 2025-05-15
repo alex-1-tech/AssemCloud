@@ -1,56 +1,56 @@
-def build_machine_tree(machine):
+"""Module for building and printing a hierarchical assembly tree.
+
+Assembly tree of machines, modules, submodules, and parts.
+"""
+from __future__ import annotations
+
+import logging
+from typing import Any
+
+logger = logging.getLogger(__name__)
+def build_machine_tree(machine: object) -> dict[str, object | list[dict[str, object]]]:
+    """Build a tree of modules and parts for a given machine.
+
+    Fetches all modules related to the machine, including nested submodules and parts,
+    and organizes them into a hierarchical structure starting from root modules.
     """
-    Строит дерево модулей и деталей с сохранением объектов.
-    """
-    # Загружаем все модули машины с их деталями и подмодулями с минимизацией количества запросов
     modules = (
-        machine.modules
-        .select_related("parent")
-        .prefetch_related("module_parts__part", "submodules__module_parts__part", "submodules__submodules")
+        machine.modules.select_related("parent")
+        .prefetch_related(
+            "module_parts__part",
+            "submodules__module_parts__part",
+            "submodules__submodules",
+        )
         .all()
     )
 
-    # Рекурсивная функция для построения узла дерева модуля
-    def build_module_node(module):
-        parts = [
-            {"part": mp.part, "quantity": mp.quantity}
-            for mp in module.module_parts.all()
-        ]
-
-        submodules = [
-            build_module_node(submodule)
-            for submodule in module.submodules.all()
-        ]
-
-        return {
-            "module": module,
-            "parts": parts,
-            "submodules": submodules,
-        }
-
-    # Найти корневые модули (не вложенные)
     root_modules = [m for m in modules if m.parent is None]
 
     return {
-        "machine": machine,  # объект Machine
-        "modules": [build_module_node(m) for m in root_modules],
+        "machine": machine,
+        "modules": [build_module_tree(m) for m in root_modules],
     }
 
 
-def build_module_tree(module):
+def build_module_tree(module: object) -> dict[str, object | list[dict[str, object]]]:
+    """Build a tree of submodules and parts for a single module.
+
+    Recursively processes submodules and their parts, constructing
+    a nested structure representing the module hierarchy.
     """
-    Строит дерево подмодулей и деталей для одного модуля.
-    """
-    # Загружаем все подмодули с их деталями и подмодулями с минимизацией количества запросов
     submodules = (
-        module.submodules  # Получаем подмодули для текущего модуля
-        .select_related("parent")
-        .prefetch_related("module_parts__part", "submodules__module_parts__part", "submodules__submodules")
+        module.submodules.select_related("parent")
+        .prefetch_related(
+            "module_parts__part",
+            "submodules__module_parts__part",
+            "submodules__submodules",
+        )
         .all()
     )
 
-    # Рекурсивная функция для построения узла дерева подмодуля
-    def build_submodule_node(submodule):
+    def build_submodule_node(
+            submodule: object,
+        ) -> dict[str, object | list[dict[str, object]]]:
         parts = [
             {"part": mp.part, "quantity": mp.quantity}
             for mp in submodule.module_parts.all()
@@ -58,7 +58,7 @@ def build_module_tree(module):
 
         subsubmodules = [
             build_submodule_node(subsubmodule)
-            for subsubmodule in submodule.submodules.all()  # Используем 'submodules' для подмодулей
+            for subsubmodule in submodule.submodules.all()
         ]
 
         return {
@@ -67,31 +67,29 @@ def build_module_tree(module):
             "submodules": subsubmodules,
         }
 
-    # Строим дерево подмодулей
     return {
-        "module": module,  # объект Module
+        "module": module,
         "submodules": [build_submodule_node(sm) for sm in submodules],
     }
 
-def print_assembly_tree(tree, indent=0):
-    """
-    Печатает дерево модулей и деталей в читаемом виде.
-    """
-    prefix = " " * indent
+
+def print_assembly_tree(tree: dict[str, Any], indent: int = 0) -> None:
+    """Print the modules and parts tree in a readable format."""
     if indent == 0:
-        print(f"Машина: {tree['machine'].name}")
+        # Top-level print, can be customized if needed
+        pass
 
-    for module_node in tree["modules"]:
-        module = module_node["module"]
-        print(f"{prefix}└─ Модуль: {module.name} (id={module.id})")
+    for module_node in tree.get("modules", []):
+        logger.info(
+            logger.info("%sModule: %s", " " * indent, module_node["module"].name),
+        )
 
-        # Выводим детали
-        for part_info in module_node["parts"]:
-            part = part_info["part"]
-            quantity = part_info["quantity"]
-            print(f"{prefix}   ├─ Деталь: {part.name} (x{quantity}) [id={part.id}]")
-
-        # Рекурсивно выводим подмодули
-        if module_node["submodules"]:
-            for submodule in module_node["submodules"]:
-                print_assembly_tree({"modules": [submodule]}, indent + 4)
+        for part_info in module_node.get("parts", []):
+            logger.info(
+                "%sPart: %s, Quantity: %s",
+                " " * (indent + 4),
+                part_info["part"].name,
+                part_info["quantity"],
+            )
+        for submodule in module_node.get("submodules", []):
+            print_assembly_tree({"modules": [submodule]}, indent + 4)

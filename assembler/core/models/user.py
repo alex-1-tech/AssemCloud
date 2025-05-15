@@ -1,3 +1,13 @@
+"""Custom user model and manager definitions for the core app.
+
+This module defines a custom user model that uses email as the unique identifier
+and includes additional fields such as phone, address, and email verification status.
+It also provides a custom user manager for creating users and superusers.
+"""
+from __future__ import annotations
+
+from typing import ClassVar
+
 from django.contrib.auth.models import (
     AbstractBaseUser,
     BaseUserManager,
@@ -13,61 +23,46 @@ from core.models.base import PHONE_VALIDATOR, NormalizeMixin, ReprMixin, normali
 
 
 class UserManager(BaseUserManager):
-    """
-    Менеджер для создания пользователей и суперпользователей.
+    """Manager for creating users and superusers.
 
-    Этот класс управляет созданием пользователей и суперпользователей. Он переопределяет
-    стандартные методы для создания пользователя и суперпользователя с использованием
-    кастомных полей модели пользователя 
-    (например, email в качестве уникального идентификатора).
+    Overrides standard methods to handle user creation using email as the unique
+    identifier along with other custom fields.
     """
 
-    def create_user(self, email, password=None, **extra_fields):
-        """
-        Создание обычного пользователя.
-
-        :param email: Электронная почта пользователя (обязательное поле).
-        :param password: Пароль пользователя (опционально).
-        :param extra_fields: Дополнительные поля пользователя.
-        :return: Созданный пользователь.
-        """
+    def create_user(
+        self, email: str, password: str|None = None, **extra_fields: object,
+    ) -> User:
+        """Create and save a regular user with the given email and password."""
         if not email:
-            raise ValueError(_("Email обязателен"))
+            raise ValueError(_("Email must be provided"))
         email = self.normalize_email(email)
-        user = self.model(email=email, **extra_fields)  # Создание пользователя.
+        user = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, password=None, **extra_fields):
-        """
-        Создание суперпользователя с обязательными правами.
-
-        :param email: Электронная почта суперпользователя (обязательное поле).
-        :param password: Пароль суперпользователя (опционально).
-        :param extra_fields: Дополнительные поля для суперпользователя.
-        :return: Созданный суперпользователь.
-        """
+    def create_superuser(
+        self, email: str, password: str|None = None, **extra_fields: object,
+    ) -> User:
+        """Create and save a superuser with the given email and password."""
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
         extra_fields.setdefault("is_active", True)
 
         if not extra_fields.get("is_staff"):
-            raise ValueError(_("Superuser должен иметь is_staff=True."))
+            raise ValueError(_("Superuser must have is_staff=True."))
         if not extra_fields.get("is_superuser"):
-            raise ValueError(_("Superuser должен иметь is_superuser=True."))
+            raise ValueError(_("Superuser must have is_superuser=True."))
 
         return self.create_user(email, password, **extra_fields)
 
 
 class User(ReprMixin, NormalizeMixin, AbstractBaseUser, PermissionsMixin):
-    """
-    Кастомная модель пользователя с расширениями.
+    """Custom user model with extended fields and email as username.
 
-    Модель пользователя, которая расширяет стандартную модель Django `AbstractBaseUser`
-    для использования email в качестве уникального идентификатора и добавляет
-    дополнительные поля, такие как имя, фамилия, телефон, адрес и статус.
-    Также включает методы для работы с именами и сохранением.
+    Extends Django's AbstractBaseUser and PermissionsMixin to use email as
+    the unique identifier instead of username. Adds fields such as first and last name,
+    phone, address, and email verification status.
     """
 
     groups = models.ManyToManyField(
@@ -75,80 +70,56 @@ class User(ReprMixin, NormalizeMixin, AbstractBaseUser, PermissionsMixin):
         related_name="custom_user_set",
         related_query_name="custom_user",
         blank=True,
-        help_text="Группы, к которым принадлежит пользователь.",
-        verbose_name="группы",
+        help_text=_("Groups the user belongs to."),
+        verbose_name=_("groups"),
     )
 
-    # Имя пользователя (обязательное поле).
-    first_name = models.CharField(_("Имя"), max_length=100)
-
-    # Фамилия пользователя (обязательное поле).
-    last_name = models.CharField(_("Фамилия"), max_length=100)
-
-    # Электронная почта пользователя (уникальное поле).
-    email = models.EmailField(_("Почта"), unique=True, blank=False, null=False)
-
-    # Телефон пользователя (необязательное поле с валидацией).
+    first_name = models.CharField(_("First name"), max_length=100)
+    last_name = models.CharField(_("Last name"), max_length=100)
+    email = models.EmailField(_("Email"), unique=True, blank=False, null=False)
     phone = models.CharField(
-        _("Телефон"), max_length=20, blank=True, validators=[PHONE_VALIDATOR]
+        _("Phone"),
+        max_length=20,
+        blank=True,
+        validators=[PHONE_VALIDATOR],
     )
-
-    # Адрес пользователя (необязательное поле).
-    address = models.TextField(_("Адрес"), blank=True)
-
-    # Флаг активности пользователя (по умолчанию True).
-    is_active = models.BooleanField(_("Активен"), default=True)
-
-    # Флаг того, является ли пользователь сотрудником (по умолчанию False).
-    is_staff = models.BooleanField(_("Сотрудник"), default=False)
-
-    # Дата регистрации пользователя (по умолчанию текущая дата и время).
-    date_joined = models.DateTimeField(_("Дата регистрации"), default=timezone.now)
-
-    # Подтверждение почты пользователя
+    address = models.TextField(_("Address"), blank=True)
+    is_active = models.BooleanField(_("Active"), default=True)
+    is_staff = models.BooleanField(_("Staff"), default=False)
+    date_joined = models.DateTimeField(_("Date joined"), default=timezone.now)
     is_email_verified = models.BooleanField(default=False)
 
-    # Менеджер для работы с пользователями.
     objects = UserManager()
 
-    # Поле для использования в качестве уникального идентификатора пользователя.
     USERNAME_FIELD = "email"
+    REQUIRED_FIELDS: ClassVar[list[str]] = ["first_name", "last_name"]
 
-    # Дополнительные обязательные поля, помимо USERNAME_FIELD.
-    REQUIRED_FIELDS = ["first_name", "last_name"]
-
-    def __str__(self):
+    def __str__(self) -> str:
+        """Return the user's full name as a string representation."""
         return f"{self.first_name} {self.last_name}"
 
-    def save(self, *args, **kwargs):
-        """
-        Переопределение метода сохранения для нормализации email перед сохранением.
-        """
+    def save(self, *args: object, **kwargs: object) -> None:
+        """Override save to normalize email before saving."""
         if self.email:
             self.email = normalize_email(self.email)
         super().save(*args, **kwargs)
 
-    def get_absolute_url(self):
-        """
-        Возвращает абсолютный URL для страницы профиля пользователя.
-        """
+    def get_absolute_url(self) -> str:
+        """Return the absolute URL to the user's profile page."""
         return reverse("user_detail", kwargs={"pk": self.pk})
 
-    def get_full_name(self):
-        """
-        Возвращает полное имя пользователя (имя и фамилия).
-        """
+    def get_full_name(self) -> str:
+        """Return the user's full name."""
         return f"{self.first_name} {self.last_name}".strip()
 
-    def get_short_name(self):
-        """
-        Возвращает сокращенное имя пользователя 
-        (либо имя, либо email, если имя отсутствует).
-        """
+    def get_short_name(self) -> str:
+        """Return the user's short name (first name or email as fallback)."""
         return self.first_name or self.email or ""
 
     class Meta:
+        """Model metadata: database table name, verbose names, and app label."""
+
         db_table = "users"
-        verbose_name = "Пользователь"
-        verbose_name_plural = "Пользователи"
+        verbose_name = _("User")
+        verbose_name_plural = _("Users")
         app_label = "core"

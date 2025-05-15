@@ -1,57 +1,79 @@
+"""Role and UserRole models for user role management in the core app.
+
+This module defines Role and UserRole models for assigning and managing
+user roles within the system. Roles include a name and optional description,
+and UserRole links users to their assigned roles with optional custom descriptions.
+"""
+
+from typing import ClassVar
+
 from core.models.base import NormalizeMixin, ReprMixin, _, models
 from core.models.user import User
 
 
 class Role(ReprMixin, NormalizeMixin, models.Model):
-    """
-    Модель для хранения ролей пользователей.
+    """Model to store user roles.
 
-    Эта модель описывает роли, которые могут быть назначены пользователям в системе.
-    Роли могут включать информацию о названии и описание, что помогает системно
-    классифицировать права доступа и обязанности пользователей.
+    Roles represent classifications of user permissions and responsibilities
+    within the system. Each role has a unique name and an optional description.
     """
 
-    # Название роли (уникальное).
-    name = models.CharField(_("Название роли"), max_length=50, unique=True)
+    name: str = models.CharField(
+        _("Role name"),
+        max_length=50,
+        unique=True,
+    )
+    description: str = models.TextField(
+        _("Role description"),
+        blank=True,
+    )
 
-    # Описание роли (необязательное поле).
-    description = models.TextField(_("Описание роли"), blank=True)
-
-    def __str__(self):
+    def __str__(self) -> str:
+        """Return the role's name as its string representation."""
         return self.name
 
     class Meta:
-        db_table = "roles"
-        verbose_name = _("Роль")
-        verbose_name_plural = _("Роли")
-        ordering = ["name"]
+        """Meta information for Role model."""
+
+        db_table: ClassVar[str] = "roles"
+        verbose_name: ClassVar[str] = _("Role")
+        verbose_name_plural: ClassVar[str] = _("Roles")
+        ordering: ClassVar[list[str]] = ["name"]
 
 
 class UserRole(ReprMixin, models.Model):
+    """Model linking users to their roles.
+
+    Represents the many-to-many relationship between users and roles.
+    Each user can have multiple roles, with an optional individual description
+    for each user-role assignment.
     """
-    Модель для связывания пользователей с их ролями.
 
-    Эта модель служит для создания связи между пользователем и его ролью.
-    Каждому пользователю может быть назначено несколько ролей, и каждая роль
-    может быть описана индивидуально для пользователя.
-    """
+    user: User = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="roles",
+    )
+    role: Role = models.ForeignKey(
+        Role,
+        on_delete=models.CASCADE,
+        related_name="users",
+    )
+    role_description: str = models.TextField(
+        _("Individual role description"),
+        blank=True,
+    )
 
-    # Связь с моделью 'User', указывающая, какой пользователь имеет эту роль.
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="roles")
-
-    # Связь с моделью 'Role', указывающая, какую роль имеет пользователь.
-    role = models.ForeignKey(Role, on_delete=models.CASCADE, related_name="users")
-
-    # Описание роли для конкретного пользователя (необязательное поле).
-    role_description = models.TextField(_("Индивидуальное описание роли"), blank=True)
-
-    def __str__(self):
+    def __str__(self) -> str:
+        """Return a string showing the user and their role."""
         return f"{self.user} — {self.role}"
 
     class Meta:
-        db_table = "user_roles"
-        verbose_name = _("Связь Роль-Пользователь")
-        verbose_name_plural = _("Связи Роль-Пользователь")
-        constraints = [
-            models.UniqueConstraint(fields=["user", "role"], name="unique_user_role")
+        """Meta information for UserRole model."""
+
+        db_table: ClassVar[str] = "user_roles"
+        verbose_name: ClassVar[str] = _("User-Role Link")
+        verbose_name_plural: ClassVar[str] = _("User-Role Links")
+        constraints: ClassVar[list[object]] = [
+            models.UniqueConstraint(fields=["user", "role"], name="unique_user_role"),
         ]

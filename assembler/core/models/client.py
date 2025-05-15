@@ -1,58 +1,104 @@
+"""Models for managing clients and manufacturers.
+
+This module provides models to represent clients and manufacturers,
+including their basic contact information
+such as name, country, language, and phone number.
+"""
+
+from typing import ClassVar
+
 from core.models.base import PHONE_VALIDATOR, NormalizeMixin, ReprMixin, _, models
 
 
 class Client(ReprMixin, NormalizeMixin, models.Model):
+    """Model representing a client organization or customer.
+
+    Stores basic client details including name, country, and contact phone number.
+    Each client must have a unique name. The phone number is optional and validated.
     """
-    Модель клиента.
-    """
 
-    # Название клиента (обязательно и уникально)
-    name = models.CharField(_("Имя клиента"), max_length=150, unique=True)
-
-    # Страна клиента (обязательное поле)
-    country = models.CharField(_("Страна"), max_length=100)
-
-    # Телефон клиента (необязательное поле, с валидацией по формату PHONE_VALIDATOR)
-    phone = models.CharField(
-        _("Телефон"), max_length=20, blank=True, validators=[PHONE_VALIDATOR]
+    name = models.CharField(
+        _("Имя клиента"),
+        max_length=150,
+        unique=True,
+        help_text=_("Название клиента (уникальное значение)"),
     )
 
-    def __str__(self):
+    country = models.CharField(
+        _("Страна"),
+        max_length=100,
+        help_text=_("Страна клиента"),
+    )
+
+    phone = models.CharField(
+        _("Телефон"),
+        max_length=20,
+        blank=True,
+        validators=[PHONE_VALIDATOR],
+        help_text=_("Контактный телефон клиента (необязательное поле)"),
+    )
+
+    def __str__(self) -> str:
+        """Return the client`s name and country."""
         return f"{self.name} ({self.country})" if self.country else self.name
 
     class Meta:
-        db_table = "clients"
-        verbose_name = _("Клиент")
-        verbose_name_plural = _("Клиенты")
-        ordering = ["name"]
-        indexes = [
+        """Model metadata for Client."""
+
+        db_table: ClassVar[str] = "clients"
+        verbose_name: ClassVar[str] = _("Клиент")
+        verbose_name_plural: ClassVar[str] = _("Клиенты")
+        ordering: ClassVar[list[str]] = ["name"]
+        indexes: ClassVar[list[models.Index]] = [
             models.Index(fields=["name"]),
             models.Index(fields=["country"]),
         ]
 
 
 class Manufacturer(ReprMixin, NormalizeMixin, models.Model):
+    """Model representing a product manufacturer.
+
+    Stores manufacturer information such as name, country of origin,
+    preferred communication language, and contact phone number.
+    The name must be unique across manufacturers.
     """
-    Модель производителя.
-    """
 
-    # Название производителя (обязательно и уникально)
-    name = models.CharField(_("Название производителя"), max_length=150, unique=True)
+    name = models.CharField(
+        _("Название производителя"),
+        max_length=150,
+        unique=True,
+        help_text=_("Название производителя (уникальное значение)"),
+    )
 
-    # Страна производителя (обязательное поле)
-    country = models.CharField(_("Страна"), max_length=100)
+    country = models.CharField(
+        _("Страна"),
+        max_length=100,
+        help_text=_("Страна, в которой расположен производитель"),
+    )
 
-    # Язык общения с производителем (необязательное поле)
-    language = models.CharField(_("Язык"), max_length=50, blank=True)
+    language = models.CharField(
+        _("Язык"),
+        max_length=50,
+        blank=True,
+        help_text=_("Язык общения с производителем (необязательно)"),
+    )
 
-    # Телефон производителя с валидацией
-    phone = models.CharField(max_length=20, blank=True, validators=[PHONE_VALIDATOR])
+    phone = models.CharField(
+        _("Телефон"),
+        max_length=20,
+        blank=True,
+        validators=[PHONE_VALIDATOR],
+        help_text=_("Контактный телефон производителя (необязательное поле)"),
+    )
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Return the manufacturer`s name and country."""
         return f"{self.name} ({self.country})" if self.country else self.name
 
     class Meta:
-        db_table = "manufacturers"
-        verbose_name = _("Производитель")
-        verbose_name_plural = _("Производители")
-        ordering = ["name"]
+        """Model metadata for Manufacturer."""
+
+        db_table: ClassVar[str] = "manufacturers"
+        verbose_name: ClassVar[str] = _("Производитель")
+        verbose_name_plural: ClassVar[str] = _("Производители")
+        ordering: ClassVar[list[str]] = ["name"]

@@ -1,3 +1,5 @@
+"""Forms package exports for core application."""
+
 from core.forms.blueprint import BlueprintForm
 from core.forms.client import ClientForm
 from core.forms.machine import MachineForm
@@ -14,16 +16,16 @@ from core.forms.user import (
 )
 
 __all__ = [
-    UserLoginForm,
-    UserPasswordChangeForm,
-    UserRegistrationForm,
-    UserSetPasswordForm,
-    UserUpdateForm,
-    ManufacturerForm,
-    PartForm,
-    ModulePartForm,
-    BlueprintForm,
-    ClientForm,
-    MachineForm,
-    ModuleForm,
+    "BlueprintForm",
+    "ClientForm",
+    "MachineForm",
+    "ManufacturerForm",
+    "ModuleForm",
+    "ModulePartForm",
+    "PartForm",
+    "UserLoginForm",
+    "UserPasswordChangeForm",
+    "UserRegistrationForm",
+    "UserSetPasswordForm",
+    "UserUpdateForm",
 ]

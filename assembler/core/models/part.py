@@ -1,3 +1,12 @@
+"""Models for storing information about parts and their relationships to modules.
+
+This module contains the Part and ModulePart models, which describe
+parts, their characteristics, and relationships to modules, including the number
+of each part in a particular module.
+"""
+
+from typing import ClassVar
+
 from core.models.base import (
     NormalizeMixin,
     ReprMixin,
@@ -8,97 +17,94 @@ from core.models.base import (
 
 
 class Part(ReprMixin, NormalizeMixin, TimeStampedModelWithUser):
+    """Model representing a part and its manufacturing details.
+
+    This model describes an individual part used across various modules,
+    including all necessary information about its manufacturing process
+    such as manufacturer, manufacture date, material, and description.
+
+    It is used together with the ModulePart model to define the quantity
+    and placement of parts within modules.
     """
-    Модель для хранения информации о детали и её производстве.
 
-    Эта модель описывает отдельную деталь, которая используется в различных модулях
-    и включает в себя всю необходимую информацию о производственном процессе, 
-    включая производителя, дату производства, материал и описание.
+    name = models.CharField(_("Name"), max_length=255)
 
-    Используется в связке с моделью ModulePart для определения количества 
-    и размещения деталей в модулях.
-    """
-
-    # Название детали (обязательное поле)
-    name = models.CharField(_("Название"), max_length=255)
-
-    # Связь с моделью 'Manufacturer', указывающая, кто изготовил деталь
     manufacturer = models.ForeignKey(
         "Manufacturer",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="parts_manufactured",
-        verbose_name=_("Производитель"),
+        verbose_name=_("Manufacturer"),
     )
 
-    # Описание детали (необязательное текстовое поле)
-    description = models.TextField(_("Описание детали"), blank=True, null=True)
+    description = models.TextField(_("Part description"), blank=True, null=True)
 
-    # Материал, из которого изготовлена деталь (необязательное поле)
-    material = models.CharField(_("Материал"), max_length=100, blank=True)
+    material = models.CharField(_("Material"), max_length=100, blank=True)
 
-    # Дата производства детали (необязательное поле)
-    manufacture_date = models.DateField(_("Дата производства"), blank=True, null=True)
+    manufacture_date = models.DateField(_("Manufacture date"), blank=True, null=True)
 
-    def __str__(self):
-        # Возвращает строковое представление детали — её название
+    def __str__(self) -> str:
+        """Return the name of the part."""
         return self.name
 
     class Meta:
-        db_table = "parts"
-        verbose_name = _("Деталь")
-        verbose_name_plural = _("Детали")
-        ordering = ["name"]
-        indexes = [
-            # Индекс для оптимизации фильтрации по дате
+        """Model metadata: database table name, verbose names, ordering and indexes."""
+
+        db_table: ClassVar[str] = "parts"
+        verbose_name: ClassVar[str] = _("Деталь")
+        verbose_name_plural: ClassVar[str] = _("Детали")
+        ordering: ClassVar[list[str]] = ["name"]
+        indexes: ClassVar[list[models.Index]] = [
+            # Index to optimize filtering by manufacture date
             models.Index(fields=["manufacture_date"]),
         ]
 
 
-
 class ModulePart(ReprMixin, models.Model):
-    """
-    Модель для связывания деталей с модулями.
+    """Model linking parts to modules with quantity information.
 
-    Эта модель представляет связь между деталью и модулем, 
-    описывая количество каждой детали,
-    которая используется в конкретном модуле.
+    Represents the association between a part and a module,
+    specifying how many of each part are used in a given module.
     """
 
-    # Связь с моделью 'Module', указывающая, к какому модулю принадлежит деталь.
     module = models.ForeignKey(
         "Module",
         on_delete=models.CASCADE,
         related_name="module_parts",
-        verbose_name=_("Модуль"),
+        verbose_name=_("Module"),
     )
 
-    # Связь с моделью 'Part', указывающая, какая деталь используется в модуле.
     part = models.ForeignKey(
         "Part",
         on_delete=models.RESTRICT,
         related_name="part_modules",
-        verbose_name=_("Деталь"),
+        verbose_name=_("Part"),
     )
 
-    # Количество деталей, использующихся в модуле.
     quantity = models.PositiveIntegerField(
-        _("Количество"), default=1, help_text=_("Количество деталей в модуле")
+        _("Quantity"),
+        default=1,
+        help_text=_("Number of parts in the module"),
     )
 
-    def __str__(self):
-        return f"{self.module} × {self.part} ({self.quantity})"
+    def __str__(self) -> str:
+        """Return a string representation of the module-part relation with quantity."""
+        return f"{self.module} × {self.part} ({self.quantity})"  # noqa: RUF001
 
     class Meta:
-        db_table = "module_part"
-        verbose_name = _("Связь Деталь-Модуль")
-        verbose_name_plural = _("Связи Деталь-Модуль")
-        constraints = [
+        """Model metadata: database table name, verbose names and constraints."""
+
+        db_table: ClassVar[str] = "module_part"
+        verbose_name: ClassVar[str] = _("Связь Деталь-Модуль")
+        verbose_name_plural: ClassVar[str] = _("Связи Деталь-Модуль")
+        constraints: ClassVar[list[models.constraints.BaseConstraint]] = [
             models.CheckConstraint(
-                check=models.Q(quantity__gt=0), name="quantity_positive"
-            ),  # Проверка, что количество больше 0
+                check=models.Q(quantity__gt=0),
+                name="quantity_positive",
+            ),
             models.UniqueConstraint(
-                fields=["module", "part"], name="unique_module_part"
+                fields=["module", "part"],
+                name="unique_module_part",
             ),
         ]

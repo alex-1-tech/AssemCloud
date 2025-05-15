@@ -1,4 +1,6 @@
-from .base import * # noqa: F403 I001
+"""Django production settings for assembler project."""
+
+from .base import *  # noqa: F403
 
 DEBUG = False
 ALLOWED_HOSTS = ["-"]
@@ -9,10 +11,10 @@ DATABASES = {
         "ENGINE": "django.db.backends.mysql",
         "NAME": "assembler_db",
         "USER": "alex",
-        "PASSWORD": config("PASSWORD"), # noqa: F405
+        "PASSWORD": config("PASSWORD"),  # noqa: F405
         "HOST": "localhost",
         "PORT": "3306",
-    }
+    },
 }
 
 
@@ -25,4 +27,4 @@ EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = ""
-EMAIL_HOST_PASSWORD = config("") # noqa: F405
+EMAIL_HOST_PASSWORD = config("")  # noqa: F405

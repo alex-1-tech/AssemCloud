@@ -1,3 +1,13 @@
+"""Models for storing information about modules and their attributes.
+
+This module defines the `Module` model, which represents components of a machine.
+It includes technical and manufacturing information such as blueprint,
+part number, serial number, version, status, and links to manufacturer
+and parent module (for nested module structures).
+"""
+
+from typing import ClassVar
+
 from django.core.validators import MinLengthValidator
 
 from core.models.base import (
@@ -7,20 +17,19 @@ from core.models.base import (
     _,
     models,
 )
+from core.models.client import Manufacturer
 
 
 class Module(ReprMixin, NormalizeMixin, TimeStampedModelWithUser):
-    """
-    Модель для хранения информации о модулях.
+    """Model representing a machine module with various attributes.
 
-    Эта модель используется для описания различных модулей, которые могут быть частью
-    машины. Включает информацию о чертеже, артикуле, серийном номере, статусе и других
-    характеристиках модуля. 
-    Также поддерживает возможность установки родительского модуля,
-    если модуль является подмодулем.
+    Modules can represent standalone or nested components within machines,
+    with references to blueprints, manufacturers, and hierarchical relationships.
+
+    Includes details like serial number, part number, name, version, description,
+    and a defined status indicating the module's development stage.
     """
 
-    # Связь с моделью 'Machine'. Машина, к которой относится модуль.
     machine = models.ForeignKey(
         "Machine",
         on_delete=models.CASCADE,
@@ -28,7 +37,6 @@ class Module(ReprMixin, NormalizeMixin, TimeStampedModelWithUser):
         verbose_name=_("Машина"),
     )
 
-    # Связь с моделью 'Blueprint'. Каждый модуль связан с конкретным чертежом.
     blueprint = models.OneToOneField(
         "Blueprint",
         on_delete=models.CASCADE,
@@ -37,9 +45,8 @@ class Module(ReprMixin, NormalizeMixin, TimeStampedModelWithUser):
         verbose_name=_("Чертёж"),
     )
 
-    # Артикул модуля. Уникальное поле с минимальной длиной 3 символа.
     part_number = models.CharField(
-        "Артикул",
+        _("Артикул"),
         max_length=100,
         unique=True,
         null=True,
@@ -47,19 +54,16 @@ class Module(ReprMixin, NormalizeMixin, TimeStampedModelWithUser):
         validators=[MinLengthValidator(3)],
     )
 
-    # Серийный номер модуля (обязательное поле).
     serial = models.CharField(
         _("Серийный номер"),
         max_length=100,
     )
 
-    # Название модуля (обязательное поле).
     name = models.CharField(
         _("Название модуля"),
         max_length=255,
     )
 
-    # Родительский модуль (если данный модуль является подмодулем).
     parent = models.ForeignKey(
         "self",
         on_delete=models.SET_NULL,
@@ -69,17 +73,24 @@ class Module(ReprMixin, NormalizeMixin, TimeStampedModelWithUser):
         verbose_name=_("Родительский модуль"),
     )
 
-    # Версия модуля (обязательное поле).
+    manufacturer = models.ForeignKey(
+        Manufacturer,
+        on_delete=models.RESTRICT,
+        blank=True,
+        null=True,
+        verbose_name=_("Производитель"),
+    )
+
     version = models.CharField(
         _("Версия"),
         max_length=50,
     )
 
-    # Описание модуля (необязательное поле).
     description = models.TextField(_("Описание"), null=True, blank=True)
 
-    # Статус модуля. Возможные значения: в разработке, завершен, отменен.
     class ModuleStatus(models.TextChoices):
+        """Enumeration of possible module statuses."""
+
         IN_PROGRESS = "in_progress", _("В разработке")
         COMPLETED = "completed", _("Завершен")
         CANCELLED = "cancelled", _("Отменен")
@@ -91,15 +102,18 @@ class Module(ReprMixin, NormalizeMixin, TimeStampedModelWithUser):
         default=ModuleStatus.IN_PROGRESS,
     )
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Return string representation of the module including name and serial number."""  # noqa: E501
         return f"{self.name or 'Без названия'} (S/N: {self.serial or 'нет'})"
 
     class Meta:
-        db_table = "modules"
-        ordering = ["-updated_on"]
-        verbose_name = _("Модуль")
-        verbose_name_plural = _("Модули")
-        indexes = [
+        """Model metadata: database table name, ordering, verbose names and indexes."""
+
+        db_table: ClassVar[str] = "modules"
+        ordering: ClassVar[list[str]] = ["-updated_on"]
+        verbose_name: ClassVar[str] = _("Модуль")
+        verbose_name_plural: ClassVar[str] = _("Модули")
+        indexes: ClassVar[list[models.Index]] = [
             models.Index(fields=["serial"]),
             models.Index(fields=["part_number"]),
             models.Index(fields=["name"]),

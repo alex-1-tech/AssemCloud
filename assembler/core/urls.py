@@ -1,3 +1,4 @@
+"""URL configuration for the core application."""  # noqa: INP001
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
@@ -22,41 +23,43 @@ urlpatterns = [
     path("users/register/", UserRegisterView.as_view(), name="register"),
     path("users/login/", UserLoginView.as_view(), name="login"),
     path("users/logout/", UserLogoutView.as_view(next_page="login"), name="logout"),
-    path('users/edit/<int:pk>/', UserUpdateView.as_view(), name='user_edit'),
+    path("users/edit/<int:pk>/", UserUpdateView.as_view(), name="user_edit"),
     path(
-        'users/detail/<int:pk>/', UserDetailView.as_view(), name='user_profile'
-        ),
+        "users/detail/<int:pk>/",
+        UserDetailView.as_view(),
+        name="user_profile",
+    ),
     path("users/list/", UserListView.as_view(), name="user_list"),
 ]
 
-# passwords 
+# passwords
 urlpatterns += [
     path("password_change/", UserPasswordChangeView.as_view(), name="password_change"),
     path(
         "password_reset/",
         auth_views.PasswordResetView.as_view(
-            template_name="core/user/password_reset.html"
+            template_name="core/user/password_reset.html",
         ),
         name="password_reset",
     ),
     path(
         "password_reset/done/",
         auth_views.PasswordResetDoneView.as_view(
-            template_name="core/user/password_reset_done.html"
+            template_name="core/user/password_reset_done.html",
         ),
         name="password_reset_done",
     ),
     path(
         "reset/<uidb64>/<token>/",
         CustomPasswordResetConfirmView.as_view(
-            template_name="core/user/password_reset_confirm.html"
+            template_name="core/user/password_reset_confirm.html",
         ),
         name="password_reset_confirm",
     ),
     path(
         "reset/done/",
         auth_views.PasswordResetCompleteView.as_view(
-            template_name="core/user/password_reset_complete.html"
+            template_name="core/user/password_reset_complete.html",
         ),
         name="password_reset_complete",
     ),
@@ -74,13 +77,13 @@ urlpatterns += [
 
 # objects
 model_names = [
-    "manufacturer", 
+    "manufacturer",
     "part",
     "blueprint",
     "client",
     "machine",
     "module",
-    'modulepart',
+    "modulepart",
 ]
 
 view_types = {
@@ -94,7 +97,7 @@ view_types = {
 for model in model_names:
     class_prefix = model.capitalize()  # "manufacturer" → "Manufacturer"
 
-    if class_prefix == "Modulepart": # исключение
+    if class_prefix == "Modulepart":  # исключение
         class_prefix = "ModulePart"
 
     for action, suffix in view_types.items():
@@ -113,7 +116,7 @@ for model in model_names:
             pattern = f"{model}s/<int:pk>/delete/"
 
         urlpatterns.append(
-            path(pattern, view_class.as_view(), name=f"{model}_{action}")
+            path(pattern, view_class.as_view(), name=f"{model}_{action}"),
         )
 
 urlpatterns += [

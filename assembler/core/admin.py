@@ -1,3 +1,13 @@
+"""Admin configuration for core app models.
+
+Includes admin interfaces and inline configurations for User, Role,
+Client, Manufacturer, Blueprint, Machine, Module, Part, and change logging.
+""" # noqa: INP001
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, ClassVar
+
 from django.contrib import admin
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
@@ -17,18 +27,20 @@ from core.models import (
     UserRole,
 )
 
+if TYPE_CHECKING:
+    from django.http import HttpRequest
+
+
 # =================== INLINE ===================
 
 
 class ModulePartInline(admin.TabularInline):
-    """
-    Отображение составных частей модуля прямо внутри формы модуля
-    """
+    """Inline display of module parts directly inside the module form."""
 
     model = ModulePart
     extra = 0
     autocomplete_fields = ("part",)
-    classes = ["collapse"]  # свернуть блок по умолчанию
+    classes: ClassVar[list[str]] = ["collapse"]  # collapse the block by default
 
 
 # =================== USERS ===================
@@ -36,6 +48,8 @@ class ModulePartInline(admin.TabularInline):
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
+    """Admin configuration for the User model."""
+
     list_display = (
         "email",
         "first_name",
@@ -49,11 +63,11 @@ class UserAdmin(admin.ModelAdmin):
     readonly_fields = ("date_joined", "last_login")
     fieldsets = (
         (
-            _("Основная информация"),
+            _("Basic Information"),
             {"fields": ("email", "first_name", "last_name", "phone")},
         ),
         (
-            _("Права доступа"),
+            _("Access Rights"),
             {
                 "fields": (
                     "is_active",
@@ -61,10 +75,10 @@ class UserAdmin(admin.ModelAdmin):
                     "is_superuser",
                     "groups",
                     "user_permissions",
-                )
+                ),
             },
         ),
-        (_("Системная информация"), {"fields": ("date_joined", "last_login")}),
+        (_("System Information"), {"fields": ("date_joined", "last_login")}),
     )
 
 
@@ -73,24 +87,19 @@ class UserAdmin(admin.ModelAdmin):
 
 @admin.register(Role)
 class RoleAdmin(admin.ModelAdmin):
+    """Admin configuration for the Role model."""
+
     list_display = ("name",)
     search_fields = ("name",)
 
 
 @admin.register(UserRole)
 class UserRoleAdmin(admin.ModelAdmin):
-    list_display = (
-        "user",
-        "role",
-    )
-    search_fields = (
-        "user__email",
-        "role__name",
-    )
-    autocomplete_fields = (
-        "user",
-        "role",
-    )
+    """Admin configuration for the UserRole model."""
+
+    list_display = ("user", "role")
+    search_fields = ("user__email", "role__name")
+    autocomplete_fields = ("user", "role")
 
 
 # =================== CLIENTS ===================
@@ -98,11 +107,9 @@ class UserRoleAdmin(admin.ModelAdmin):
 
 @admin.register(Client)
 class ClientAdmin(admin.ModelAdmin):
-    list_display = (
-        "name",
-        "country",
-        "phone",
-    )
+    """Admin configuration for the Client model."""
+
+    list_display = ("name", "country", "phone")
     search_fields = ("name__icontains", "country")
     list_filter = ("country",)
 
@@ -112,6 +119,8 @@ class ClientAdmin(admin.ModelAdmin):
 
 @admin.register(Manufacturer)
 class ManufacturerAdmin(admin.ModelAdmin):
+    """Admin configuration for the Manufacturer model."""
+
     list_display = ("name", "country", "language", "phone")
     search_fields = ("name__icontains", "country")
     list_filter = ("country",)
@@ -122,14 +131,12 @@ class ManufacturerAdmin(admin.ModelAdmin):
 
 @admin.register(Blueprint)
 class BlueprintAdmin(admin.ModelAdmin):
-    list_display = ("naming_scheme", "version", "manufacturer", "developer")
-    search_fields = (
-        "naming_scheme__icontains",
-        "manufacturer__name",
-        "developer__email",
-    )
+    """Admin configuration for the Blueprint model."""
+
+    list_display = ("naming_scheme", "version", "developer")
+    search_fields = ("naming_scheme__icontains", "developer__email")
     list_filter = ("developer",)
-    autocomplete_fields = ("manufacturer", "developer")
+    autocomplete_fields = ("developer",)
 
 
 # =================== MACHINE ===================
@@ -137,22 +144,26 @@ class BlueprintAdmin(admin.ModelAdmin):
 
 @admin.register(Machine)
 class MachineAdmin(admin.ModelAdmin):
+    """Admin configuration for the Machine model."""
+
     list_display = ("name", "version")
     search_fields = ("name__icontains",)
 
 
 @admin.register(MachineClient)
 class MachineClientAdmin(admin.ModelAdmin):
+    """Admin configuration for the MachineClient model."""
+
     list_display = ("machine", "get_clients", "created_at")
     search_fields = ("machine__name", "client__name")
     list_filter = ("machine", "client")
     autocomplete_fields = ("machine", "client")
 
-    # Кастомное поле для отображения клиентов машины
-    def get_clients(self, obj):
-        return ", ".join([client.name for client in obj.clients.all()])
+    def get_clients(self, obj: MachineClient) -> str:
+        """Return a comma-separated list of clients linked to the machine."""
+        return ", ".join(client.name for client in obj.clients.all())
 
-    get_clients.short_description = _("Клиенты")
+    get_clients.short_description = _("Clients")
 
 
 # =================== MODULE ===================
@@ -160,15 +171,18 @@ class MachineClientAdmin(admin.ModelAdmin):
 
 @admin.register(Module)
 class ModuleAdmin(admin.ModelAdmin):
+    """Admin configuration for the Module model."""
+
     list_display = ("name", "version", "machine", "parent", "module_status")
     search_fields = (
         "name__icontains",
         "machine__name__icontains",
         "parent__name__icontains",
+        "manufacturer",
     )
     list_filter = ("machine", "module_status")
     autocomplete_fields = ("machine", "parent")
-    inlines = [ModulePartInline]
+    inlines: ClassVar[list[str]] = [ModulePartInline]
 
 
 # =================== PART ===================
@@ -176,13 +190,17 @@ class ModuleAdmin(admin.ModelAdmin):
 
 @admin.register(Part)
 class PartAdmin(admin.ModelAdmin):
+    """Admin configuration for the Part model."""
+
     list_display = ("name", "manufacturer")
-    search_fields = ("name__icontains", "manufacturer",)
+    search_fields = ("name__icontains", "manufacturer")
     autocomplete_fields = ("manufacturer",)
 
 
 @admin.register(ModulePart)
 class ModulePartAdmin(admin.ModelAdmin):
+    """Admin configuration for the ModulePart model."""
+
     list_display = ("module", "part", "quantity")
     search_fields = ("module__name", "part__name")
     list_filter = ("module", "part")
@@ -194,6 +212,8 @@ class ModulePartAdmin(admin.ModelAdmin):
 
 @admin.register(ChangesLog)
 class ChangesLogAdmin(admin.ModelAdmin):
+    """Admin configuration for the ChangesLog model."""
+
     list_display = (
         "log_id",
         "table_name",
@@ -219,8 +239,8 @@ class ChangesLogAdmin(admin.ModelAdmin):
     date_hierarchy = "changed_on"
     list_per_page = 25
 
-    # Ссылка на пользователя, кто внёс изменение
-    def linked_user(self, obj):
+    def linked_user(self, obj: ChangesLog) -> str | None:
+        """Return a link to the user who made the change."""
         if obj.changed_by:
             return format_html(
                 '<a href="/admin/core/user/{}/change/">{}</a>',
@@ -229,10 +249,10 @@ class ChangesLogAdmin(admin.ModelAdmin):
             )
         return "-"
 
-    linked_user.short_description = _("Пользователь")
+    linked_user.short_description = _("User")
 
-    # Ссылка на измененнную запись
-    def linked_id_record(self, obj):
+    def linked_id_record(self, obj: ChangesLog) -> str:
+        """Return a link to the changed record."""
         if obj.record_id:
             return format_html(
                 '<a href="/admin/core/{}/{}/change/">{}</a>',
@@ -242,12 +262,15 @@ class ChangesLogAdmin(admin.ModelAdmin):
             )
         return "-"
 
-    linked_id_record.short_description = _("ID записи")
+    linked_id_record.short_description = _("Record ID")
 
-    # Запрет добавления логов вручную
-    def has_add_permission(self, request):
+    def has_add_permission(self, request: HttpRequest) -> bool:  # noqa: ARG002
+        """Disable manual addition of change logs."""
         return False
 
-    # Запрет редактирования логов
-    def has_change_permission(self, request, obj=None):
+    def has_change_permission(
+            self, request: HttpRequest,  # noqa: ARG002
+            obj: ChangesLog | None = None,  # noqa: ARG002
+        ) -> bool:
+        """Disable editing of change logs."""
         return False

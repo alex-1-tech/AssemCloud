@@ -1,3 +1,4 @@
+"""URL configuration for the assembler project."""
 from django.contrib import admin
 from django.urls import include, path
 
