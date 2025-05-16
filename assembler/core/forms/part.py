@@ -5,6 +5,8 @@ providing form fields and placeholder configurations for the Part model.
 """
 from typing import ClassVar
 
+from django import forms
+
 from core.forms.base import BaseStyledForm
 from core.models import Part
 
@@ -31,3 +33,6 @@ class PartForm(BaseStyledForm):
 
         model = Part
         fields = ("name", "manufacturer", "description", "material", "manufacture_date")
+        widgets: ClassVar[dict[str, object]] = {
+            "manufacture_date": forms.DateInput(attrs={"type": "date"}),
+        }

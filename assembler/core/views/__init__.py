@@ -42,6 +42,7 @@ from core.views.modulepart import (
     ModulePartListView,
     ModulePartUpdateView,
 )
+from core.views.modulepartset import part_create_view
 from core.views.part import (
     PartCreateView,
     PartDeleteView,
@@ -105,6 +106,7 @@ __all__ = [
     "UserPasswordChangeView",
     "UserRegisterView",
     "UserUpdateView",
+    "part_create_view",
     "verify_email_view",
 ]
 

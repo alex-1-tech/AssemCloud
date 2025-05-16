@@ -7,6 +7,7 @@ of each part in a particular module.
 
 from typing import ClassVar
 
+from core.models import Manufacturer, Module
 from core.models.base import (
     NormalizeMixin,
     ReprMixin,
@@ -27,22 +28,22 @@ class Part(ReprMixin, NormalizeMixin, TimeStampedModelWithUser):
     and placement of parts within modules.
     """
 
-    name = models.CharField(_("Name"), max_length=255)
+    name = models.CharField(_("Название"), max_length=255)
 
     manufacturer = models.ForeignKey(
-        "Manufacturer",
+        Manufacturer,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="parts_manufactured",
-        verbose_name=_("Manufacturer"),
+        verbose_name=_("Производители"),
     )
 
-    description = models.TextField(_("Part description"), blank=True, null=True)
+    description = models.TextField(_("Описание детали"), blank=True, null=True)
 
-    material = models.CharField(_("Material"), max_length=100, blank=True)
+    material = models.CharField(_("Материал"), max_length=100, blank=True)
 
-    manufacture_date = models.DateField(_("Manufacture date"), blank=True, null=True)
+    manufacture_date = models.DateField(_("Дата производства"), blank=True, null=True)
 
     def __str__(self) -> str:
         """Return the name of the part."""
@@ -69,21 +70,21 @@ class ModulePart(ReprMixin, models.Model):
     """
 
     module = models.ForeignKey(
-        "Module",
+        Module,
         on_delete=models.CASCADE,
         related_name="module_parts",
-        verbose_name=_("Module"),
+        verbose_name=_("Модуль"),
     )
 
     part = models.ForeignKey(
-        "Part",
+        Part,
         on_delete=models.RESTRICT,
         related_name="part_modules",
-        verbose_name=_("Part"),
+        verbose_name=_("Деталь"),
     )
 
     quantity = models.PositiveIntegerField(
-        _("Quantity"),
+        _("Количество"),
         default=1,
         help_text=_("Number of parts in the module"),
     )

@@ -6,6 +6,7 @@ from core.forms.machine import MachineForm
 from core.forms.manufacturer import ManufacturerForm
 from core.forms.module import ModuleForm
 from core.forms.modulepart import ModulePartForm
+from core.forms.modulepartset import ModulePartFormSet
 from core.forms.part import PartForm
 from core.forms.user import (
     UserLoginForm,
@@ -22,6 +23,7 @@ __all__ = [
     "ManufacturerForm",
     "ModuleForm",
     "ModulePartForm",
+    "ModulePartFormSet",
     "PartForm",
     "UserLoginForm",
     "UserPasswordChangeForm",

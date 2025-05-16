@@ -1,4 +1,4 @@
-"""Signal handlers for model change logging and initial role creation."""  # noqa: INP001
+"""Signal handlers for model change logging and initial role creation."""
 
 from __future__ import annotations
 
@@ -34,11 +34,11 @@ def log_model_changes(
     for field, old_value in old_data.items():
         new_value = new_data.get(field)
         if old_value != new_value:
-            # фильтры
+            # filters
             if sender.__name__ == "User" and str(field) == "last_login":
                 continue
 
-            # создание лога
+            # create log
             ChangesLog.objects.create(
                 table_name=sender.__name__,
                 record_id=str(instance.pk),

@@ -1,0 +1,24 @@
+<div class="formset-row border rounded p-3 mb-3">
+    <div class="mb-3">
+        <label for="id_module-__prefix__-module" class="form-label">Модуль</label>
+        <select name="module-__prefix__-module"
+                class="form-select"
+                id="id_module-__prefix__-module"
+                required>
+            <option value="" disabled selected>-- Выберите модуль --</option>
+            {% for module in module_choices %}<option value="{{ module.pk }}">{{ module }}</option>{% endfor %}
+        </select>
+    </div>
+    <div class="mb-3">
+        <label for="id_module-__prefix__-quantity" class="form-label">Количество</label>
+        <input type="number"
+               name="module-__prefix__-quantity"
+               class="form-control"
+               id="id_module-__prefix__-quantity"
+               min="1"
+               required>
+    </div>
+    <input type="hidden"
+           name="module-__prefix__-id"
+           id="id_module-__prefix__-id" />
+</div>

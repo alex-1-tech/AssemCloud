@@ -2,7 +2,7 @@
 
 Includes admin interfaces and inline configurations for User, Role,
 Client, Manufacturer, Blueprint, Machine, Module, Part, and change logging.
-""" # noqa: INP001
+"""
 
 from __future__ import annotations
 

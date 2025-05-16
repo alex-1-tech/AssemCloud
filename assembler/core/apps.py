@@ -1,4 +1,4 @@
-"""App configuration for the core application."""  # noqa: INP001
+"""App configuration for the core application."""
 
 from django.apps import AppConfig
 

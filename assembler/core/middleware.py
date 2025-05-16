@@ -1,4 +1,4 @@
-"""Middleware to track the current authenticated user per request."""  # noqa: INP001
+"""Middleware to track the current authenticated user per request."""
 
 from __future__ import annotations
 

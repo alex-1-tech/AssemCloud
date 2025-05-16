@@ -1,4 +1,6 @@
-"""URL configuration for the core application."""  # noqa: INP001
+"""URL configuration for the core application."""
+from typing import ClassVar
+
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
@@ -6,8 +8,10 @@ from django.contrib.auth.views import LogoutView as UserLogoutView
 from django.urls import path
 
 from core import views
+from core.mixins import RoleRequiredMixin
 from core.views import (
     CustomPasswordResetConfirmView,
+    MachineListView,
     ResendVerificationView,
     UserDetailView,
     UserListView,
@@ -94,6 +98,29 @@ view_types = {
     "delete": "DeleteView",
 }
 
+def create_role_view(view_class: object) -> object:
+    """Wrap a given Django view class with role-based access control.
+
+    This function dynamically creates and returns a new view class that inherits
+    from both `RoleRequiredMixin` and the specified `view_class`. The returned
+    view class restricts access to users who have at least one of the predefined roles:
+    "Директор", "Конструктор", "Тестировщик", or "Программист".
+    """
+    class WithRoleView(RoleRequiredMixin, view_class):
+            """A view class that restricts access to users with specific roles.
+
+            Inherits from RoleRequiredMixin and a generic view class (`view_class`).
+            Only users who have at least one of the specified roles are allowed access.
+            """
+
+            required_roles: ClassVar[list[str]]= [
+                "Директор",
+                "Конструктор",
+                "Тестировщик",
+                "Программист",
+            ]
+    return WithRoleView
+
 for model in model_names:
     class_prefix = model.capitalize()  # "manufacturer" → "Manufacturer"
 
@@ -103,6 +130,8 @@ for model in model_names:
     for action, suffix in view_types.items():
         class_name = f"{class_prefix}{suffix}"  # e.g. ManufacturerListView
         view_class = getattr(views, class_name)
+
+        WithRoleView = create_role_view(view_class=view_class)
 
         if action == "list":
             pattern = f"{model}s/"
@@ -115,13 +144,22 @@ for model in model_names:
         elif action == "delete":
             pattern = f"{model}s/<int:pk>/delete/"
 
-        urlpatterns.append(
-            path(pattern, view_class.as_view(), name=f"{model}_{action}"),
+        current_path = path(
+            pattern, WithRoleView.as_view(), name=f"{model}_{action}",
         )
+
+        if model == "part" and action in {"add", "edit"}:
+            current_path = path(
+                pattern, views.part_create_view, name=f"{model}_{action}",
+            )
+
+        urlpatterns.append(current_path)
+
+BaseWithRoleView = create_role_view(view_class=MachineListView)
 
 urlpatterns += [
     # other
-    path("", UserRegisterView.as_view(), name="machines_list"),
+    path("", BaseWithRoleView.as_view(), name="machines_list"),
 ]
 
 

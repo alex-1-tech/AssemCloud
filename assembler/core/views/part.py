@@ -55,7 +55,7 @@ class PartCreateView(CreateView):
 
     model = Part
     form_class = PartForm
-    template_name = "core/edit.html"
+    template_name = "core/parts/edit.html"
     success_url = reverse_lazy("part_list")
 
     def get_context_data(self, **kwargs: object) -> dict:

@@ -120,6 +120,6 @@ class User(ReprMixin, NormalizeMixin, AbstractBaseUser, PermissionsMixin):
         """Model metadata: database table name, verbose names, and app label."""
 
         db_table = "users"
-        verbose_name = _("User")
-        verbose_name_plural = _("Users")
+        verbose_name = _("Пользователь")
+        verbose_name_plural = _("Пользователи")
         app_label = "core"

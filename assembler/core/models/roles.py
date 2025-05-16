@@ -19,12 +19,12 @@ class Role(ReprMixin, NormalizeMixin, models.Model):
     """
 
     name: str = models.CharField(
-        _("Role name"),
+        _("Название роли"),
         max_length=50,
         unique=True,
     )
     description: str = models.TextField(
-        _("Role description"),
+        _("Описание роли"),
         blank=True,
     )
 
@@ -36,8 +36,8 @@ class Role(ReprMixin, NormalizeMixin, models.Model):
         """Meta information for Role model."""
 
         db_table: ClassVar[str] = "roles"
-        verbose_name: ClassVar[str] = _("Role")
-        verbose_name_plural: ClassVar[str] = _("Roles")
+        verbose_name: ClassVar[str] = _("Роль")
+        verbose_name_plural: ClassVar[str] = _("Роли")
         ordering: ClassVar[list[str]] = ["name"]
 
 
@@ -60,7 +60,7 @@ class UserRole(ReprMixin, models.Model):
         related_name="users",
     )
     role_description: str = models.TextField(
-        _("Individual role description"),
+        _("Индивидуальное описание роли"),
         blank=True,
     )
 
@@ -72,8 +72,8 @@ class UserRole(ReprMixin, models.Model):
         """Meta information for UserRole model."""
 
         db_table: ClassVar[str] = "user_roles"
-        verbose_name: ClassVar[str] = _("User-Role Link")
-        verbose_name_plural: ClassVar[str] = _("User-Role Links")
+        verbose_name: ClassVar[str] = _("Пользователь-роль ссылка")
+        verbose_name_plural: ClassVar[str] = _("Пользователь-роль ссылки")
         constraints: ClassVar[list[object]] = [
             models.UniqueConstraint(fields=["user", "role"], name="unique_user_role"),
         ]

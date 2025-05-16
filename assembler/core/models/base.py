@@ -23,7 +23,11 @@ PHONE_VALIDATOR = RegexValidator(
 
 # === Foreign Key Helper ===
 
-def user_fk(related_name: str, verbose_name: str) -> models.ForeignKey:
+def user_fk(
+        related_name: str,
+        verbose_name: str,
+        help_text: str|None = None,
+    ) -> models.ForeignKey:
     """Return a ForeignKey to the User model with standardized parameters."""
     return models.ForeignKey(
         "User",
@@ -32,6 +36,7 @@ def user_fk(related_name: str, verbose_name: str) -> models.ForeignKey:
         blank=True,
         related_name=related_name,
         verbose_name=verbose_name,
+        help_text=help_text,
     )
 
 
