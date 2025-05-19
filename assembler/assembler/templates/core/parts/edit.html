@@ -8,23 +8,52 @@
                     <h3 class="card-title mb-4 text-center">{{ title }}</h3>
                     <form method="post" id="part-form">
                         {% csrf_token %}
+                        {{ formset.management_form }}
                         {% for field in form %}
                             <div class="mb-3">
                                 <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
                                 {{ field }}
-                                {% if field.errors %}<div class="text-danger small">{{ field.errors }}</div>{% endif %}
+                                {% if field.errors %}<div class="text-red small">{{ field.errors }}</div>{% endif %}
                             </div>
                         {% endfor %}
                         <h5>Связи с модулями</h5>
-                        {{ formset.management_form }}
                         <div id="formset-container">
+                            {% if formset.non_form_errors %}<div class="alert alert-danger">{{ formset.non_form_errors }}</div>{% endif %}
                             {% for f in formset %}
-                                {% for hidden in f.hidden_fields %}{{ hidden }}{% endfor %}
+                                <div class="formset-row border rounded p-3 mb-3">
+                                    {% for hidden in f.hidden_fields %}{{ hidden }}{% endfor %}
+                                    <div class="mb-3">
+                                        {{ f.module.label_tag }}
+                                        {{ f.module }}
+                                        {% if f.module.errors %}<div class="text-red small">{{ f.module.errors }}</div>{% endif %}
+                                    </div>
+                                    <div class="mb-3">
+                                        {{ f.quantity.label_tag }}
+                                        {{ f.quantity }}
+                                        {% if f.quantity.errors %}<div class="text-red small">{{ f.quantity.errors }}</div>{% endif %}
+                                    </div>
+                                    {{ f.DELETE|default:"" }}
+                                </div>
                             {% endfor %}
                         </div>
-                        <button type="button" id="add-form" class="btn btn-secondary mb-4">Добавить связь</button>
+                        <div id="empty-form-template" class="d-none">
+                            <div class="formset-row border rounded p-3 mb-3">
+                                {% for hidden in formset.empty_form.hidden_fields %}{{ hidden }}{% endfor %}
+                                <div class="mb-3">
+                                    {{ formset.empty_form.module.label_tag }}
+                                    {{ formset.empty_form.module }}
+                                </div>
+                                <div class="mb-3">
+                                    {{ formset.empty_form.quantity.label_tag }}
+                                    {{ formset.empty_form.quantity }}
+                                </div>
+                                {{ formset.empty_form.DELETE|default:"" }}
+                            </div>
+                        </div>
+                        <button type="button" id="add-form" class="btn btn-gray mb-4">Добавить связь</button>
+                        {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
                         <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">{{ submit_label|default:"Сохранить" }}</button>
+                            <button type="submit" class="btn btn-blue">{{ submit_label }}</button>
                         </div>
                     </form>
                 </div>
@@ -34,52 +63,73 @@
 {% endblock %}
 {% block extra_scripts %}
     <script>
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', function() {
     const addButton = document.getElementById('add-form');
     const formsetContainer = document.getElementById('formset-container');
-    const totalForms = document.querySelector('input[name="{{ formset.prefix }}-TOTAL_FORMS"]');
+    const totalForms = document.getElementById('id_' + '{{ formset.prefix }}' + '-TOTAL_FORMS');
+    const emptyFormTemplate = document.getElementById('empty-form-template').children[0].cloneNode(true);
+    const urlParams = new URLSearchParams(window.location.search);
+    const moduleId = urlParams.get('module');
 
-    const emptyFormHtml = `{% include "core/parts/empty_form.html" with prefix=formset.prefix module_choices=module_choices %}`;
+    // Скрываем все существующие DELETE чекбоксы
+    document.querySelectorAll('[id$="-DELETE"]').forEach(checkbox => {
+        checkbox.style.display = 'none';
+    });
 
-    formsetContainer.querySelectorAll('.formset-row').forEach(addDeleteButton);
-
-addButton.addEventListener('click', function () {
-    const formCount = parseInt(totalForms.value);
-    const newHtml = emptyFormHtml.replace(/__prefix__/g, formCount);
-
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = newHtml;
-
-    const formRow = tempDiv.querySelector('.formset-row');
-    if (formRow) {
-        addDeleteButton(formRow);
-        formsetContainer.appendChild(formRow);
-    } else {
-        addDeleteButton(tempDiv);
-        formsetContainer.appendChild(tempDiv);
+    function updateTotalForms(count) {
+        totalForms.value = count;
     }
 
-    totalForms.value = formCount + 1;
-});
-
-    function addDeleteButton(formRow) {
+    function addDeleteButton(row) {
         const deleteBtn = document.createElement('button');
         deleteBtn.type = 'button';
-        deleteBtn.className = 'btn btn-danger btn-sm mt-2';
+        deleteBtn.className = 'btn btn-red btn-sm mt-2';
         deleteBtn.textContent = 'Удалить';
-
-        deleteBtn.addEventListener('click', function () {
-            const deleteCheckbox = formRow.querySelector('input[type="checkbox"][name*="-DELETE"]');
-            if (deleteCheckbox) {
-                deleteCheckbox.checked = true;
-                formRow.style.display = 'none';
+        deleteBtn.addEventListener('click', function() {
+            const deleteInput = row.querySelector('input[name$="-DELETE"]');
+            if (deleteInput) {
+                deleteInput.checked = true;
+                row.style.display = 'none';
             } else {
-                formRow.remove();
-                totalForms.value = parseInt(totalForms.value) - 1;
+                row.remove();
+                const total = parseInt(totalForms.value);
+                updateTotalForms(total - 1);
             }
         });
+        row.appendChild(deleteBtn);
+    }
 
-        formRow.appendChild(deleteBtn);
+    addButton.addEventListener('click', function() {
+        const newForm = emptyFormTemplate.cloneNode(true);
+        const formIndex = parseInt(totalForms.value);
+        
+        // Обновляем атрибуты name и id для всех полей
+        newForm.innerHTML = newForm.innerHTML.replace(/__prefix__/g, formIndex);
+        
+        if (moduleId) {
+            const moduleSelect = newForm.querySelector('select[name$="-module"]');
+            if (moduleSelect) {
+                moduleSelect.value = moduleId;
+                moduleSelect.dispatchEvent(new Event('change'));
+            }
+        }
+
+        formsetContainer.appendChild(newForm);
+        addDeleteButton(newForm);
+        updateTotalForms(formIndex + 1);
+        
+        // Скрываем новый DELETE чекбокс
+        newForm.querySelector('[id$="-DELETE"]').style.display = 'none';
+    });
+
+    formsetContainer.querySelectorAll('.formset-row').forEach(row => {
+        addDeleteButton(row);
+    });
+
+    if (moduleId) {
+        document.querySelectorAll('#formset-container .formset-row select[name$="-module"]').forEach(select => {
+            select.value = moduleId;
+        });
     }
 });
     </script>

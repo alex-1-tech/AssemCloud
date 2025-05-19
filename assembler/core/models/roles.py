@@ -72,8 +72,8 @@ class UserRole(ReprMixin, models.Model):
         """Meta information for UserRole model."""
 
         db_table: ClassVar[str] = "user_roles"
-        verbose_name: ClassVar[str] = _("Пользователь-роль ссылка")
-        verbose_name_plural: ClassVar[str] = _("Пользователь-роль ссылки")
+        verbose_name: ClassVar[str] = _("Связь Пользователь-Роль")
+        verbose_name_plural: ClassVar[str] = _("Связи Пользователь-Роль")
         constraints: ClassVar[list[object]] = [
             models.UniqueConstraint(fields=["user", "role"], name="unique_user_role"),
         ]

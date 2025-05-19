@@ -3,6 +3,7 @@
 Includes listing, creating, updating, viewing, and deleting manufacturers.
 """
 
+from django.db.models import Q
 from django.urls import reverse, reverse_lazy
 from django.views.generic import (
     CreateView,
@@ -22,6 +23,7 @@ class ManufacturerListView(ListView):
     model = Manufacturer
     template_name = "core/list.html"
     context_object_name = "manufacturers"
+    paginate_by = 10
 
     def get_context_data(self, **kwargs: object) -> dict:
         """Add manufacturer cards and metadata to context."""
@@ -48,6 +50,13 @@ class ManufacturerListView(ListView):
         )
         return context
 
+    def get_queryset(self) -> object:
+        """Return a queryset of manufacturers filtered by the search query."""
+        qs = super().get_queryset()
+        q = self.request.GET.get("q", "").strip()
+        if q:
+            qs = qs.filter(Q(name__icontains=q) | Q(country__icontains=q))
+        return qs
 
 class ManufacturerCreateView(CreateView):
     """Handles creation of a new manufacturer."""
@@ -108,8 +117,10 @@ class ManufacturerDetailView(DetailView):
                     {"label": "Язык", "value": manufacturer.language},
                     {"label": "Телефон", "value": manufacturer.phone},
                 ],
+                "add_url": reverse("manufacturer_add"),
                 "edit_url": reverse("manufacturer_edit", args=[manufacturer.pk]),
                 "delete_url": reverse("manufacturer_delete", args=[manufacturer.pk]),
+                "add_label": "Добавить нового производителя",
             },
         )
         return context

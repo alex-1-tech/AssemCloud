@@ -9,6 +9,7 @@ from django.contrib.auth import login
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import PasswordChangeView, PasswordResetConfirmView
 from django.core.exceptions import PermissionDenied
+from django.db.models import Q
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
@@ -120,6 +121,18 @@ class UserListView(ListView):
         })
 
         return context
+
+    def get_queryset(self) -> object:
+        """Return a queryset of users filtered by the search query."""
+        qs = super().get_queryset()
+        q = self.request.GET.get("q", "").strip()
+        if q:
+            qs = qs.filter(
+                Q(email__icontains=q) |
+                Q(first_name__icontains=q) |
+                Q(last_name__icontains=q),
+            )
+        return qs
 
 
 class UserDetailView(LoginRequiredMixin, DetailView):

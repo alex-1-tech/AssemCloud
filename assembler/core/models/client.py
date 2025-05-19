@@ -21,12 +21,16 @@ class Client(ReprMixin, NormalizeMixin, models.Model):
         _("Имя клиента"),
         max_length=150,
         unique=True,
+        blank=False,
+        null=False,
         help_text=_("Название клиента (уникальное значение)"),
     )
 
     country = models.CharField(
         _("Страна"),
         max_length=100,
+        blank=False,
+        null=False,
         help_text=_("Страна клиента"),
     )
 

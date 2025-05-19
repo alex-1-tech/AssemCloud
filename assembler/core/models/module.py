@@ -24,7 +24,7 @@ class Module(ReprMixin, NormalizeMixin, TimeStampedModelWithUser):
     """Model representing a machine module with various attributes.
 
     Modules can represent standalone or nested components within machines,
-    with references to blueprints, manufacturers, and hierarchical relationships.
+    with references to blueprints, manufacturers, anфd hierarchical relationships.
 
     Includes details like serial number, part number, name, version, description,
     and a defined status indicating the module's development stage.
@@ -35,6 +35,8 @@ class Module(ReprMixin, NormalizeMixin, TimeStampedModelWithUser):
         on_delete=models.CASCADE,
         related_name="modules",
         verbose_name=_("Машина"),
+        blank=False,
+        null=False,
     )
 
     blueprint = models.OneToOneField(
@@ -62,6 +64,8 @@ class Module(ReprMixin, NormalizeMixin, TimeStampedModelWithUser):
     name = models.CharField(
         _("Название модуля"),
         max_length=255,
+        blank=False,
+        null=False,
     )
 
     parent = models.ForeignKey(

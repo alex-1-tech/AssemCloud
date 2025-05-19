@@ -28,7 +28,12 @@ class Part(ReprMixin, NormalizeMixin, TimeStampedModelWithUser):
     and placement of parts within modules.
     """
 
-    name = models.CharField(_("Название"), max_length=255)
+    name = models.CharField(
+        _("Название"),
+        max_length=255,
+        null=False,
+        blank=False,
+    )
 
     manufacturer = models.ForeignKey(
         Manufacturer,

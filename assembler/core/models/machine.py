@@ -20,9 +20,19 @@ class Machine(ReprMixin, NormalizeMixin, models.Model):
     Each machine can be linked to multiple clients via the `MachineClient` model.
     """
 
-    name = models.CharField(_("Название машины"), max_length=255)
+    name = models.CharField(
+        _("Название машины"),
+        max_length=255,
+        blank=False,
+        null=False,
+    )
 
-    version = models.CharField(_("Версия машины"), max_length=50)
+    version = models.CharField(
+        _("Версия машины"),
+        max_length=50,
+        blank=False,
+        null=False,
+    )
 
     clients = models.ManyToManyField(
         Client,

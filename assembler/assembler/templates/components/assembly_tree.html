@@ -1,10 +1,12 @@
 <!-- DO NOT FORMAT THE FILE. BREAKS THE LOGIC OF THE OUTPUT -->
+{% comment %} djlint:off {% endcomment %}
 {% with indent=indent|default:"" %}
-    {{ indent }}└─ Модуль: <a href="{% url 'module_detail' node.module.id %}">{{ node.module.name }}</a> (id={{ node.module.id }})
+    <pre class="mb-0">{{ indent }}└─ Модуль: <a href="{% url 'module_detail' node.module.id %}">{{ node.module.name }}</a> (id={{ node.module.id }})<a href="{% url 'module_add' %}?machine=1&parent={{ node.module.id }}" class="btn btn-sm p-1" title="Добавить подмодуль" style="height: 24px;"><i class="bi bi-plus" style="font-size: 14px; color: #28a745; margin-right: 0px;"></i> <i class="bi bi-boxes" style="font-size: 14px; color: #28a745;"></i></a><a href="{% url 'part_add' %}?module={{ node.module.id }}" class="btn btn-sm p-1"title="Добавить деталь" style="height: 24px;"><i class="bi bi-plus" style="font-size: 14px; color: #ffc107; margin-right: 2px;"></i> <i class="bi bi-gear" style="font-size: 14px; color: #ffc107;"></i></a></pre>
     {% for part in node.parts %}
-        {{ indent }}   ├─ Деталь: <a href="{% url 'part_detail' part.part.id %}">{{ part.part.name }}</a> (<a href="{% url 'modulepart_detail' part.part.id %}">x{{ part.quantity }}</a>) [id={{ part.part.id }}]
+        <pre class="mb-0">{{ indent }}   ├─ Деталь: <a href="{% url 'part_detail' part.part.id %}">{{ part.part.name }}</a> (<a href="{% url 'modulepart_detail' part.part.id %}">x{{ part.quantity }}</a>) [id={{ part.part.id }}]</pre>
     {% endfor %}
     {% for sub in node.submodules %}
         {% include "components/assembly_tree.html" with node=sub indent=indent|add:"    " %}
     {% endfor %}
 {% endwith %}
+{% comment %} djlint:on {% endcomment %}

@@ -7,8 +7,10 @@ and custom widget attributes for the Machine model.
 
 from typing import ClassVar
 
+from django_select2.forms import ModelSelect2MultipleWidget
+
 from core.forms.base import BaseStyledForm
-from core.models import Machine
+from core.models import Client, Machine
 
 
 class MachineForm(BaseStyledForm):
@@ -30,10 +32,20 @@ class MachineForm(BaseStyledForm):
 
         model = Machine
         fields = ("name", "version", "clients")
+        widgets: ClassVar[dict[str, object]] = {
+            "clients": ModelSelect2MultipleWidget(
+                model=Client,
+                search_fields=["name__icontains"],
+            ),
+        }
 
     def __init__(self, *args: object, **kwargs: object) -> None:
-        """Initialize the form and customize the 'clients' field widget."""
+        """Initialize the form with styled fields and placeholder support."""
         super().__init__(*args, **kwargs)
-        self.fields["clients"].widget.attrs.update(
-            {"class": "form-select", "multiple": "multiple"},
-        )
+
+        # Select2 already applies its own styling, so avoid overriding it
+        if "clients" in self.fields:
+            self.fields["clients"].widget.attrs.pop("class", None)
+            self.fields["clients"].widget.attrs.update({
+                "style": "width: 100%; min-height: 40px;",
+            })

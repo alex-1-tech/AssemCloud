@@ -3,6 +3,7 @@
 Includes listing, creating, updating, viewing, and deleting module-part links.
 """
 
+from django.db.models import Q
 from django.urls import reverse, reverse_lazy
 from django.views.generic import (
     CreateView,
@@ -22,6 +23,7 @@ class ModulePartListView(ListView):
     model = ModulePart
     template_name = "core/list.html"
     context_object_name = "moduleparts"
+    paginate_by = 10
 
     def get_context_data(self, **kwargs: object) -> dict:
         """Add module-part cards and metadata to context."""
@@ -47,6 +49,16 @@ class ModulePartListView(ListView):
             },
         )
         return context
+
+    def get_queryset(self) -> object:
+        """Return a queryset of moduleparts filtered by the search query."""
+        qs = super().get_queryset()
+        q = self.request.GET.get("q", "").strip()
+        if q:
+            qs = qs.filter(
+                Q(module__name__icontains=q) | Q(part__name__icontains=q),
+            )
+        return qs
 
 
 class ModulePartCreateView(CreateView):
@@ -106,12 +118,19 @@ class ModulePartDetailView(DetailView):
                     {
                         "label": "Модуль",
                         "value": obj.module.name if obj.module else "—",
+                        "url": reverse("module_datail", args=[obj.module.pk]),
                     },
-                    {"label": "Деталь", "value": obj.part.name if obj.part else "—"},
+                    {
+                        "label": "Деталь",
+                        "value": obj.part.name if obj.part else "—",
+                        "url": reverse("part_detail", args=[obj.part.pk]),
+                    },
                     {"label": "Количество", "value": obj.quantity},
                 ],
+                "add_url": reverse("modulepart_add"),
                 "edit_url": reverse("modulepart_edit", args=[obj.pk]),
                 "delete_url": reverse("modulepart_delete", args=[obj.pk]),
+                "add_label": "Добавить новую связь",
             },
         )
         return context

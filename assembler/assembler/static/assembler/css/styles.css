@@ -95,3 +95,148 @@ h1, h2, h3 {
 .dropdown-item {
     padding: 12px 20px;
 }
+
+.btn-blue {
+    background-color: #a3c4f3;
+    color: #1f3b70;
+    border: none;
+}
+
+.btn-blue:hover {
+    background-color: #91b4e8;
+    color: #162f5c;
+}
+
+.btn-red {
+    background-color: #f4a6a6;
+    color: #731c1c;
+    border: none;
+}
+
+.btn-red:hover {
+    background-color: #ec8e8e;
+    color: #5a1515;
+}
+
+.btn-green {
+    background-color: #b2e2b2;
+    color: #2e5934;
+    border: none;
+}
+
+.btn-green:hover {
+    background-color: #a0d8a0;
+    color: #244a2a;
+}
+
+.btn-gray {
+    background-color: #e1e1e1;
+    color: #3c3c3c;
+    border: none;
+}
+
+.btn-gray:hover {
+    background-color: #d1d1d1;
+}
+
+.btn-icon {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+}
+
+.btn-light {
+    background-color: #dbdbdb;
+    color: #2a2a2a;
+    border: none;
+}
+
+.btn-light:hover {
+    background-color: #9f9f9f;
+    color: #1f1f1f;
+}
+
+.btn-yellow {
+    background-color: #f9e79f;
+    color: #7a6100;
+    border: none;
+}
+
+.btn-yellow:hover {
+    background-color: #f4d03f;
+    color: #5a4700;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+  display: inline-flex !important;
+  align-items: center !important;
+  background-color: #e0e0e0 !important;
+  color: #333 !important;
+  padding: 0.15rem 0.5rem !important;
+  margin: 0.15rem !important;
+  border-radius: 0.25rem !important;
+  font-size: 0.875rem !important;
+  position: relative !important;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+  order: 0 !important;
+  position: static !important;
+  margin: 0 !important;
+  margin-right: 0.3rem !important;
+  font-size: 0.9rem !important;
+  line-height: 1 !important;
+  color: #666 !important;
+  cursor: pointer !important;
+}
+
+.select2-container--default .select2-selection--multiple {
+  min-height: 36px !important;
+  padding: 0.2rem 0.4rem !important;
+  border: 1px solid #ccc !important;
+  border-radius: 0.25rem !important;
+  background-color: #fafafa !important;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice__display {
+  margin-left: 0 !important;
+  padding-left: 0 !important;
+}
+
+.input-group .form-control:focus {
+  position: relative;
+  z-index: 1;
+}
+
+.input-group .form-control {
+  padding: 0.5rem 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.1;
+}
+
+.input-group .btn {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.1;
+margin-left: 0;
+}
+
+pre.mb-0 {
+    height: 25px;
+  overflow-y: visible !important;
+  overflow-x: auto;
+  min-height: 0;
+  max-height: None !important; 
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.parent-container {
+  overflow-y: visible !important;
+  max-height: none !important;
+}

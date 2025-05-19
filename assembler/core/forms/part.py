@@ -36,3 +36,4 @@ class PartForm(BaseStyledForm):
         widgets: ClassVar[dict[str, object]] = {
             "manufacture_date": forms.DateInput(attrs={"type": "date"}),
         }
+

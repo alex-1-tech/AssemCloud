@@ -6,6 +6,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from django.db.models import Q
 from django.urls import reverse, reverse_lazy
 from django.views.generic import (
     CreateView,
@@ -25,6 +26,7 @@ class BlueprintListView(ListView):
     model = Blueprint
     template_name = "core/list.html"
     context_object_name = "blueprints"
+    paginate_by = 10
 
     def get_context_data(self, **kwargs: dict[str, object]) -> dict[str, Any]:
         """Add blueprint cards and metadata to context."""
@@ -51,6 +53,13 @@ class BlueprintListView(ListView):
         )
         return context
 
+    def get_queryset(self) -> object:
+        """Return a queryset of blueprints filtered by the search query."""
+        qs = super().get_queryset()
+        q = self.request.GET.get("q", "").strip()
+        if q:
+            qs = qs.filter(Q(naming_scheme__icontains=q) | Q(version__icontains=q))
+        return qs
 
 class BlueprintCreateView(CreateView):
     """Handles creation of a new blueprint."""
@@ -132,31 +141,47 @@ class BlueprintDetailView(DetailView):
                     {"label": "Схема наименования", "value": bp.naming_scheme},
                     {
                         "label": "Разработчик",
-                        "value": bp.developer, "profile_url": developer_url,
+                        "value": str(bp.developer) if bp.developer else "—",
+                        "url": developer_url,
                     },
                     {
                         "label": "Проверяющий",
-                        "value": bp.validator, "profile_url": validator_url,
+                        "value": str(bp.validator) if bp.validator else "—",
+                        "url": validator_url,
                     },
                     {
                         "label": "Ведущий конструктор",
-                        "value": bp.lead_designer, "profile_url": lead_designer_url,
+                        "value": str(bp.lead_designer) if bp.lead_designer else "—",
+                        "url": lead_designer_url,
                     },
                     {
                         "label": "Главный конструктор",
-                        "value": bp.chief_designer, "profile_url": chief_designer_url,
+                        "value": str(bp.chief_designer) if bp.chief_designer else "—",
+                        "url": chief_designer_url,
                     },
                     {
                         "label": "Утвердивший",
-                        "value": bp.approver, "profile_url": approver_url,
+                        "value": str(bp.approver) if bp.approver else "—",
+                        "url": approver_url,
                     },
-                    {"label": "Файл (PDF)", "value": scheme_url},
-                    {"label": "Файл (STEP)", "value": step_url},
+                    {
+                        "label": "Файл (PDF)",
+                        "value": "Открыть PDF" if scheme_url else "Нет файла",
+                        "url": scheme_url,
+                    },
+                    {
+                        "label": "Файл (STEP)",
+                        "value": "Открыть STEP" if step_url else "Нет файла",
+                        "url": step_url,
+                    },
                 ],
+                "add_url": reverse("blueprint_add"),
                 "edit_url": reverse("blueprint_edit", args=[bp.pk]),
                 "delete_url": reverse("blueprint_delete", args=[bp.pk]),
+                "add_label": "Добавить новый чертеж",
             },
         )
+
         return context
 
 

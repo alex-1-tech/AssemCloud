@@ -5,6 +5,7 @@ Includes listing, creating, updating, viewing, and deleting clients.
 
 from typing import Any
 
+from django.db.models import Q
 from django.urls import reverse, reverse_lazy
 from django.views.generic import (
     CreateView,
@@ -24,6 +25,7 @@ class ClientListView(ListView):
     model = Client
     template_name = "core/list.html"
     context_object_name = "clients"
+    paginate_by = 10
 
     def get_context_data(self, **kwargs: dict[str, object]) -> dict[str, Any]:
         """Add client cards and metadata to context."""
@@ -49,6 +51,14 @@ class ClientListView(ListView):
             },
         )
         return context
+
+    def get_queryset(self) -> object:
+        """Return a queryset of clients filtered by the search query."""
+        qs = super().get_queryset()
+        q = self.request.GET.get("q", "").strip()
+        if q:
+            qs = qs.filter(Q(name__icontains=q) | Q(country__icontains=q))
+        return qs
 
 
 class ClientCreateView(CreateView):
@@ -111,6 +121,9 @@ class ClientDetailView(DetailView):
                 ],
                 "edit_url": reverse("client_edit", args=[client.pk]),
                 "delete_url": reverse("client_delete", args=[client.pk]),
+                                "add_url": reverse("client_add"),
+                "add_label": "Добавить нового клиента",
+
             },
         )
         return context

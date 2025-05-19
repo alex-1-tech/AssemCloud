@@ -19,6 +19,7 @@ from core.views import (
     UserPasswordChangeView,
     UserRegisterView,
     UserUpdateView,
+    part_create_view,
     verify_email_view,
 )
 
@@ -150,7 +151,9 @@ for model in model_names:
 
         if model == "part" and action in {"add", "edit"}:
             current_path = path(
-                pattern, views.part_create_view, name=f"{model}_{action}",
+                pattern,
+                part_create_view,
+            name=f"{model}_{action}",
             )
 
         urlpatterns.append(current_path)

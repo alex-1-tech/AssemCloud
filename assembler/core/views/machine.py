@@ -5,6 +5,7 @@ Includes listing, creating, updating, viewing, and deleting machines.
 
 from typing import Any
 
+from django.db.models import Q
 from django.urls import reverse, reverse_lazy
 from django.views.generic import (
     CreateView,
@@ -25,6 +26,7 @@ class MachineListView(ListView):
     model = Machine
     template_name = "core/list.html"
     context_object_name = "machines"
+    paginate_by = 10
 
     def get_context_data(self, **kwargs: dict[str, object]) -> dict[str, Any]:
         """Add machine cards and metadata to context."""
@@ -46,11 +48,20 @@ class MachineListView(ListView):
                 "items": items,
                 "add_url": reverse("machine_add"),
                 "add_label": "Добавить машину",
-                "empty_message": "Машины не найдены.",
+                "empty_message": "Ничего не найдено по вашему запросу."\
+                      if self.request.GET.get("q") else None,
+
             },
         )
         return context
 
+    def get_queryset(self) -> object:
+        """Return a queryset of machines filtered by the search query."""
+        qs = super().get_queryset()
+        q = self.request.GET.get("q", "").strip()
+        if q:
+            qs = qs.filter(Q(name__icontains=q) | Q(version__icontains=q))
+        return qs
 
 class MachineCreateView(CreateView):
     """Handles creation of a new machine."""
@@ -111,14 +122,16 @@ class MachineDetailView(DetailView):
                     {"label": "Версия", "value": machine.version},
                     {
                         "label": "Клиенты",
-                        "value": ", ".join(
-                            [client.name for client in machine.clients.all()],
-                        ),
+                        "value": machine.clients.all(),
+                        "is_links": True,
                     },
                 ],
                 "machine_tree": machine_tree,
                 "edit_url": reverse("machine_edit", args=[machine.pk]),
                 "delete_url": reverse("machine_delete", args=[machine.pk]),
+                                "add_url": reverse("machine_add"),
+                "add_label": "Добавить новую машину",
+
             },
         )
         return context
