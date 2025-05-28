@@ -43,7 +43,7 @@ class Machine(ReprMixin, NormalizeMixin, models.Model):
 
     def __str__(self) -> str:
         """Return string representation of the machine with name and version."""
-        return f"{self.name} #{self.pk} — Версия {self.version or 'N/A'}"
+        return f"{self.name} — {self.version or 'N/A'}"
 
     class Meta:
         """Model metadata: database table name, verbose names and constraints."""

@@ -119,7 +119,9 @@ class UserListView(ListView):
             "title": "Пользователи",
             "items": items,
         })
-
+        context["user_roles"] = list(
+            self.request.user.roles.values_list("role__name", flat=True),
+        )
         return context
 
     def get_queryset(self) -> object:

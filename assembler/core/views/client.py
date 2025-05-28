@@ -2,11 +2,12 @@
 
 Includes listing, creating, updating, viewing, and deleting clients.
 """
+from __future__ import annotations
 
 from typing import Any
 
 from django.db.models import Q
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse
 from django.views.generic import (
     CreateView,
     DeleteView,
@@ -16,58 +17,72 @@ from django.views.generic import (
 )
 
 from core.forms import ClientForm
+from core.mixins import NextUrlMixin, QuerySetMixin
 from core.models import Client
 
+CLIENT_LIST_URL = "client_list"
 
-class ClientListView(ListView):
+
+class ClientListView(QuerySetMixin, ListView):
     """Displays a list of all clients."""
 
     model = Client
     template_name = "core/list.html"
     context_object_name = "clients"
-    paginate_by = 10
+    paginate_by = 7
 
     def get_context_data(self, **kwargs: dict[str, object]) -> dict[str, Any]:
         """Add client cards and metadata to context."""
         context = super().get_context_data(**kwargs)
-        items = [
-            {
-                "title": client.name,
-                "subtitle": client.country,
-                "view_url": reverse("client_detail", args=[client.pk]),
-                "edit_url": reverse("client_edit", args=[client.pk]),
-                "delete_url": reverse("client_delete", args=[client.pk]),
-                "delete_confirm_message": f"Удалить клиента {client.name}?",
-            }
-            for client in context["clients"]
-        ]
         context.update(
             {
                 "title": "Клиенты",
-                "items": items,
+                "items": self.get_blueprint_items(context["clients"]),
                 "add_url": reverse("client_add"),
-                "add_label": "Добавить клиента",
                 "empty_message": "Клиенты не найдены.",
+                "user_roles": list(
+                    self.request.user.roles.values_list("role__name", flat=True),
+                ),
             },
         )
         return context
 
+    def get_blueprint_items(self, clients: list[Client]) -> list[dict[str, Any]]:
+        """Generate a list of dictionary items.
+
+        Representing client metadata for UI rendering.
+        """
+        return [
+            {
+                "title": client.name,
+                "subtitle": client.country,
+                "view_url": reverse("client_detail", args=[client.pk]),
+                "edit_url": reverse(
+                    "client_edit", args=[client.pk],
+                    ) + f"?next={self.request.get_full_path()}",
+                "delete_url": reverse("client_delete", args=[client.pk]),
+                "delete_confirm_message": f"Удалить клиента {client.name}?",
+            }
+            for client in clients
+        ]
+
+
     def get_queryset(self) -> object:
         """Return a queryset of clients filtered by the search query."""
-        qs = super().get_queryset()
         q = self.request.GET.get("q", "").strip()
-        if q:
-            qs = qs.filter(Q(name__icontains=q) | Q(country__icontains=q))
-        return qs
+        return self.get_queryset_default(
+            q,
+            Q(name__icontains=q) | Q(country__icontains=q),
+        )
 
 
-class ClientCreateView(CreateView):
+class ClientCreateView(NextUrlMixin, CreateView):
     """Handles creation of a new client."""
 
     model = Client
     form_class = ClientForm
     template_name = "core/edit.html"
-    success_url = reverse_lazy("client_list")
+    default_redirect_url_name = CLIENT_LIST_URL
 
     def get_context_data(self, **kwargs: dict[str, object]) -> dict[str, Any]:
         """Add context metadata for creating a client."""
@@ -81,13 +96,13 @@ class ClientCreateView(CreateView):
         return context
 
 
-class ClientUpdateView(UpdateView):
+class ClientUpdateView(NextUrlMixin, UpdateView):
     """Handles editing an existing client."""
 
     model = Client
     form_class = ClientForm
     template_name = "core/edit.html"
-    success_url = reverse_lazy("client_list")
+    default_redirect_url_name = CLIENT_LIST_URL
 
     def get_context_data(self, **kwargs: dict[str, object]) -> dict[str, Any]:
         """Add context metadata for editing a client."""
@@ -114,27 +129,31 @@ class ClientDetailView(DetailView):
         context.update(
             {
                 "title": "Клиент",
+                "subtitle": client.name,
                 "fields": [
-                    {"label": "Имя клиента", "value": client.name},
                     {"label": "Страна", "value": client.country},
                     {"label": "Телефон", "value": client.phone},
                 ],
-                "edit_url": reverse("client_edit", args=[client.pk]),
+                "edit_url": reverse(
+                    "client_edit", args=[client.pk],
+                    ) + f"?next={self.request.get_full_path()}",
                 "delete_url": reverse("client_delete", args=[client.pk]),
                                 "add_url": reverse("client_add"),
                 "add_label": "Добавить нового клиента",
-
+                "user_roles":list(
+                    self.request.user.roles.values_list("role__name", flat=True),
+                ),
             },
         )
         return context
 
 
-class ClientDeleteView(DeleteView):
+class ClientDeleteView(NextUrlMixin, DeleteView):
     """Handles deletion confirmation for a client."""
 
     model = Client
     template_name = "core/confirm_delete.html"
-    success_url = reverse_lazy("client_list")
+    default_redirect_url_name = CLIENT_LIST_URL
 
     def get_context_data(self, **kwargs: dict[str, object]) -> dict[str, Any]:
         """Add confirmation message and actions to context."""

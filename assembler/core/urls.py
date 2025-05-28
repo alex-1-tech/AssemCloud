@@ -9,6 +9,7 @@ from django.urls import path
 
 from core import views
 from core.mixins import RoleRequiredMixin
+from core.services import first_access_level, second_access_level
 from core.views import (
     CustomPasswordResetConfirmView,
     MachineListView,
@@ -114,12 +115,14 @@ def create_role_view(view_class: object) -> object:
             Only users who have at least one of the specified roles are allowed access.
             """
 
-            required_roles: ClassVar[list[str]]= [
-                "Директор",
-                "Конструктор",
-                "Тестировщик",
-                "Программист",
-            ]
+            required_roles: ClassVar[list[str]] = list(first_access_level.keys())
+
+    if view_class.__name__ not in [
+        "ClientCreateView",
+        "ClientUpdateView",
+        "ClientDeleteView",
+    ]:
+        WithRoleView.required_roles += list(second_access_level.keys())
     return WithRoleView
 
 for model in model_names:
@@ -144,7 +147,6 @@ for model in model_names:
             pattern = f"{model}s/<int:pk>/"
         elif action == "delete":
             pattern = f"{model}s/<int:pk>/delete/"
-
         current_path = path(
             pattern, WithRoleView.as_view(), name=f"{model}_{action}",
         )

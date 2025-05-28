@@ -21,9 +21,9 @@ class ModulePartListView(ListView):
     """Displays a list of all module-part relationships."""
 
     model = ModulePart
-    template_name = "core/list.html"
+    template_name = "core/moduleparts/list.html"
     context_object_name = "moduleparts"
-    paginate_by = 10
+    paginate_by = 7
 
     def get_context_data(self, **kwargs: object) -> dict:
         """Add module-part cards and metadata to context."""
@@ -41,12 +41,14 @@ class ModulePartListView(ListView):
         ]
         context.update(
             {
-                "title": "Связи Модуль-Деталь",
+                "title": "Количество деталей в модуле",
                 "items": items,
                 "add_url": reverse("modulepart_add"),
-                "add_label": "Добавить связь",
                 "empty_message": "Связи не найдены.",
             },
+        )
+        context["user_roles"] = list(
+            self.request.user.roles.values_list("role__name", flat=True),
         )
         return context
 
@@ -74,7 +76,7 @@ class ModulePartCreateView(CreateView):
         context = super().get_context_data(**kwargs)
         context.update(
             {
-                "title": "Добавить связь Модуль-Деталь",
+                "title": "Добавить деталь в модуль",
                 "submit_label": "Создать",
             },
         )
@@ -94,7 +96,7 @@ class ModulePartUpdateView(UpdateView):
         context = super().get_context_data(**kwargs)
         context.update(
             {
-                "title": "Редактировать связь Модуль-Деталь",
+                "title": "Редактировать количество деталей",
                 "submit_label": "Сохранить",
             },
         )
@@ -111,18 +113,22 @@ class ModulePartDetailView(DetailView):
         """Add module-part fields and actions to context."""
         context = super().get_context_data(**kwargs)
         obj = self.object
+        name_module = obj.module.name if obj.module else "—"
+        name_part = obj.part.name if obj.part else "—"
+        name = f"{name_module} - {name_part}"
         context.update(
             {
-                "title": "Связь Модуль-Деталь",
+                "title": "Количество деталей",
+                "subtitle": name,
                 "fields": [
                     {
                         "label": "Модуль",
-                        "value": obj.module.name if obj.module else "—",
-                        "url": reverse("module_datail", args=[obj.module.pk]),
+                        "value": name_module,
+                        "url": reverse("module_detail", args=[obj.module.pk]),
                     },
                     {
                         "label": "Деталь",
-                        "value": obj.part.name if obj.part else "—",
+                        "value": name_part,
                         "url": reverse("part_detail", args=[obj.part.pk]),
                     },
                     {"label": "Количество", "value": obj.quantity},
@@ -130,8 +136,11 @@ class ModulePartDetailView(DetailView):
                 "add_url": reverse("modulepart_add"),
                 "edit_url": reverse("modulepart_edit", args=[obj.pk]),
                 "delete_url": reverse("modulepart_delete", args=[obj.pk]),
-                "add_label": "Добавить новую связь",
+                "add_label": "Добавить",
             },
+        )
+        context["user_roles"] = list(
+            self.request.user.roles.values_list("role__name", flat=True),
         )
         return context
 

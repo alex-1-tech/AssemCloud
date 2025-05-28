@@ -2,9 +2,10 @@
 
 Includes listing, creating, updating, viewing, and deleting manufacturers.
 """
+from typing import Any
 
 from django.db.models import Q
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse
 from django.views.generic import (
     CreateView,
     DeleteView,
@@ -14,59 +15,75 @@ from django.views.generic import (
 )
 
 from core.forms import ManufacturerForm
+from core.mixins import NextUrlMixin, QuerySetMixin
 from core.models import Manufacturer
 
+MANUFACTURER_LIST_URL = "manufacturer_list"
 
-class ManufacturerListView(ListView):
+class ManufacturerListView(QuerySetMixin, ListView):
     """Displays a list of all manufacturers."""
 
     model = Manufacturer
     template_name = "core/list.html"
     context_object_name = "manufacturers"
-    paginate_by = 10
+    paginate_by = 7
 
     def get_context_data(self, **kwargs: object) -> dict:
         """Add manufacturer cards and metadata to context."""
         context = super().get_context_data(**kwargs)
-        items = [
-            {
-                "title": manufacturer.name,
-                "subtitle": manufacturer.country,
-                "view_url": reverse("manufacturer_detail", args=[manufacturer.pk]),
-                "edit_url": reverse("manufacturer_edit", args=[manufacturer.pk]),
-                "delete_url": reverse("manufacturer_delete", args=[manufacturer.pk]),
-                "delete_confirm_message": f"Удалить {manufacturer.name}?",
-            }
-            for manufacturer in context["manufacturers"]
-        ]
         context.update(
             {
                 "title": "Производители",
-                "items": items,
+                "items": self.get_manufacturer_items(
+                    context["manufacturers"],
+                ),
                 "add_url": reverse("manufacturer_add"),
-                "add_label": "Добавить производителя",
                 "empty_message": "Производители не найдены.",
+                "user_roles": list(
+                    self.request.user.roles.values_list("role__name", flat=True),
+                ),
             },
         )
         return context
 
+    def get_manufacturer_items(
+        self, manufacturers: list[Manufacturer],
+        ) -> list[dict[str, Any]]:
+        """Generate a list of dictionary items.
+
+        Representing blueprint metadata for UI rendering.
+        """
+        return [
+            {
+                "title": manufacturer.name,
+                "subtitle": manufacturer.country,
+                "view_url": reverse("manufacturer_detail", args=[manufacturer.pk]),
+                "edit_url": reverse(
+                    "manufacturer_edit", args=[manufacturer.pk],
+                    ) + f"?next={self.request.get_full_path()}",
+                "delete_url": reverse("manufacturer_delete", args=[manufacturer.pk]),
+                "delete_confirm_message": f"Удалить {manufacturer.name}?",
+            }
+            for manufacturer in manufacturers
+        ]
+
     def get_queryset(self) -> object:
         """Return a queryset of manufacturers filtered by the search query."""
-        qs = super().get_queryset()
         q = self.request.GET.get("q", "").strip()
-        if q:
-            qs = qs.filter(Q(name__icontains=q) | Q(country__icontains=q))
-        return qs
+        return self.get_queryset_default(
+            q,
+            Q(Q(name__icontains=q) | Q(country__icontains=q)),
+        )
 
-class ManufacturerCreateView(CreateView):
+class ManufacturerCreateView(NextUrlMixin, CreateView):
     """Handles creation of a new manufacturer."""
 
     model = Manufacturer
     form_class = ManufacturerForm
     template_name = "core/edit.html"
-    success_url = reverse_lazy("manufacturer_list")
+    default_redirect_url_name = MANUFACTURER_LIST_URL
 
-    def get_context_data(self, **kwargs: object) -> dict:
+    def get_context_data(self, **kwargs: object) -> dict[str, Any]:
         """Add context metadata for creating a manufacturer."""
         context = super().get_context_data(**kwargs)
         context.update(
@@ -78,13 +95,13 @@ class ManufacturerCreateView(CreateView):
         return context
 
 
-class ManufacturerUpdateView(UpdateView):
+class ManufacturerUpdateView(NextUrlMixin, UpdateView):
     """Handles editing an existing manufacturer."""
 
     model = Manufacturer
     form_class = ManufacturerForm
     template_name = "core/edit.html"
-    success_url = reverse_lazy("manufacturer_list")
+    default_redirect_url_name = MANUFACTURER_LIST_URL
 
     def get_context_data(self, **kwargs: object) -> dict:
         """Add context metadata for editing a manufacturer."""
@@ -111,27 +128,32 @@ class ManufacturerDetailView(DetailView):
         context.update(
             {
                 "title": "Производитель",
+                "subtitle": manufacturer.name,
                 "fields": [
-                    {"label": "Имя", "value": manufacturer.name},
                     {"label": "Страна", "value": manufacturer.country},
                     {"label": "Язык", "value": manufacturer.language},
                     {"label": "Телефон", "value": manufacturer.phone},
                 ],
                 "add_url": reverse("manufacturer_add"),
-                "edit_url": reverse("manufacturer_edit", args=[manufacturer.pk]),
+                "edit_url": reverse(
+                    "manufacturer_edit", args=[manufacturer.pk],
+                    ) + f"?next={self.request.get_full_path()}",
                 "delete_url": reverse("manufacturer_delete", args=[manufacturer.pk]),
                 "add_label": "Добавить нового производителя",
+                "user_roles": list(
+                    self.request.user.roles.values_list("role__name", flat=True),
+                ),
             },
         )
         return context
 
 
-class ManufacturerDeleteView(DeleteView):
+class ManufacturerDeleteView(NextUrlMixin, DeleteView):
     """Handles deletion confirmation for a manufacturer."""
 
     model = Manufacturer
     template_name = "core/confirm_delete.html"
-    success_url = reverse_lazy("manufacturer_list")
+    default_redirect_url_name = MANUFACTURER_LIST_URL
 
     def get_context_data(self, **kwargs: object) -> dict:
         """Add confirmation message and actions to context."""

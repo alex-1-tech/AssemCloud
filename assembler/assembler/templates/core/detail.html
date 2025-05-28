@@ -1,18 +1,48 @@
 {% extends "core/base_detail.html" %}
 {% block detail_extra %}
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'assembler/css/tree.css' %}">
     {% if machine_tree %}
         <div class="mt-5 p-4 bg-light rounded shadow-sm">
-            <h5 class="mb-4 text-center">Состав сборки</h5>
-            <strong>Машина: {{ machine_tree.machine.name }}</strong>
-            {% for node in machine_tree.modules %}
-                {% include "components/assembly_tree.html" with node=node indent="" %}
-            {% endfor %}
+            <h5 class="mb-4 text-center">Состав машины</h5>
+            <ul class="tree">
+                <li>
+                    <details open>
+                        <summary>Машина: {{ machine_tree.machine.name }}</summary>
+                        <ul>
+                            {% for node in machine_tree.modules %}
+                                {% include "components/assembly_tree.html" with node=node %}
+                            {% endfor %}
+                        </ul>
+                    </details>
+                </li>
+            </ul>
         </div>
-    {% endif %}
-    {% if module_tree %}
+    {% elif module_tree %}
         <div class="mt-5 p-4 bg-light rounded shadow-sm">
             <h5 class="mb-4 text-center">Состав сборки</h5>
-            <pre class="mb-0"><strong>Гланвый модуль: {{ module_tree.module.name }}</strong>{% for node in module_tree.submodules %}{% include "components/assembly_tree.html" with node=node indent="" %}{% endfor %}</pre>
+            <ul class="tree">
+                <li>
+                    <details open>
+                        <summary>Главый модуль: {{ module_tree.module.name }}</summary>
+                        <ul>
+                            {% for node in module_tree.submodules %}
+                                {% include "components/assembly_tree.html" with node=node %}
+                            {% endfor %}
+                        </ul>
+                        {% if module_tree.parts %}
+                            <ul>
+                                {% for part in module_tree.parts %}
+                                    <li>
+                                        Деталь: <a href="{% url 'part_detail' part.part.id %}">{{ part.part.name }} </a>
+                                        <a href="{% url 'modulepart_detail' part.id %}"> (x{{part.quantity}})</a>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </details>
+                </li>
+            </ul>
         </div>
     {% endif %}
 {% endblock %}

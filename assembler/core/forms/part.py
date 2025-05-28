@@ -8,7 +8,7 @@ from typing import ClassVar
 from django import forms
 
 from core.forms.base import BaseStyledForm
-from core.models import Part
+from core.models import Manufacturer, Part
 
 
 class PartForm(BaseStyledForm):
@@ -27,6 +27,11 @@ class PartForm(BaseStyledForm):
         "material": "Материал",
         "manufacture_date": "Дата производства",
     }
+
+    select2_fields: ClassVar[dict[str, tuple]] = {
+        "manufacturer": (Manufacturer, ["name__icontains"]),
+    }
+
 
     class Meta:
         """Metadata for PartForm."""

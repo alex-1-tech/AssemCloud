@@ -16,60 +16,73 @@ from django.views.generic import (
 )
 
 from core.forms import MachineForm
+from core.mixins import NextUrlMixin, QuerySetMixin
 from core.models import Machine
 from core.services.assembly_tree import build_machine_tree
 
+MACHINE_LIST_URL = "machine_list"
 
-class MachineListView(ListView):
+class MachineListView(QuerySetMixin, ListView):
     """Displays a list of all machines."""
 
     model = Machine
     template_name = "core/list.html"
     context_object_name = "machines"
-    paginate_by = 10
+    paginate_by = 7
 
     def get_context_data(self, **kwargs: dict[str, object]) -> dict[str, Any]:
         """Add machine cards and metadata to context."""
         context = super().get_context_data(**kwargs)
-        items = [
-            {
-                "title": machine.name,
-                "subtitle": machine.version,
-                "view_url": reverse("machine_detail", args=[machine.pk]),
-                "edit_url": reverse("machine_edit", args=[machine.pk]),
-                "delete_url": reverse("machine_delete", args=[machine.pk]),
-                "delete_confirm_message": f"Удалить машину {machine.name}?",
-            }
-            for machine in context["machines"]
-        ]
         context.update(
             {
                 "title": "Машины",
-                "items": items,
+                "items": self.get_machine_items(context["machines"]),
                 "add_url": reverse("machine_add"),
-                "add_label": "Добавить машину",
                 "empty_message": "Ничего не найдено по вашему запросу."\
                       if self.request.GET.get("q") else None,
-
+                "user_roles": list(
+                    self.request.user.roles.values_list("role__name", flat=True),
+                ),
             },
         )
         return context
 
+    def get_machine_items(
+        self, machines: list[Machine],
+        ) -> list[dict[str, Any]]:
+        """Generate a list of dictionary items.
+
+        Representing machine metadata for UI rendering.
+        """
+        return [
+            {
+                "title": machine.name,
+                "subtitle": machine.version,
+                "view_url": reverse("machine_detail", args=[machine.pk]),
+                "edit_url": reverse(
+                    "machine_edit", args=[machine.pk],
+                    ) + f"?next={self.request.get_full_path()}",
+                "delete_url": reverse("machine_delete", args=[machine.pk]),
+                "delete_confirm_message": f"Удалить машину {machine.name}?",
+            }
+            for machine in machines
+        ]
+
     def get_queryset(self) -> object:
         """Return a queryset of machines filtered by the search query."""
-        qs = super().get_queryset()
         q = self.request.GET.get("q", "").strip()
-        if q:
-            qs = qs.filter(Q(name__icontains=q) | Q(version__icontains=q))
-        return qs
+        return self.get_queryset_default(
+            q,
+            Q(Q(name__icontains=q) | Q(version__icontains=q)),
+        )
 
-class MachineCreateView(CreateView):
+class MachineCreateView(NextUrlMixin, CreateView):
     """Handles creation of a new machine."""
 
     model = Machine
     form_class = MachineForm
     template_name = "core/edit.html"
-    success_url = reverse_lazy("machine_list")
+    default_redirect_url_name = MACHINE_LIST_URL
 
     def get_context_data(self, **kwargs: dict[str, object]) -> dict[str, Any]:
         """Add context metadata for creating a machine."""
@@ -83,13 +96,14 @@ class MachineCreateView(CreateView):
         return context
 
 
-class MachineUpdateView(UpdateView):
+class MachineUpdateView(NextUrlMixin, UpdateView):
     """Handles editing an existing machine."""
 
     model = Machine
     form_class = MachineForm
     template_name = "core/edit.html"
-    success_url = reverse_lazy("machine_list")
+    default_redirect_url_name = MACHINE_LIST_URL
+
 
     def get_context_data(self, **kwargs: dict[str, object]) -> dict[str, Any]:
         """Add context metadata for editing a machine."""
@@ -117,32 +131,37 @@ class MachineDetailView(DetailView):
         context.update(
             {
                 "title": "Машина",
+                "subtitle": f"{machine.name} - {machine.version}",
                 "fields": [
-                    {"label": "Название машины", "value": machine.name},
-                    {"label": "Версия", "value": machine.version},
                     {
                         "label": "Клиенты",
                         "value": machine.clients.all(),
+                        "url": "client_detail",
                         "is_links": True,
                     },
                 ],
                 "machine_tree": machine_tree,
-                "edit_url": reverse("machine_edit", args=[machine.pk]),
+                "edit_url": reverse(
+                    "machine_edit", args=[machine.pk],
+                    ) + f"?next={self.request.get_full_path()}",
                 "delete_url": reverse("machine_delete", args=[machine.pk]),
                                 "add_url": reverse("machine_add"),
                 "add_label": "Добавить новую машину",
-
+                "user_roles": list(
+                    self.request.user.roles.values_list("role__name", flat=True),
+                ),
             },
         )
         return context
 
 
-class MachineDeleteView(DeleteView):
+class MachineDeleteView(NextUrlMixin, DeleteView):
     """Handles deletion confirmation for a machine."""
 
     model = Machine
     template_name = "core/confirm_delete.html"
     success_url = reverse_lazy("machine_list")
+    default_redirect_url_name = MACHINE_LIST_URL
 
     def get_context_data(self, **kwargs: dict[str, object]) -> dict[str, Any]:
         """Add confirmation message and actions to context."""

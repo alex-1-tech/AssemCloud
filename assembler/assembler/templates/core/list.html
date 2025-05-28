@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load roles %}
 {% block title %}{{ title }}{% endblock %}
 {% block content %}
     <div class="row justify-content-center mt-5">
@@ -13,7 +14,7 @@
                                    class="form-control"
                                    placeholder="Поиск..."
                                    value="{{ request.GET.q|default:'' }}">
-                            <button class="btn btn-outline-secondary ms-2" type="submit">
+                            <button class="btn btn-outline-secondary ms-2 icon-link" type="submit">
                                 <i class="bi bi-search"></i> Найти
                             </button>
                         </div>
@@ -23,7 +24,7 @@
                             {% for item in items %}
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                     <div>
-                                        <strong>{{ item.title }}</strong>
+                                        <a href="{{ item.view_url }}" class="item-title-link">{{ item.title }}</a>
                                         <br>
                                         <small class="text-muted">{{ item.subtitle }}</small>
                                     </div>
@@ -33,20 +34,29 @@
                                            title="Просмотр">
                                             <i class="bi bi-eye"></i>
                                         </a>
-                                        <a href="{{ item.edit_url }}"
-                                           class="btn btn-sm btn-outline-secondary"
-                                           title="Редактировать">
-                                            <i class="bi bi-pencil"></i>
-                                        </a>
-                                        <a href="{{ item.delete_url }}"
-                                           class="btn btn-sm btn-outline-danger"
-                                           title="Удалить">
-                                            <i class="bi bi-trash"></i>
-                                        </a>
+                                        {% if user_roles|has_any_role:"Администратор,Директор" or title != "Клиенты" %}
+                                            <a href="{{ item.edit_url }}"
+                                               class="btn btn-sm btn-outline-secondary"
+                                               title="Редактировать">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <a href="{{ item.delete_url }}"
+                                               class="btn btn-sm btn-outline-danger"
+                                               title="Удалить">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                        {% endif %}
                                     </div>
                                 </li>
                             {% endfor %}
                         </ul>
+                        {% if add_url %}
+                            {% if user_roles|has_any_role:"Администратор,Директор" or title != "Клиенты" %}
+                                <div class="d-grid mt-4">
+                                    <a href="{{ add_url }}" class="btn btn-green btn-lg">Добавить</a>
+                                </div>
+                            {% endif %}
+                        {% endif %}
                         {% if is_paginated %}
                             <nav aria-label="Page navigation" class="mt-4">
                                 <ul class="pagination justify-content-center gap-2">
@@ -97,11 +107,13 @@
                         {% endif %}
                     {% else %}
                         <p class="text-center text-muted">{{ empty_message|default:"Ничего не найдено." }}</p>
-                    {% endif %}
-                    {% if add_url %}
-                        <div class="d-grid mt-4">
-                            <a href="{{ add_url }}" class="btn btn-green btn-lg">{{ add_label|default:"Добавить" }}</a>
-                        </div>
+                        {% if add_url %}
+                            {% if user_roles|has_any_role:"Администратор,Директор" or title != "Клиенты" %}
+                                <div class="d-grid mt-4">
+                                    <a href="{{ add_url }}" class="btn btn-green btn-lg">Добавить</a>
+                                </div>
+                            {% endif %}
+                        {% endif %}
                     {% endif %}
                 </div>
             </div>

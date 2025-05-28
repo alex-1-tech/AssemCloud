@@ -1,12 +1,64 @@
-<!-- DO NOT FORMAT THE FILE. BREAKS THE LOGIC OF THE OUTPUT -->
-{% comment %} djlint:off {% endcomment %}
-{% with indent=indent|default:"" %}
-    <pre class="mb-0">{{ indent }}└─ Модуль: <a href="{% url 'module_detail' node.module.id %}">{{ node.module.name }}</a> (id={{ node.module.id }})<a href="{% url 'module_add' %}?machine=1&parent={{ node.module.id }}" class="btn btn-sm p-1" title="Добавить подмодуль" style="height: 24px;"><i class="bi bi-plus" style="font-size: 14px; color: #28a745; margin-right: 0px;"></i> <i class="bi bi-boxes" style="font-size: 14px; color: #28a745;"></i></a><a href="{% url 'part_add' %}?module={{ node.module.id }}" class="btn btn-sm p-1"title="Добавить деталь" style="height: 24px;"><i class="bi bi-plus" style="font-size: 14px; color: #ffc107; margin-right: 2px;"></i> <i class="bi bi-gear" style="font-size: 14px; color: #ffc107;"></i></a></pre>
-    {% for part in node.parts %}
-        <pre class="mb-0">{{ indent }}   ├─ Деталь: <a href="{% url 'part_detail' part.part.id %}">{{ part.part.name }}</a> (<a href="{% url 'modulepart_detail' part.part.id %}">x{{ part.quantity }}</a>) [id={{ part.part.id }}]</pre>
-    {% endfor %}
-    {% for sub in node.submodules %}
-        {% include "components/assembly_tree.html" with node=sub indent=indent|add:"    " %}
-    {% endfor %}
-{% endwith %}
-{% comment %} djlint:on {% endcomment %}
+<li>
+    {% if node.parts or node.submodules %}
+        <details open>
+            <summary>
+                <span class="module-label" data-module-id="{{ node.module.id }}">Модуль:</span>
+                <a href="{% url 'module_detail' node.module.id %}">{{ node.module.name }}</a>
+            </summary>
+            {% if node.parts %}
+                <ul>
+                    {% for part in node.parts %}
+                        <li>
+                            Деталь: <a href="{% url 'part_detail' part.part.id %}">{{ part.part.name }}</a>
+                            <a href="{% url 'modulepart_detail' part.id %}"> (x{{part.quantity}})</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            {% if node.submodules %}
+                <ul>
+                    {% for sub in node.submodules %}
+                        {% include "components/assembly_tree.html" with node=sub %}
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </details>
+    {% else %}
+        <span class="module-label" data-module-id="{{ node.module.id }}">
+            Модуль: <a href="{% url 'module_detail' node.module.id %}">{{ node.module.name }}</a>
+        </span>
+    {% endif %}
+</li>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const menu = document.getElementById('context-menu');
+
+    document.addEventListener('click', function () {
+      menu.style.display = 'none';
+    });
+
+    document.querySelectorAll('.module-label').forEach(label => {
+      label.addEventListener('contextmenu', function (e) {
+        e.preventDefault();
+        const moduleId = this.dataset.moduleId;
+        const machineId = 1;
+        const moduleDeleteUrlTemplate = "{% url 'module_delete' 0 %}".replace("0", moduleId);
+
+        menu.innerHTML = `
+          <a href="{% url 'module_add' %}?machine=${machineId}&parent=${moduleId}">Добавить подмодуль</a>
+          <a href="{% url 'part_add' %}?module=${moduleId}">Добавить деталь</a>
+          <a href="${moduleDeleteUrlTemplate}">Удалить модуль</a>
+        `;
+
+        const rect = this.getBoundingClientRect();
+        const top = window.scrollY + rect.bottom;
+        const left = window.scrollX + rect.left;
+
+        menu.style.top = `${top}px`;
+        menu.style.left = `${left}px`;
+        console.log(menu.style.top,  menu.style.left)
+        menu.style.display = 'block';
+      });
+    });
+  });
+</script>

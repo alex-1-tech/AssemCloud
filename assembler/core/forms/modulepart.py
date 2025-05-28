@@ -7,7 +7,7 @@ providing form fields and placeholder configurations for the ModulePart model.
 from typing import ClassVar
 
 from core.forms.base import BaseStyledForm
-from core.models import Module, ModulePart
+from core.models import Module, ModulePart, Part
 
 
 class ModulePartForm(BaseStyledForm):
@@ -24,10 +24,17 @@ class ModulePartForm(BaseStyledForm):
         "part": "Деталь",
         "quantity": "Количество",
     }
+
+    select2_fields: ClassVar[dict[str, tuple]] = {
+        "module": (Module, ["name__icontains", "serial__icontains"]),
+        "part": (Part, ["name__icontains"]),
+    }
+
     def __init__(self, *args:object, **kwargs:object) -> None:
         """Init ModulePartForm method."""
         super().__init__(*args, **kwargs)
         self.fields["module"].queryset = Module.objects.all()
+        self.fields["part"].queryset = Part.objects.all()
 
     class Meta:
         """Metadata for ModulePartForm."""

@@ -95,7 +95,7 @@ class Blueprint(ReprMixin, NormalizeMixin, models.Model):
 
     def __str__(self) -> str:
         """Str representation of the blueprint."""
-        return f"Blueprint #{self.pk} — Версия {self.version or 'N/A'}"
+        return f"{self.naming_scheme} — {self.version or 'N/A'}"
 
     class Meta:
         """Model metadata for Blueprint."""

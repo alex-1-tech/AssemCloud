@@ -4,10 +4,10 @@ Includes listing, creating, updating, viewing, and deleting blueprints.
 """
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from django.db.models import Q
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse
 from django.views.generic import (
     CreateView,
     DeleteView,
@@ -17,57 +17,78 @@ from django.views.generic import (
 )
 
 from core.forms import BlueprintForm
+from core.mixins import NextUrlMixin, QuerySetMixin
 from core.models import Blueprint
 
+if TYPE_CHECKING:
+    from django.contrib.auth.models import AbstractBaseUser
 
-class BlueprintListView(ListView):
+BLUEPRINT_LIST_URL = "blueprint_list"
+
+def user_profile_url(user: AbstractBaseUser | None) -> str | None:
+    """Return the URL to the user's profile page."""
+    return reverse("user_profile", args=[user.pk]) if user else None
+
+class BlueprintListView(QuerySetMixin, ListView):
     """Displays a list of all blueprints."""
 
     model = Blueprint
     template_name = "core/list.html"
     context_object_name = "blueprints"
-    paginate_by = 10
+    paginate_by = 7
 
     def get_context_data(self, **kwargs: dict[str, object]) -> dict[str, Any]:
         """Add blueprint cards and metadata to context."""
         context = super().get_context_data(**kwargs)
-        items = [
-            {
-                "title": str(bp.naming_scheme),
-                "subtitle": str(bp.version),
-                "view_url": reverse("blueprint_detail", args=[bp.pk]),
-                "edit_url": reverse("blueprint_edit", args=[bp.pk]),
-                "delete_url": reverse("blueprint_delete", args=[bp.pk]),
-                "delete_confirm_message": f"Удалить чертеж {bp}?",
-            }
-            for bp in context["blueprints"]
-        ]
         context.update(
             {
                 "title": "Чертежи",
-                "items": items,
+                "items": self.get_blueprint_items(context["blueprints"]),
                 "add_url": reverse("blueprint_add"),
-                "add_label": "Добавить чертеж",
                 "empty_message": "Чертежи не найдены.",
+                "user_roles": list(
+                    self.request.user.roles.values_list("role__name", flat=True),
+                ),
             },
         )
         return context
 
+    def get_blueprint_items(
+        self, blueprints: list[Blueprint],
+        ) -> list[dict[str, Any]]:
+        """Generate a list of dictionary items.
+
+        Representing blueprint metadata for UI rendering.
+        """
+        return [
+            {
+                "title": str(bp.naming_scheme),
+                "subtitle": str(bp.version),
+                "view_url": reverse("blueprint_detail", args=[bp.pk]),
+                "edit_url": reverse(
+                    "blueprint_edit", args=[bp.pk],
+                    ) + f"?next={self.request.get_full_path()}",
+                "delete_url": reverse("blueprint_delete", args=[bp.pk]),
+                "delete_confirm_message": f"Удалить чертеж {bp}?",
+            }
+            for bp in blueprints
+        ]
+
     def get_queryset(self) -> object:
         """Return a queryset of blueprints filtered by the search query."""
-        qs = super().get_queryset()
         q = self.request.GET.get("q", "").strip()
-        if q:
-            qs = qs.filter(Q(naming_scheme__icontains=q) | Q(version__icontains=q))
-        return qs
+        return self.get_queryset_default(
+            q,
+            Q(Q(naming_scheme__icontains=q) | Q(version__icontains=q)),
+        )
 
-class BlueprintCreateView(CreateView):
+class BlueprintCreateView(NextUrlMixin, CreateView):
     """Handles creation of a new blueprint."""
 
     model = Blueprint
     form_class = BlueprintForm
-    template_name = "core/edit.html"
-    success_url = reverse_lazy("blueprint_list")
+    template_name = "core/blueprints/edit.html"
+    default_redirect_url_name = BLUEPRINT_LIST_URL
 
     def get_context_data(self, **kwargs: dict[str, object]) -> dict[str, Any]:
         """Add context metadata for creating a blueprint."""
@@ -81,13 +102,13 @@ class BlueprintCreateView(CreateView):
         return context
 
 
-class BlueprintUpdateView(UpdateView):
+class BlueprintUpdateView(NextUrlMixin, UpdateView):
     """Handles editing an existing blueprint."""
 
     model = Blueprint
     form_class = BlueprintForm
     template_name = "core/blueprints/edit.html"
-    success_url = reverse_lazy("blueprint_list")
+    default_redirect_url_name = BLUEPRINT_LIST_URL
 
     def get_context_data(self, **kwargs: dict[str, object]) -> dict[str, Any]:
         """Add context metadata for editing a blueprint."""
@@ -107,6 +128,50 @@ class BlueprintDetailView(DetailView):
     model = Blueprint
     template_name = "core/blueprints/detail.html"
 
+    def get_blueprint_fields(
+        self, bp: Blueprint,
+        ) -> list[dict[str, Any]]:
+        """Construct a list of field metadata.
+
+        For displaying blueprint attributes in the UI.
+        """
+        module = bp.module if hasattr(bp, "module") else None
+        url_module = reverse("module_detail",args=[module.id]) if module else None
+        return [
+            {"label": "Вес", "value": bp.weight},
+            {"label": "Масштаб", "value": bp.scale},
+            {
+                "label": "Модуль",
+                "value": module,
+                "url": url_module,
+            },
+            {
+                "label": "Разработчик",
+                "value": str(bp.developer) if bp.developer else "—",
+                "url": user_profile_url(bp.developer),
+            },
+            {
+                "label": "Проверяющий",
+                "value": str(bp.validator) if bp.validator else "—",
+                "url": user_profile_url(bp.validator),
+            },
+            {
+                "label": "Ведущий конструктор",
+                "value": str(bp.lead_designer) if bp.lead_designer else "—",
+                "url": user_profile_url(bp.lead_designer),
+            },
+            {
+                "label": "Главный конструктор",
+                "value": str(bp.chief_designer) if bp.chief_designer else "—",
+                "url": user_profile_url(bp.chief_designer),
+            },
+            {
+                "label": "Утвердивший",
+                "value": str(bp.approver) if bp.approver else "—",
+                "url": user_profile_url(bp.approver),
+            },
+        ]
+
     def get_context_data(self, **kwargs: dict[str, object]) -> dict[str, Any]:
         """Add blueprint fields, file URLs, user profiles, and actions to context."""
         bp = self.object
@@ -118,79 +183,34 @@ class BlueprintDetailView(DetailView):
         step_url: str | None = request.build_absolute_uri(bp.step_file.url) \
             if bp.step_file else None
 
-        developer_url = reverse("user_profile", args=[bp.developer.pk]) \
-            if bp.developer else None
-        validator_url = reverse("user_profile", args=[bp.validator.pk]) \
-            if bp.validator else None
-        lead_designer_url = reverse("user_profile", args=[bp.lead_designer.pk]) \
-            if bp.lead_designer else None
-        chief_designer_url = reverse("user_profile", args=[bp.chief_designer.pk]) \
-            if bp.chief_designer else None
-        approver_url = reverse("user_profile", args=[bp.approver.pk]) \
-            if bp.approver else None
-
         context.update(
             {
                 "title": "Чертеж",
                 "scheme_url": scheme_url,
                 "step_url": step_url,
-                "fields": [
-                    {"label": "Вес", "value": bp.weight},
-                    {"label": "Масштаб", "value": bp.scale},
-                    {"label": "Версия", "value": bp.version},
-                    {"label": "Схема наименования", "value": bp.naming_scheme},
-                    {
-                        "label": "Разработчик",
-                        "value": str(bp.developer) if bp.developer else "—",
-                        "url": developer_url,
-                    },
-                    {
-                        "label": "Проверяющий",
-                        "value": str(bp.validator) if bp.validator else "—",
-                        "url": validator_url,
-                    },
-                    {
-                        "label": "Ведущий конструктор",
-                        "value": str(bp.lead_designer) if bp.lead_designer else "—",
-                        "url": lead_designer_url,
-                    },
-                    {
-                        "label": "Главный конструктор",
-                        "value": str(bp.chief_designer) if bp.chief_designer else "—",
-                        "url": chief_designer_url,
-                    },
-                    {
-                        "label": "Утвердивший",
-                        "value": str(bp.approver) if bp.approver else "—",
-                        "url": approver_url,
-                    },
-                    {
-                        "label": "Файл (PDF)",
-                        "value": "Открыть PDF" if scheme_url else "Нет файла",
-                        "url": scheme_url,
-                    },
-                    {
-                        "label": "Файл (STEP)",
-                        "value": "Открыть STEP" if step_url else "Нет файла",
-                        "url": step_url,
-                    },
-                ],
+                "subtitle": f"{bp.naming_scheme} - {bp.version}",
+                "fields": self.get_blueprint_fields(bp),
                 "add_url": reverse("blueprint_add"),
-                "edit_url": reverse("blueprint_edit", args=[bp.pk]),
+                "edit_url": reverse(
+                    "blueprint_edit", args=[bp.pk],
+                    ) + f"?next={self.request.get_full_path()}",
                 "delete_url": reverse("blueprint_delete", args=[bp.pk]),
                 "add_label": "Добавить новый чертеж",
+                "user_roles": list(
+                    self.request.user.roles.values_list("role__name", flat=True),
+                ),
             },
         )
 
         return context
 
 
-class BlueprintDeleteView(DeleteView):
+class BlueprintDeleteView(NextUrlMixin, DeleteView):
     """Handles deletion confirmation for a blueprint."""
 
     model = Blueprint
     template_name = "core/confirm_delete.html"
-    success_url = reverse_lazy("blueprint_list")
+    default_redirect_url_name = BLUEPRINT_LIST_URL
 
     def get_context_data(self, **kwargs: dict[str, object]) -> dict[str, Any]:
         """Add confirmation message and actions to context."""

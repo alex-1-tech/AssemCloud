@@ -25,6 +25,13 @@ def part_create_view(request: HttpRequest, pk: int|None = None) -> HttpResponse:
         return part_edit_view(request, pk)
 
     modules = Module.objects.all()
+    next_url = (
+        request.POST.get("next")
+        or request.GET.get("next")
+        or request.META.get("HTTP_REFERER")
+        or "part_list"
+    )
+
     if request.method == "POST":
         form = PartForm(request.POST)
         formset = ModulePartFormSet(request.POST)
@@ -32,7 +39,7 @@ def part_create_view(request: HttpRequest, pk: int|None = None) -> HttpResponse:
             part = form.save()
             formset.instance = part
             formset.save()
-            return redirect("part_list")
+            return redirect(next_url)
     else:
         form = PartForm()
         formset = ModulePartFormSet()
@@ -46,6 +53,7 @@ def part_create_view(request: HttpRequest, pk: int|None = None) -> HttpResponse:
             "module_choices": modules,
             "title": "Добавить деталь",
             "submit_label": "Создать",
+            "next": next_url,
         },
     )
 
@@ -60,6 +68,12 @@ def part_edit_view(request: HttpRequest, pk: int) -> HttpResponse:
     """
     part = get_object_or_404(Part, pk=pk)
     modules = Module.objects.all()
+    next_url = (
+        request.POST.get("next")
+        or request.GET.get("next")
+        or request.META.get("HTTP_REFERER")
+        or "part_list"
+    )
 
     if request.method == "POST":
         form = PartForm(request.POST, instance=part)
@@ -67,7 +81,7 @@ def part_edit_view(request: HttpRequest, pk: int) -> HttpResponse:
         if form.is_valid() and formset.is_valid():
             form.save()
             formset.save()
-            return redirect("part_list")
+            return redirect(next_url)
     else:
         form = PartForm(instance=part)
         formset = ModulePartFormSet(instance=part)
@@ -81,5 +95,6 @@ def part_edit_view(request: HttpRequest, pk: int) -> HttpResponse:
             "module_choices": modules,
             "title": "Редактировать деталь",
             "submit_label": "Сохранить",
+            "next": next_url,
         },
     )

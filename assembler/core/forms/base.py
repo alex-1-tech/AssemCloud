@@ -7,6 +7,7 @@ adding placeholder support and default CSS classes to form fields.
 from typing import ClassVar
 
 from django import forms
+from django_select2.forms import ModelSelect2Widget
 
 
 class BaseStyledForm(forms.ModelForm):
@@ -14,11 +15,14 @@ class BaseStyledForm(forms.ModelForm):
 
     Attributes:
         placeholders (ClassVar[dict[str, str]]):
-            A mapping of form field names to their placeholder text.
+            Mapping of field names to placeholder text.
+        select2_fields (ClassVar[dict[str, tuple]]):
+            Mapping of field names to a tuple (model, search_fields) for Select2 widgets
 
     """
 
     placeholders: ClassVar[dict[str, str]] = {}
+    select2_fields: ClassVar[dict[str, tuple]] = {}
 
     def __init__(self, *args: object, **kwargs: object) -> None:
         """Initialize the form, adding placeholders and default CSS classes."""
@@ -30,3 +34,14 @@ class BaseStyledForm(forms.ModelForm):
 
         for field in self.fields.values():
             field.widget.attrs.setdefault("class", "form-control")
+
+        for name, (model, search_fields) in self.select2_fields.items():
+            if name in self.fields:
+                self.fields[name].widget = ModelSelect2Widget(
+                    model=model,
+                    search_fields=search_fields,
+                    attrs={
+                        "class": "django-select2 form-select",
+                        "style": "width: 100%;",
+                    },
+                )

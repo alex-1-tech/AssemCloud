@@ -9,6 +9,7 @@ from django.forms.models import model_to_dict
 
 from core.middleware import get_current_user
 from core.models import ChangesLog, Role
+from core.services import first_access_level, second_access_level
 
 
 @receiver(pre_save)
@@ -52,24 +53,7 @@ def log_model_changes(
 @receiver(post_migrate)
 def create_roles(sender: object, **kwargs: dict[str, object]) -> None:  # noqa: ARG001
     """Create default roles after migrations."""
-    roles = [
-        {
-            "name": "Конструктор",
-            "description": "Ответственный за разработку и проектирование.",
-        },
-        {
-            "name": "Программист",
-            "description": "Разрабатывает программное обеспечение для проекта.",
-        },
-        {
-            "name": "Тестировщик",
-            "description": "Проверяет систему на наличие багов и ошибок.",
-        },
-        {
-            "name": "Директор",
-            "description": "Руководит проектом и принимает ключевые решения.",
-        },
-    ]
+    roles = list(first_access_level) + list(second_access_level)
 
     for role in roles:
         Role.objects.get_or_create(name=role["name"], description=role["description"])

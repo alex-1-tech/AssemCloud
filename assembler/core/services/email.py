@@ -15,9 +15,8 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 
 from core.models import User
-
-from .tokens import account_activation_token as signer
-from .tokens import check_token_uid
+from core.services.tokens import account_activation_token as signer
+from core.services.tokens import check_token_uid
 
 
 def send_verification_email(user: User, request: HttpRequest) -> None:
@@ -29,11 +28,11 @@ def send_verification_email(user: User, request: HttpRequest) -> None:
     )
     subject = "Email Verification"
     message = (
-        f"Hello, {user.first_name}!\n\n"
-        "You have registered on our site. "
-        "Please verify your email by clicking the link below:\n"
+        f"Здравствуйте, {user.first_name}!\n\n"
+        "Вы зарегистрировались на нашем сайте. "
+        "Пожалуйста, подтвердите ваш email, перейдя по ссылке:\n"
         f"{url}\n\n"
-        "If you did not register, please ignore this email."
+        "Если вы не регистрировались — проигнорируйте это письмо."
     )
     send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])
 

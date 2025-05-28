@@ -7,7 +7,7 @@ providing form fields and placeholder configurations for the Blueprint model.
 from typing import ClassVar
 
 from core.forms.base import BaseStyledForm
-from core.models import Blueprint
+from core.models import Blueprint, User
 
 
 class BlueprintForm(BaseStyledForm):
@@ -26,6 +26,19 @@ class BlueprintForm(BaseStyledForm):
         "naming_scheme": "Схема наименования",
         "scheme_file": "PDF файл чертежа",
         "step_file": "STEP файл модели",
+    }
+
+    container = (User, [
+            "first_name__icontains",
+            "last_name__icontains",
+            "email__icontains",
+        ])
+    select2_fields: ClassVar[dict[str, tuple]] = {
+        "developer": container,
+        "validator": container,
+        "lead_designer": container,
+        "chief_designer": container,
+        "approver": container,
     }
 
     class Meta:

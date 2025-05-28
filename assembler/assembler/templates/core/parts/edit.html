@@ -8,6 +8,7 @@
                     <h3 class="card-title mb-4 text-center">{{ title }}</h3>
                     <form method="post" id="part-form">
                         {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ next }}">
                         {{ formset.management_form }}
                         {% for field in form %}
                             <div class="mb-3">
@@ -103,7 +104,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const newForm = emptyFormTemplate.cloneNode(true);
         const formIndex = parseInt(totalForms.value);
         
-        // Обновляем атрибуты name и id для всех полей
         newForm.innerHTML = newForm.innerHTML.replace(/__prefix__/g, formIndex);
         
         if (moduleId) {
@@ -118,7 +118,6 @@ document.addEventListener('DOMContentLoaded', function() {
         addDeleteButton(newForm);
         updateTotalForms(formIndex + 1);
         
-        // Скрываем новый DELETE чекбокс
         newForm.querySelector('[id$="-DELETE"]').style.display = 'none';
     });
 

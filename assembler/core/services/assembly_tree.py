@@ -49,15 +49,22 @@ def build_module_tree(module: object) -> dict[str, object | list[dict[str, objec
     )
 
     parts = [
-        {"part": mp.part, "quantity": mp.quantity}
+        {
+            "part": mp.part,
+            "quantity": mp.quantity,
+            "id":mp.pk,
+        }
         for mp in module.module_parts.all()
     ]
-
     def build_submodule_node(
             submodule: object,
         ) -> dict[str, object | list[dict[str, object]]]:
         parts_sub = [
-            {"part": mp.part, "quantity": mp.quantity}
+            {
+            "part": mp.part,
+            "quantity": mp.quantity,
+            "id":mp.pk,
+        }
             for mp in submodule.module_parts.all()
         ]
 
