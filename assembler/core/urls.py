@@ -20,6 +20,7 @@ from core.views import (
     UserPasswordChangeView,
     UserRegisterView,
     UserUpdateView,
+    dashboard_view,
     part_create_view,
     verify_email_view,
 )
@@ -90,6 +91,7 @@ model_names = [
     "machine",
     "module",
     "modulepart",
+    "task",
 ]
 
 view_types = {
@@ -164,7 +166,7 @@ BaseWithRoleView = create_role_view(view_class=MachineListView)
 
 urlpatterns += [
     # other
-    path("", BaseWithRoleView.as_view(), name="machines_list"),
+    path("", dashboard_view, name="dashboard"),
 ]
 
 

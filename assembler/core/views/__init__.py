@@ -14,6 +14,7 @@ from core.views.client import (
     ClientListView,
     ClientUpdateView,
 )
+from core.views.dashboard import dashboard_view
 from core.views.machine import (
     MachineCreateView,
     MachineDeleteView,
@@ -49,6 +50,13 @@ from core.views.part import (
     PartDetailView,
     PartListView,
     PartUpdateView,
+)
+from core.views.task import (
+    TaskCreateView,
+    TaskDeleteView,
+    TaskDetailView,
+    TaskListView,
+    TaskUpdateView,
 )
 from core.views.user import (
     CustomPasswordResetConfirmView,
@@ -100,12 +108,18 @@ __all__ = [
     "PartListView",
     "PartUpdateView",
     "ResendVerificationView",
+    "TaskCreateView",
+    "TaskDeleteView",
+    "TaskDetailView",
+    "TaskListView",
+    "TaskUpdateView",
     "UserDetailView",
     "UserListView",
     "UserLoginView",
     "UserPasswordChangeView",
     "UserRegisterView",
     "UserUpdateView",
+    "dashboard_view",
     "part_create_view",
     "verify_email_view",
 ]

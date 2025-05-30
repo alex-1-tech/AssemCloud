@@ -7,6 +7,7 @@ from core.models.machine import Machine, MachineClient
 from core.models.module import Module
 from core.models.part import ModulePart, Part
 from core.models.roles import Role, UserRole
+from core.models.task import Task, TaskAttachment, TaskLink
 from core.models.user import User
 
 __all__ = [
@@ -20,6 +21,9 @@ __all__ = [
     "ModulePart",
     "Part",
     "Role",
+    "Task",
+    "TaskAttachment",
+    "TaskLink",
     "User",
     "UserRole",
 ]

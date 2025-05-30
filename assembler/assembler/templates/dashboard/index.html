@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid mt-4" style="max-width: 1600px;">
+  <div class="row g-4">
+    <div class="col-md-12">
+      {% include "dashboard/calendar_card.html" %}
+    </div>
+
+    <div class="col-md-12 d-flex flex-column">
+      {% include "dashboard/sent_tasks.html" %}
+    </div>
+    <div class="col-md-12 d-flex flex-column">
+      {% include "dashboard/received_tasks.html" %}
+    </div>
+  </div>
+</div>
+{% endblock %}

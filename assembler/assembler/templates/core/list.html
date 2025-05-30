@@ -119,4 +119,26 @@
             </div>
         </div>
     </div>
+<script>
+function debounce(fn, delay) {
+  let timer = null;
+  return function(...args) {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn.apply(this, args), delay);
+  };
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const searchInput = document.querySelector('input[name="q"]');
+  const searchForm = searchInput && searchInput.closest('form');
+  if (searchInput && searchForm) {
+    const autoSubmit = debounce(function() {
+      if (searchInput.value.length > 2) {
+        searchForm.submit();
+      }
+    }, 300);
+    searchInput.addEventListener('input', autoSubmit);
+  }
+});
+</script>
 {% endblock %}

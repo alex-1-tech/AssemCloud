@@ -275,14 +275,14 @@ nav.navbar {
    Lincs
 ================================ */
 
-.detail_links a {
-  color: 	#0d3869;
+a.detail_links {
+  color: #0d3869;
   text-decoration: none;
   position: relative;
   transition: color 0.3s ease;
 }
 
-.detail_links a::after {
+a.detail_links::after {
   content: "";
   position: absolute;
   left: 0;
@@ -295,14 +295,14 @@ nav.navbar {
   transition: none;
 }
 
-.detail_links a:hover {
+a.detail_links:hover {
   color: #0b1e33;
 }
 
-.detail_links a:hover::after {
+a.detail_links:hover::after {
   transform: scaleX(1);
 }
 
-.detail_links a.icon-link::after {
+a.detail_links.icon-link::after {
   display: none;
 }

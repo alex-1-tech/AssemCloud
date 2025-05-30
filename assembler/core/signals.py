@@ -53,7 +53,7 @@ def log_model_changes(
 @receiver(post_migrate)
 def create_roles(sender: object, **kwargs: dict[str, object]) -> None:  # noqa: ARG001
     """Create default roles after migrations."""
-    roles = list(first_access_level) + list(second_access_level)
+    roles = first_access_level | second_access_level
 
     for role in roles:
-        Role.objects.get_or_create(name=role["name"], description=role["description"])
+        Role.objects.get_or_create(name=role, description=roles[role])

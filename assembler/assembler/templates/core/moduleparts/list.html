@@ -27,10 +27,7 @@
                             {% csrf_token %}
                             <input type="hidden" name="module" value="{{ mp.module.pk }}">
                             <input type="hidden" name="part" value="{{ mp.part.pk }}">
-                            <input type="number" name="quantity" value="{{ mp.quantity }}" min="0" class="form-control" style="width: 80px;">
-                            <button type="submit" class="btn btn-sm btn-outline-success ms-2" title="Сохранить">
-                                <i class="bi bi-save"></i>
-                            </button>
+                            <input type="number" name="quantity" value="{{ mp.quantity }}" min="0" class="form-control quantity-input" style="width: 80px;">
                         </form>
                     </li>
                     {% endfor %}
@@ -98,10 +95,19 @@
 </div>
 
 <script>
+function debounce(fn, delay) {
+  let timer = null;
+  return function(...args) {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn.apply(this, args), delay);
+  };
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   document.querySelectorAll('.inline-qty-form').forEach(form => {
-    form.addEventListener('submit', async function(e) {
-      e.preventDefault();
+    const input = form.querySelector('.quantity-input');
+    if (!input) return;
+    const saveQuantity = debounce(async function() {
       const url = form.action;
       const data = new FormData(form);
       const response = await fetch(url, {
@@ -110,12 +116,26 @@ document.addEventListener('DOMContentLoaded', function() {
         body: data,
       });
       if (response.ok) {
-        const btn = form.querySelector('button[type="submit"]');
-        btn.classList.replace('btn-outline-success', 'btn-success');
-        setTimeout(() => btn.classList.replace('btn-success', 'btn-outline-success'), 1000);
-      } else alert('Ошибка');
-    });
+        input.classList.add('is-valid');
+        setTimeout(() => input.classList.remove('is-valid'), 1000);
+      } else {
+        input.classList.add('is-invalid');
+        setTimeout(() => input.classList.remove('is-invalid'), 1000);
+      }
+    }, 300);
+    input.addEventListener('input', saveQuantity);
   });
+
+  const searchInput = document.querySelector('input[name="q"]');
+  const searchForm = searchInput && searchInput.closest('form');
+  if (searchInput && searchForm) {
+    const autoSubmit = debounce(function() {
+      if (searchInput.value.length > 2) {
+        searchForm.submit();
+      }
+    }, 300);
+    searchInput.addEventListener('input', autoSubmit);
+  }
 });
 </script>
 {% endblock %}

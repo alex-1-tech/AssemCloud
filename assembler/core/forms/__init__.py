@@ -8,6 +8,7 @@ from core.forms.module import ModuleForm
 from core.forms.modulepart import ModulePartForm
 from core.forms.modulepartset import ModulePartFormSet
 from core.forms.part import PartForm
+from core.forms.task import TaskForm
 from core.forms.user import (
     UserLoginForm,
     UserPasswordChangeForm,
@@ -25,6 +26,7 @@ __all__ = [
     "ModulePartForm",
     "ModulePartFormSet",
     "PartForm",
+    "TaskForm",
     "UserLoginForm",
     "UserPasswordChangeForm",
     "UserRegistrationForm",

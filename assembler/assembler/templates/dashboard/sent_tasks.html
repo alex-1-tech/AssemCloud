@@ -1,0 +1,59 @@
+<div class="card mb-4">
+  <div class="card-header">
+    <h5>Выставленные задачи</h5>
+  </div>
+  <div class="card-body p-0" style="max-height: 400px; overflow-y: auto;">
+    <table class="table mb-0 align-middle">
+      <thead>
+        <tr>
+          <th style="width:32px;"></th>
+          <th style="width:32px;"></th>
+          <th style="min-width:200px;">Титульник</th>
+          <th class="text-end" style="width:120px;">Получатель</th>
+          <th class="text-end" style="width:90px;">Срок</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for task in sent_tasks %}
+        <tr>
+          <td class="text-center" style="width:32px;">
+            {% if task.priority == 'high' %}
+                <i class="bi bi-chevron-double-up text-danger fs-5" title="Высокий"></i>
+            {% elif task.priority == 'medium' %}
+                <i class="bi bi-chevron-double-down text-warning fs-5" title="Средний"></i>
+            {% else %}
+                <i class="bi bi-dash text-secondary fs-5" title="Низкий"></i>
+            {% endif %}
+          </td>
+          <td class="text-center" style="width:32px;">
+            {% if task.status == 'completed' %}
+              <span class="text-success" title="Завершена"><i class="bi bi-check-circle small"></i></span>
+            {% elif task.status == 'abandoned' %}
+              <span class="text-secondary" title="Брошена"><i class="bi bi-x-circle small"></i></span>
+            {% else %}
+              <span class="text-warning" title="В процессе"><i class="bi bi-hourglass-split small"></i></span>
+            {% endif %}
+          </td>
+          <td style="min-width:200px;">
+            <a href="{% url 'task_detail' task.pk %}">{{ task.title }}</a>
+          </td>
+          <td class="text-end"><span class="text-muted small">{{ task.recipient }}</span></td>
+          <td class="text-end">
+            <span class="text-muted small">
+            {% if task.due_date %}
+              {{ task.due_date|date:"d.m.Y" }}
+            {% else %}
+              —
+            {% endif %}
+            </span>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="text-center text-muted">Нет выставленных задач.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -1,47 +1,78 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}Профиль{% endblock %}
+
 {% block content %}
-    <div class="row justify-content-center mt-5">
-        <div class="col-md-10">
-            <div class="card shadow-sm">
-                <div class="card-body p-5">
-                    <h3 class="card-title mb-4 text-center">Профиль</h3>
-                    <p>
-                        <strong>Имя:</strong> {{ user_profile.first_name }}
-                    </p>
-                    <p>
-                        <strong>Фамилия:</strong> {{ user_profile.last_name }}
-                    </p>
-                    <p>
-                        <strong>Email:</strong> {{ user_profile.email }}
-                    </p>
-                    <p>
-                        <strong>Телефон:</strong> {{ user_profile.phone }}
-                    </p>
-                    <p>
-                        <strong>Адрес:</strong> {{ user_profile.address }}
-                    </p>
-                    <p>
-                        <strong>Дата регистрации:</strong> {{ user_profile.date_joined|date:"d.m.Y H:i" }}
-                    </p>
-                    <p>
-                        <strong>Роли:</strong>
-                        {% if user_roles %}
-                            {% for user_role in user_roles %}
-                                {{ user_role.role.name }}
-                                {% if not forloop.last %},{% endif %}
-                            {% endfor %}
-                        {% else %}
-                            Для получения роли обратитесь к администратору
-                        {% endif %}
-                    </p>
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-start">
-                        <a href="{% url 'user_edit' pk=user.pk %}"
-                           class="btn btn-primary btn-lg me-md-2">Редактировать</a>
-                        <a href="{% url 'password_change' %}" class="btn btn-warning btn-lg">Сменить пароль</a>
-                    </div>
+<div class="row justify-content-center mt-5">
+    <div class="col-md-10">
+        <div class="card shadow-sm mb-4">
+            <div class="card-body p-5">
+                <h3 class="card-title mb-4 text-center">Профиль</h3>
+                <p><strong>Имя:</strong> {{ user_profile.first_name }}</p>
+                <p><strong>Фамилия:</strong> {{ user_profile.last_name }}</p>
+                <p><strong>Email:</strong> {{ user_profile.email }}</p>
+                <p><strong>Телефон:</strong> {{ user_profile.phone }}</p>
+                <p><strong>Адрес:</strong> {{ user_profile.address }}</p>
+                <p><strong>Дата регистрации:</strong> {{ user_profile.date_joined|date:"d.m.Y H:i" }}</p>
+                <p>
+                    <strong>Роли:</strong>
+                    {% if user_roles %}
+                        {% for user_role in user_roles %}
+                            {{ user_role.role.name }}{% if not forloop.last %},{% endif %}
+                        {% endfor %}
+                    {% else %}
+                        Для получения роли обратитесь к администратору
+                    {% endif %}
+                </p>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+                    <a href="{% url 'user_edit' pk=user.pk %}" class="btn btn-primary btn-lg me-md-2">Редактировать</a>
+                    <a href="{% url 'password_change' %}" class="btn btn-warning btn-lg">Сменить пароль</a>
                 </div>
             </div>
         </div>
+
+        {% if user_tasks %}
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h4 class="card-title mb-3">Ваши задачи</h4>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th scope="col"></th>
+                                    <th scope="col" class="w-50">Задача</th>
+                                    <th scope="col">До</th>
+                                    <th scope="col" class="text-muted small">От кого</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for task in user_tasks %}
+                                <tr onclick="window.location.href='{% url 'task_detail' task.pk %}'" style="cursor:pointer;">
+                                    <td>
+                                        {% if task.priority == 'high' %}
+                                            <i class="bi bi-chevron-double-up text-danger fs-5" title="Высокий"></i>
+                                        {% elif task.priority == 'medium' %}
+                                            <i class="bi bi-chevron-double-down text-warning fs-5" title="Средний"></i>
+                                        {% else %}
+                                            <i class="bi bi-dash text-secondary fs-5" title="Низкий"></i>
+                                        {% endif %}
+                                    </td>
+                                    <td class="fw-semibold">{{ task.title }}</td>
+                                    <td>{{ task.due_date|date:"d.m.Y" }}</td>
+                                    <td class="text-muted small">
+                                        {{ task.sender.first_name }} {{ task.sender.last_name }}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+                <div class="alert alert-info mt-3">У вас пока нет задач.</div>
+            {% endif %}
+
     </div>
+</div>
 {% endblock %}

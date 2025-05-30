@@ -25,7 +25,7 @@ from core.forms import (
     UserSetPasswordForm,
     UserUpdateForm,
 )
-from core.models import User
+from core.models import Task, User
 from core.services import send_verification_email, verify_email
 
 
@@ -157,7 +157,13 @@ class UserDetailView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs: object) -> dict:
         """Add user roles to context."""
         context = super().get_context_data(**kwargs)
-        context["user_roles"] = self.object.roles.select_related("role")
+        user = self.object
+
+        context["user_profile"] = user
+        context["user_roles"] = user.roles.select_related("role")
+        context["user_tasks"] = Task.objects.filter(
+            recipient=user,
+        ).select_related("sender").order_by("-created_at")
         return context
 
 

@@ -22,7 +22,7 @@
             {% if user.is_authenticated %}
                 <ul class="navbar-nav gap-2">
                     <li class="nav-item">
-                        <a class="nav-link {% if 'machine' in request.resolver_match.url_name or request.path == '/' %}active{% endif %}"
+                        <a class="nav-link {% if 'machine' in request.resolver_match.url_name %}active{% endif %}"
                            href="{% url 'machine_list' %}">Машины</a>
                     </li>
                     <li class="nav-item">
@@ -54,6 +54,10 @@
             <ul class="navbar-nav gap-2 mt-2 d-lg-none">
                 {% if user.is_authenticated %}
                     <li class="nav-item">
+                        <a class="nav-link {% if 'task' in request.resolver_match.url_name %}active{% endif %}"
+                           href="{% url 'task_list' %}">Задачи</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.url_name == 'user_profile' %}active{% endif %}"
                            href="{% url 'user_profile' pk=request.user.pk %}">Профиль</a>
                     </li>
@@ -75,6 +79,10 @@
         <div class="d-none d-lg-flex align-items-center order-3">
             <ul class="navbar-nav gap-2">
                 {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'task' in request.resolver_match.url_name %}active{% endif %}"
+                           href="{% url 'task_list' %}">Задачи</a>
+                    </li>
                     <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.url_name == 'user_profile' %}active{% endif %}"
                            href="{% url 'user_profile' pk=request.user.pk %}">Профиль</a>

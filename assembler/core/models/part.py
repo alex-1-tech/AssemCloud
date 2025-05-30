@@ -102,6 +102,7 @@ class ModulePart(ReprMixin, models.Model):
         """Model metadata: database table name, verbose names and constraints."""
 
         db_table: ClassVar[str] = "module_part"
+        ordering: ClassVar[list[str]] = ["id"]
         verbose_name: ClassVar[str] = _("Связь Деталь-Модуль")
         verbose_name_plural: ClassVar[str] = _("Связи Деталь-Модуль")
         constraints: ClassVar[list[models.constraints.BaseConstraint]] = [
