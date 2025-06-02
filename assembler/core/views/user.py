@@ -163,7 +163,7 @@ class UserDetailView(LoginRequiredMixin, DetailView):
         context["user_roles"] = user.roles.select_related("role")
         context["user_tasks"] = Task.objects.filter(
             recipient=user,
-        ).select_related("sender").order_by("-created_at")
+        ).select_related("sender").order_by("-due_date")
         return context
 
 

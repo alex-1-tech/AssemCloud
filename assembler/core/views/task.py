@@ -16,6 +16,9 @@ from django.views.generic import (
     ListView,
     UpdateView,
 )
+from django.utils import timezone
+from django.shortcuts import redirect, get_object_or_404
+from django.contrib import messages
 
 from core.forms import TaskForm
 from core.mixins import NextUrlMixin, QuerySetMixin
@@ -83,7 +86,7 @@ class TaskCreateView(NextUrlMixin, CreateView):
 
     model = Task
     form_class = TaskForm
-    template_name = "core/edit.html"
+    template_name = "core/tasks/edit.html"
     default_redirect_url_name = TASK_LIST_URL
 
     def get_context_data(self, **kwargs: dict[str, object]) -> dict[str, Any]:
@@ -107,7 +110,7 @@ class TaskUpdateView(NextUrlMixin, UpdateView):
 
     model = Task
     form_class = TaskForm
-    template_name = "core/edit.html"
+    template_name = "core/tasks/edit.html"
     default_redirect_url_name = TASK_LIST_URL
 
     def get_context_data(self, **kwargs: dict[str, object]) -> dict[str, Any]:
@@ -121,12 +124,25 @@ class TaskUpdateView(NextUrlMixin, UpdateView):
         )
         return context
 
+    def form_valid(self, form: forms.ModelForm) -> HttpResponse:
+        """Ensure recipient is set: use form value or keep old if not provided."""
+        if not form.cleaned_data.get("recipient"):
+            form.instance.recipient = self.object.recipient
+        return super().form_valid(form)
+
+    def get_initial(self) -> dict[str, object]:
+        """Return initial data for the form, including current recipient id."""
+        initial = super().get_initial()
+        if self.object and hasattr(self.object, "recipient") and self.object.recipient:
+            initial["recipient"] = self.object.recipient.pk
+        return initial
+
 
 class TaskDetailView(DetailView):
     """Displays detailed information about a task."""
 
     model = Task
-    template_name = "core/detail.html"
+    template_name = "core/tasks/detail.html"
 
     def get_context_data(self, **kwargs: dict[str, object]) -> dict[str, Any]:
         """Add task fields and actions to context."""
@@ -192,3 +208,43 @@ class TaskDeleteView(NextUrlMixin, DeleteView):
             },
         )
         return context
+
+
+class TaskCompleteView(UpdateView):
+    """Handles marking a task as complete."""
+
+    model = Task
+    fields = []
+
+    def post(self, request, *args, **kwargs):
+        task = self.get_object()
+        if not task.completed_at:
+            task.completed_at = timezone.now()
+            task.status = Task.Status.COMPLETED
+            task.save()
+            messages.success(request, "Задача успешно завершена.")
+        return redirect('task_detail', pk=task.pk)
+
+    def get(self, request, *args, **kwargs):
+        return self.post(request, *args, **kwargs)
+
+
+class TaskReopenView(UpdateView):
+    """Handles reopening a completed task (sets completed_at to None)."""
+
+    model = Task
+    fields = []
+
+    def post(self, request, *args, **kwargs):
+        """Reopen the task by clearing completed_at and setting status to in_progress."""
+        task = self.get_object()
+        if task.completed_at:
+            task.completed_at = None
+            task.status = Task.Status.IN_PROGRESS
+            task.save()
+            messages.success(request, "Задача возвращена в процесс.")
+        return redirect("task_detail", pk=task.pk)
+
+    def get(self, request, *args, **kwargs):
+        """Allow GET to trigger the same as POST for convenience."""
+        return self.post(request, *args, **kwargs)

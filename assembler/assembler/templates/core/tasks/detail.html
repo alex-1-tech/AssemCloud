@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{ object.title }}{% endblock %}
+{% block content %}
+
+<div class="row justify-content-center">
+  <div class="col-md-10">
+    <div class="task-card">
+      <div class="task-title-row" style="flex-direction: column; align-items: center; margin-bottom: 0;">
+        <span class="task-title" style="font-size: 22px; font-weight: 700; text-align: center; width: 100%; color: #222;">{{ object.title }}</span>
+        <div style="display: flex; gap: 10px; justify-content: center; margin-top: 2px;">
+          <span class="badge-status {% if object.status == 'completed' %}completed{% elif object.status == 'in_progress' %}in-progress{% else %}abandoned{% endif %}" style="font-size: 13px; border-radius: 10px; padding: 4px 14px; font-weight: 500; opacity: 0.95;">
+            {{ object.get_status_display }}
+          </span>
+          <span class="badge-priority {{ object.priority }}" style="font-size: 13px; border-radius: 10px; padding: 4px 14px; font-weight: 500; opacity: 0.95;">
+            {{ object.get_priority_display }}
+          </span>
+        </div>
+      </div>
+      <div class="description-label">Описание</div>
+      <div class="description-text">{{ object.message|linebreaksbr }}</div>
+      <div class="meta-row">
+        <div class="meta-col">
+          <div class="meta-item"><i class="bi bi-person-fill"></i>
+            {% if object.sender.profile.avatar %}
+              <img src="{{ object.sender.profile.avatar.url }}" class="avatar" alt="avatar">
+            {% endif %}
+            <b>Отправитель:</b> {{ object.sender }}
+          </div>
+          <div class="meta-item"><i class="bi bi-person"></i>
+            {% if object.recipient.profile.avatar %}
+              <img src="{{ object.recipient.profile.avatar.url }}" class="avatar" alt="avatar">
+            {% endif %}
+            <b>Получатель:</b> {{ object.recipient }}
+          </div>
+        </div>
+        <div class="meta-col">
+          <div class="meta-item"><i class="bi bi-calendar-plus"></i> <b>Создана:</b> {{ object.created_at|date:'d.m.Y H:i' }}</div>
+          <div class="meta-item"><i class="bi bi-calendar-event"></i> <b>Срок:</b> {% if object.due_date %}{{ object.due_date|date:'d.m.Y' }}{% else %}—{% endif %}</div>
+          <div class="meta-item"><i class="bi bi-calendar-check"></i> <b>Завершено:</b> {% if object.completed_at %}{{ object.completed_at|date:'d.m.Y H:i' }}{% else %}—{% endif %}</div>
+        </div>
+      </div>
+      <div class="actions-row" style="margin-top: 24px; justify-content: center;">
+        <div class="actions-group">
+          <a href="{{ delete_url }}" class="btn btn-red btn-icon" title="Удалить"><i class="bi bi-trash"></i></a>
+          {% if object.completed_at %}
+            <a href="{% url 'task_reopen' object.pk %}" class="btn btn-gray btn-icon" title="Вернуть в процесс"><i class="bi bi-arrow-counterclockwise"></i></a>
+          {% endif %}
+          {% if not object.completed_at %}
+            <a href="{% url 'task_complete' object.pk %}" class="btn btn-green btn-icon" title="Выполнить задачу"><i class="bi bi-check2-circle"></i></a>
+          {% endif %}
+          <a href="{{ edit_url }}" class="btn btn-blue btn-icon" title="Редактировать"><i class="bi bi-pencil"></i></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -25,7 +25,7 @@ class BaseStyledForm(forms.ModelForm):
     select2_fields: ClassVar[dict[str, tuple]] = {}
 
     def __init__(self, *args: object, **kwargs: object) -> None:
-        """Initialize the form, adding placeholders and default CSS classes."""
+        """Init form: placeholders, CSS, select2, queryset."""
         super().__init__(*args, **kwargs)
 
         for name, text in self.placeholders.items():
@@ -45,3 +45,10 @@ class BaseStyledForm(forms.ModelForm):
                         "style": "width: 100%;",
                     },
                 )
+
+        for field_name, (model_cls, _) in self.select2_fields.items():
+            if field_name in self.fields and hasattr(self.instance, field_name):
+                value = getattr(self.instance, field_name, None)
+                if value:
+                    qs = model_cls.objects.filter(pk=value.pk) | model_cls.objects.all()
+                    self.fields[field_name].queryset = qs.distinct()

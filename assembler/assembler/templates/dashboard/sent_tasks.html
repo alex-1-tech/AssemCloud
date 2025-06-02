@@ -35,7 +35,7 @@
             {% endif %}
           </td>
           <td style="min-width:200px;">
-            <a href="{% url 'task_detail' task.pk %}">{{ task.title }}</a>
+            <a href="{% url 'task_detail' task.pk %}" class="detail_links">{{ task.title }}</a>
           </td>
           <td class="text-end"><span class="text-muted small">{{ task.recipient }}</span></td>
           <td class="text-end">

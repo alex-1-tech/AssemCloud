@@ -3,64 +3,114 @@
 {% block title %}{{ title }}{% endblock %}
 {% load roles %}
 {% block content %}
-    <div class="row justify-content-center mt-5">
-        <div class="col-md-10">
-            <div class="card shadow-sm">
-                <div class="card-body p-5">
-                    <h3 class="card-title mb-3 text-center">{{ title }}</h3>
-                    {% if subtitle %}<h5 class="text-center mb-4">{{ subtitle }}</h5>{% endif %}
-                    {% for field in fields %}
-                        <p>
-                            <strong>{{ field.label }}:</strong>
-                            {% if field.is_links %}
-                                {% for item in field.value %}
-                                    {% if field.url %}
-                                        <a href="{% url field.url item.pk %}" class="detail_links">{{ item.name }}</a>
-                                    {% elif item.url %}
-                                        <a href="{{ item.url }}" class="detail_links">{{ item.name }}</a>
-                                    {% endif %}
-                                    {% if item.quantity %}(x{{ item.quantity }}){% endif %}
-                                    {% if not forloop.last %},{% endif %}
-                                {% endfor %}
-                            {% elif field.url %}
-                                <a href="{{ field.url }}" class="detail_links">{{ field.value }}</a>
-                            {% else %}
-                                {{ field.value }}
-                            {% endif %}
-                        </p>
-                    {% endfor %}
-                    {% block detail_extra %}{% endblock %}
-                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center flex-wrap mt-5 gap-3">
-                        <div class="d-flex flex-column flex-md-row gap-2">
-                            {% if not machine_tree and not module_tree %}
-                                {% if user_roles|has_any_role:"Администратор,Директор" or title != "Клиент" %}
-                                    <a href="{{ add_url }}" class="btn btn-green btn-lg">{{ add_label }}</a>
-                                {% endif %}
-                            {% endif %}
-                            {% if machine_tree %}
-                                <a href="{% url 'module_add' %}?machine={{ machine_tree.machine.pk }}&next={% url 'machine_detail' machine.id %}"
-                                   class="btn btn-green btn-lg">Добавить модуль</a>
-                            {% elif module_tree %}
-                                <a href="{% url 'module_add' %}?machine={{ module_tree.module.machine.pk }}&parent={{ module_tree.module.pk }}&next={% url 'module_detail' module.id %}"
-                                   class="btn btn-green btn-lg">Добавить подмодуль</a>
-                                <a href="{% url 'part_add' %}?module={{ module_tree.module.pk }}&next={% url 'module_detail' module.id %}"
-                                   class="btn btn-yellow btn-lg">Добавить деталь</a>
-                            {% endif %}
-                        </div>
-                        <div class="d-flex flex-row gap-2 mt-3 mt-md-0">
-                            {% if user_roles|has_any_role:"Администратор,Директор" or title != "Клиент" %}
-                                <a href="{{ edit_url }}" class="btn btn-blue btn-icon">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                <a href="{{ delete_url }}" class="btn btn-red btn-icon">
-                                    <i class="bi bi-trash"></i></a>
-                            {% endif %}
-                            <a href="javascript:history.back()"
-                               class="btn btn-light btn-lg  btn-icon"><i class="bi bi-arrow-down-left"></i></a>
-                        </div>
-                    </div>
-                </div>
+
+<div class="row justify-content-center mt-5">
+  <div class="col-md-10">
+    <div class="task-card">
+      <div class="task-title-row" style="flex-direction: column; align-items: center; margin-bottom: 0;">
+        <span class="task-title" style="font-size: 22px; font-weight: 700; text-align: center; width: 100%; color: #222;">{{ title }}</span>
+        {% if subtitle %}<h5 class="text-center mb-4">{{ subtitle }}</h5>{% endif %}
+      </div>
+      <div class="meta-row">
+        <div class="meta-col">
+          {% for field in fields %}
+            <div class="meta-item">
+              <strong>{{ field.label }}:</strong>
+              {% if field.is_links %}
+                {% for item in field.value %}
+                  {% if field.url %}
+                    <a href="{% url field.url item.pk %}" class="detail_links">{{ item.name }}</a>
+                  {% elif item.url %}
+                    <a href="{{ item.url }}" class="detail_links">{{ item.name }}</a>
+                  {% endif %}
+                  {% if item.quantity %}(x{{ item.quantity }}){% endif %}
+                  {% if not forloop.last %},{% endif %}
+                {% endfor %}
+              {% elif field.url %}
+                <a href="{{ field.url }}" class="detail_links">{{ field.value }}</a>
+              {% else %}
+                {{ field.value }}
+              {% endif %}
             </div>
+          {% endfor %}
         </div>
+      </div>
+      {% block detail_extra %}{% endblock %}
+      {% block actions_goup %}
+      {% if not machine_tree and not module_tree and add_url %}
+      <div class="actions-row" style="margin-top: 24px; justify-content: space-between;">
+        <div class="actions-group">
+          {% if user_roles|has_any_role:"Администратор,Директор" or title != "Клиент" %}
+            <a href="{{ add_url }}" class="btn btn-green btn-lg">{{ add_label }}</a>
+          {% endif %}
+        </div>
+        <div class="actions-group">
+          {% if user_roles|has_any_role:"Администратор,Директор" or title != "Клиент" %}
+            <a href="{{ edit_url }}" class="btn btn-blue btn-icon">
+              <i class="bi bi-pencil"></i>
+            </a>
+            <a href="{{ delete_url }}" class="btn btn-red btn-icon">
+              <i class="bi bi-trash"></i></a>
+          {% endif %}
+          <a href="javascript:history.back()"
+             class="btn btn-light btn-icon"><i class="bi bi-arrow-down-left"></i></a>
+        </div>
+      </div>
+      {% elif machine_tree %}
+      <div class="actions-row" style="margin-top: 24px; justify-content: space-between;">
+        <div class="actions-group">
+          <a href="{% url 'module_add' %}?machine={{ machine_tree.machine.pk }}&next={% url 'machine_detail' machine.id %}"
+             class="btn btn-green btn-lg">Добавить модуль</a>
+        </div>
+        <div class="actions-group">
+          {% if user_roles|has_any_role:"Администратор,Директор" or title != "Клиент" %}
+            <a href="{{ edit_url }}" class="btn btn-blue btn-icon">
+              <i class="bi bi-pencil"></i>
+            </a>
+            <a href="{{ delete_url }}" class="btn btn-red btn-icon">
+              <i class="bi bi-trash"></i></a>
+          {% endif %}
+          <a href="javascript:history.back()"
+             class="btn btn-light btn-icon"><i class="bi bi-arrow-down-left"></i></a>
+        </div>
+      </div>
+      {% elif module_tree %}
+      <div class="actions-row" style="margin-top: 24px; justify-content: space-between;">
+        <div class="actions-group">
+          <a href="{% url 'module_add' %}?machine={{ module_tree.module.machine.pk }}&parent={{ module_tree.module.pk }}&next={% url 'module_detail' module.id %}"
+             class="btn btn-green btn-lg">Добавить подмодуль</a>
+          <a href="{% url 'part_add' %}?module={{ module_tree.module.pk }}&next={% url 'module_detail' module.id %}"
+             class="btn btn-yellow btn-lg">Добавить деталь</a>
+        </div>
+        <div class="actions-group">
+          {% if user_roles|has_any_role:"Администратор,Директор" or title != "Клиент" %}
+            <a href="{{ edit_url }}" class="btn btn-blue btn-icon">
+              <i class="bi bi-pencil"></i>
+            </a>
+            <a href="{{ delete_url }}" class="btn btn-red btn-icon">
+              <i class="bi bi-trash"></i></a>
+          {% endif %}
+          <a href="javascript:history.back()"
+             class="btn btn-light btn-icon"><i class="bi bi-arrow-down-left"></i></a>
+        </div>
+      </div>
+      {% else %}
+      <div class="actions-row" style="margin-top: 24px; justify-content: center;">
+        <div class="actions-group">
+          {% if user_roles|has_any_role:"Администратор,Директор" or title != "Клиент" %}
+            <a href="{{ edit_url }}" class="btn btn-blue btn-icon">
+              <i class="bi bi-pencil"></i>
+            </a>
+            <a href="{{ delete_url }}" class="btn btn-red btn-icon">
+              <i class="bi bi-trash"></i></a>
+          {% endif %}
+          <a href="javascript:history.back()"
+             class="btn btn-light btn-icon"><i class="bi bi-arrow-down-left"></i></a>
+        </div>
+      </div>
+      {% endif %}
+      {% endblock %}
     </div>
+  </div>
+</div>
 {% endblock %}

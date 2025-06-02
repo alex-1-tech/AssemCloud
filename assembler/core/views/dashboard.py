@@ -1,7 +1,10 @@
 """Dashboard views for the assembler core app."""
 
+from datetime import timedelta
+
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
+from django.utils import timezone
 
 from core.models import Machine, Task
 
@@ -18,15 +21,22 @@ def get_task_color(task: Task) -> str:
         return "#198754"
     return "#0d6efd"
 
+
 def dashboard_view(request: HttpRequest) -> HttpResponse:
     """Render the dashboard view with user, machines, tasks, and calendar events."""
+    seven_days_ago = timezone.now().date() - timedelta(days=7)
+    all_reveived_tasks = Task.objects.filter(
+        recipient=request.user,
+    )
     received_tasks = Task.objects.filter(
         recipient=request.user,
         status=Task.Status.IN_PROGRESS,
+        due_date__gte=seven_days_ago,
     ).order_by("due_date")
     sent_tasks = Task.objects.filter(
         sender=request.user,
         status=Task.Status.IN_PROGRESS,
+        due_date__gte=seven_days_ago,
     ).order_by("due_date")
     machines = Machine.objects.all()
 
@@ -37,7 +47,8 @@ def dashboard_view(request: HttpRequest) -> HttpResponse:
             "url": f"/tasks/{task.pk}/",
             "color": get_task_color(task),
         }
-        for task in received_tasks if task.due_date
+        for task in all_reveived_tasks
+        if task.due_date
     ]
 
     return render(

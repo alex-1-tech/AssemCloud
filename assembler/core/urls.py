@@ -24,6 +24,7 @@ from core.views import (
     part_create_view,
     verify_email_view,
 )
+from core.views.task import TaskCompleteView, TaskReopenView
 
 # users
 urlpatterns = [
@@ -161,6 +162,22 @@ for model in model_names:
             )
 
         urlpatterns.append(current_path)
+
+# Добавляем url для завершения задачи
+urlpatterns.append(
+    path(
+        "tasks/<int:pk>/complete/",
+        create_role_view(TaskCompleteView).as_view(),
+        name="task_complete",
+    )
+)
+urlpatterns.append(
+    path(
+        "tasks/<int:pk>/reopen/",
+        create_role_view(TaskReopenView).as_view(),
+        name="task_reopen",
+    )
+)
 
 BaseWithRoleView = create_role_view(view_class=MachineListView)
 

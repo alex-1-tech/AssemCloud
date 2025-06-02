@@ -1,78 +1,91 @@
-{% extends 'base.html' %}
-{% load static %}
+{% extends "core/base_detail.html" %}
 {% block title %}Профиль{% endblock %}
-
-{% block content %}
-<div class="row justify-content-center mt-5">
-    <div class="col-md-10">
-        <div class="card shadow-sm mb-4">
-            <div class="card-body p-5">
-                <h3 class="card-title mb-4 text-center">Профиль</h3>
-                <p><strong>Имя:</strong> {{ user_profile.first_name }}</p>
-                <p><strong>Фамилия:</strong> {{ user_profile.last_name }}</p>
-                <p><strong>Email:</strong> {{ user_profile.email }}</p>
-                <p><strong>Телефон:</strong> {{ user_profile.phone }}</p>
-                <p><strong>Адрес:</strong> {{ user_profile.address }}</p>
-                <p><strong>Дата регистрации:</strong> {{ user_profile.date_joined|date:"d.m.Y H:i" }}</p>
-                <p>
-                    <strong>Роли:</strong>
-                    {% if user_roles %}
-                        {% for user_role in user_roles %}
-                            {{ user_role.role.name }}{% if not forloop.last %},{% endif %}
-                        {% endfor %}
-                    {% else %}
-                        Для получения роли обратитесь к администратору
-                    {% endif %}
-                </p>
-                <div class="d-grid gap-2 d-md-flex justify-content-md-start">
-                    <a href="{% url 'user_edit' pk=user.pk %}" class="btn btn-primary btn-lg me-md-2">Редактировать</a>
-                    <a href="{% url 'password_change' %}" class="btn btn-warning btn-lg">Сменить пароль</a>
-                </div>
-            </div>
-        </div>
-
-        {% if user_tasks %}
-            <div class="card shadow-sm">
-                <div class="card-body p-4">
-                    <h4 class="card-title mb-3">Ваши задачи</h4>
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle">
-                            <thead>
-                                <tr>
-                                    <th scope="col"></th>
-                                    <th scope="col" class="w-50">Задача</th>
-                                    <th scope="col">До</th>
-                                    <th scope="col" class="text-muted small">От кого</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for task in user_tasks %}
-                                <tr onclick="window.location.href='{% url 'task_detail' task.pk %}'" style="cursor:pointer;">
-                                    <td>
-                                        {% if task.priority == 'high' %}
-                                            <i class="bi bi-chevron-double-up text-danger fs-5" title="Высокий"></i>
-                                        {% elif task.priority == 'medium' %}
-                                            <i class="bi bi-chevron-double-down text-warning fs-5" title="Средний"></i>
-                                        {% else %}
-                                            <i class="bi bi-dash text-secondary fs-5" title="Низкий"></i>
-                                        {% endif %}
-                                    </td>
-                                    <td class="fw-semibold">{{ task.title }}</td>
-                                    <td>{{ task.due_date|date:"d.m.Y" }}</td>
-                                    <td class="text-muted small">
-                                        {{ task.sender.first_name }} {{ task.sender.last_name }}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            {% else %}
-                <div class="alert alert-info mt-3">У вас пока нет задач.</div>
-            {% endif %}
-
+{% block detail_extra %}
+<div class="task-card" style="margin-top: 0;">
+  <div class="meta-row" style="display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 2px;">
+    <div style="display: flex; flex-direction: column; align-items: center;">
+      <div style="font-size: 28px; font-weight: 800; color: #1a237e;">{{ user_profile.first_name }} {{ user_profile.last_name }}</div>
+      <div style="margin-top: 6px; color: #666; font-size: 16px;">
+        <i class="bi bi-envelope me-1"></i> <span style="font-weight: 500;">{{ user_profile.email }}</span>
+        {% if user_profile.phone %}
+        <span style="margin-left: 18px;"><i class="bi bi-telephone me-1"></i> <span style="font-weight: 500;">{{ user_profile.phone }}</span></span>
+        {% endif %}
+      </div>
     </div>
+    <div style="width: 100%; display: flex; justify-content: center; margin-top: 18px;">
+      <div style="display: flex; flex-direction: column; gap: 6px; width: 100%; max-width: 400px;">
+        <div>
+          <span style="color: #888; font-size: 14px;">Адрес:</span>
+          <span style="color: #222; font-size: 17px; font-weight: 500;">{{ user_profile.address }}</span>
+        </div>
+        <div>
+          <span style="color: #888; font-size: 14px;">Дата регистрации:</span>
+          <span style="color: #222; font-size: 17px; font-weight: 500;">{{ user_profile.date_joined|date:'d.m.Y H:i' }}</span>
+        </div>
+        <div>
+          <span style="color: #888; font-size: 14px;">Роли:</span>
+          <span style="color: #222; font-size: 17px; font-weight: 500;">{% if user_roles %}{% for user_role in user_roles %}{{ user_role.role.name }}{% if not forloop.last %}, {% endif %}{% endfor %}{% else %}Для получения роли обратитесь к администратору{% endif %}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="actions-row" style="margin-top: 32px; justify-content: center;">
+    <div class="actions-group" style="gap: 18px;">
+      <a href="{% url 'user_edit' pk=user.pk %}" class="btn btn-blue btn-lg btn-icon d-flex align-items-center" style="font-size: 16px; padding: 10px 22px; min-width: 200px; justify-content: center; white-space: normal; word-break: break-word;">
+        <i class="bi bi-pencil me-2"></i> Редактировать
+      </a>
+      <a href="{% url 'password_change' %}" class="btn btn-yellow btn-lg btn-icon d-flex align-items-center" style="font-size: 16px; padding: 10px 22px; min-width: 200px; justify-content: center; white-space: normal; word-break: break-word;">
+        <i class="bi bi-key me-2"></i> Сменить пароль
+      </a>
+    </div>
+  </div>
 </div>
+{% if user_tasks %}
+  <div class="task-card">
+    <div class="task-title-row" style="margin-bottom: 18px;">
+      <span class="task-title">Ваши задачи</span>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead>
+          <tr>
+            <th scope="col"></th>
+            <th scope="col" class="w-50">Задача</th>
+            <th scope="col">До</th>
+            <th scope="col" class="text-muted small">От кого</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for task in user_tasks %}
+          <tr onclick="window.location.href='{% url 'task_detail' task.pk %}'" style="cursor:pointer;">
+            <td>
+              {% if task.priority == 'high' %}
+                <i class="bi bi-chevron-double-up text-danger fs-5" title="Высокий"></i>
+              {% elif task.priority == 'medium' %}
+                <i class="bi bi-chevron-double-down text-warning fs-5" title="Средний"></i>
+              {% else %}
+                <i class="bi bi-dash text-secondary fs-5" title="Низкий"></i>
+              {% endif %}
+            </td>
+            <td class="fw-semibold">{{ task.title }}</td>
+            <td>
+              {% if task.due_date %}
+                {{ task.due_date|date:"d.m.Y" }}
+              {% else %}
+                <span class="text-muted">Без срока</span>
+              {% endif %}
+            </td>
+            <td class="text-muted small">
+              {{ task.sender.first_name }} {{ task.sender.last_name }}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% else %}
+  <div class="task-card"><div class="alert alert-info mt-3 mb-0">У вас пока нет задач.</div></div>
+{% endif %}
 {% endblock %}
+{% block actions_goup %}{% endblock %}

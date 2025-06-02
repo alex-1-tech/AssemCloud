@@ -114,32 +114,11 @@ nav.navbar {
   background-color: #000;
 }
 
-.btn-success {
-  background-color: #198754;
-}
 
 /* Color Variants */
-.btn-blue {
-  background-color: #a3c4f3;
-  color: #1f3b70;
-}
-
-.btn-blue:hover {
-  background-color: #91b4e8;
-  color: #162f5c;
-}
-
-.btn-red {
-  background-color: #f4a6a6;
-  color: #731c1c;
-}
-
-.btn-red:hover {
-  background-color: #ec8e8e;
-  color: #5a1515;
-}
-
-.btn-green {
+  .btn-blue { background: #e3f2fd; color: #1976d2; }
+  .btn-blue:hover { background: #1976d2; color: #fff; }
+ .btn-green {
   background-color: #b2e2b2;
   color: #2e5934;
 }
@@ -148,16 +127,10 @@ nav.navbar {
   background-color: #a0d8a0;
   color: #244a2a;
 }
-
-.btn-gray {
-  background-color: #e1e1e1;
-  color: #3c3c3c;
-}
-
-.btn-gray:hover {
-  background-color: #d1d1d1;
-}
-
+  .btn-red { background: #ffe3e3; color: #d32f2f; }
+  .btn-red:hover { background: #d32f2f; color: #fff; }
+  .btn-gray { background: #f3f3f3; color: #888; }
+  .btn-gray:hover { background: #e3e6ea; color: #333; }
 .btn-light {
   background-color: #dbdbdb;
   color: #2a2a2a;
@@ -180,14 +153,15 @@ nav.navbar {
 
 /* Special Buttons */
 .btn-icon {
-  width: 35px;
-  height: 35px;
-  border-radius: 50%;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.1rem;
+    border-radius: 8px;
+    font-size: 18px;
+    padding: 8px 14px;
+    transition: background 0.15s, color 0.15s;
+    border: none;
+    outline: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* ================================
@@ -306,3 +280,137 @@ a.detail_links:hover::after {
 a.detail_links.icon-link::after {
   display: none;
 }
+
+/* ================================
+   Task Card
+================================ */
+@import url('https://fonts.googleapis.com/css?family=Inter:400,600&display=swap');
+  .task-card {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 16px 0 rgba(60,60,60,0.08);
+    padding: 20px;
+    margin-top: 40px;
+    font-family: 'Inter', 'Roboto', Arial, sans-serif;
+    color: #333;
+    transition: box-shadow 0.2s, transform 0.2s;
+  }
+  .task-card:hover {
+    box-shadow: 0 8px 32px 0 rgba(60,60,60,0.16);
+  }
+  .task-title-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 2px;
+  }
+  .task-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0;
+    color: #222;
+    flex-shrink: 0;
+  }
+  .description-label {
+    color: #666;
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    margin-top: 18px;
+  }
+  .description-text {
+    background: #fafbfc;
+    border: 1px solid #e3e6ea;
+    border-radius: 8px;
+    padding: 16px;
+    font-size: 15px;
+    line-height: 1.9;
+    color: #333;
+    margin-bottom: 20px;
+    white-space: pre-line;
+    word-break: break-word;
+  }
+  .meta-row {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .meta-col {
+    flex: 1 1 220px;
+    min-width: 180px;
+    color: #666;
+    font-size: 14px;
+  }
+  .meta-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 6px;
+    gap: 6px;
+  }
+  .meta-item i {
+    font-size: 16px;
+    color: #bbb;
+    vertical-align: middle;
+  }
+  .avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 6px;
+    border: 1px solid #e3e6ea;
+    background: #f3f3f3;
+  }
+  .actions-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 18px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .actions-group {
+    display: flex;
+    gap: 8px;
+  }
+
+  @media (max-width: 768px) {
+    .meta-row { flex-direction: column; gap: 8px; }
+    .actions-row { flex-direction: column; gap: 8px; }
+    .actions-group { justify-content: flex-end; }
+    .task-title-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .task-title { font-size: 17px; }
+    .description-label { font-size: 15px; }
+    .description-text { font-size: 14px; }
+    .meta-col { font-size: 13px; }
+  }
+
+  /* ================================
+   Badge
+================================ */
+
+  .badge-status {
+    font-size: 13px;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-weight: 500;
+    margin-right: 6px;
+    vertical-align: middle;
+    border: none;
+    display: inline-block;
+  }
+  .badge-status.completed { background: #e6f7ec; color: #219653; }
+  .badge-status.in-progress { background: #fffbe6; color: #e67e22; }
+  .badge-status.abandoned { background: #fbeaea; color: #c0392b; }
+  .badge-priority.low { background: #e3f2fd; color: #1976d2; }
+  .badge-priority.medium { background: #e3eafd; color: #3949ab; }
+  .badge-priority.high { background: #ffe3e3; color: #d32f2f; }
+  .description-label {
+    color: #666;
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    margin-top: 18px;
+  }
