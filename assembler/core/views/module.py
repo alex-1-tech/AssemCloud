@@ -2,6 +2,8 @@
 
 Includes listing, creating, updating, viewing, and deleting modules.
 """
+from __future__ import annotations
+
 from typing import Any
 
 from django.db.models import Q
@@ -16,7 +18,7 @@ from django.views.generic import (
 
 from core.forms import ModuleForm
 from core.mixins import NextUrlMixin, QuerySetMixin
-from core.models import Module
+from core.models import Machine, Module
 from core.services.assembly_tree import build_module_tree
 
 MODULE_LIST_URL = "module_list"
@@ -39,10 +41,10 @@ class ModuleListView(QuerySetMixin, ListView):
                 "items": self.get_module_items(context["modules"]),
                 "add_url": reverse("module_add"),
                 "empty_message": "Модули не найдены.",
+                "user_roles": list(
+                    self.request.user.roles.values_list("role__name", flat=True),
+                ),
             },
-        )
-        context["user_roles"] = list(
-            self.request.user.roles.values_list("role__name", flat=True),
         )
         return context
 
@@ -51,7 +53,7 @@ class ModuleListView(QuerySetMixin, ListView):
         ) -> list[dict[str, Any]]:
         """Generate a list of dictionary items.
 
-        Representing blueprint metadata for UI rendering.
+        Representing client metadata for UI rendering.
         """
         return [
             {
@@ -67,11 +69,11 @@ class ModuleListView(QuerySetMixin, ListView):
         ]
 
     def get_queryset(self) -> object:
-        """Return a queryset of blueprints filtered by the search query."""
+        """Return a queryset of clients filtered by the search query."""
         q = self.request.GET.get("q", "").strip()
         return self.get_queryset_default(
             q,
-            Q(Q(name__icontains=q) | Q(serial__icontains=q)),
+            Q(Q(name__icontains=q) | Q(decimal__icontains=q)),
         )
 
 class ModuleCreateView(NextUrlMixin, CreateView):
@@ -79,7 +81,7 @@ class ModuleCreateView(NextUrlMixin, CreateView):
 
     model = Module
     form_class = ModuleForm
-    template_name = "core/edit.html"
+    template_name = "core/modules/edit.html"
     default_redirect_url_name = MODULE_LIST_URL
 
     def get_context_data(self, **kwargs: object) -> dict:
@@ -105,12 +107,33 @@ class ModuleCreateView(NextUrlMixin, CreateView):
             initial["parent"] = parent_id
         return initial
 
+    def get_form(self, form_class: type[ModuleForm] | None = None) -> ModuleForm:
+        """Return the form instance, optionally filtering machine choices."""
+        form = super().get_form(form_class)
+        machine_id = self.request.GET.get("machine")
+        parent_id = self.request.GET.get("parent")
+        if parent_id:
+            try:
+                parent = Module.objects.get(pk=parent_id)
+                form.fields["parent"].queryset = Module.objects.filter(pk=parent.pk)
+                form.initial["parent"] = parent.pk
+            except Module.DoesNotExist:
+                pass
+        if machine_id:
+            try:
+                machine = Machine.objects.get(pk=machine_id)
+                form.fields["machine"].queryset = Machine.objects.filter(pk=machine.pk)
+                form.initial["machine"] = machine.pk
+            except Machine.DoesNotExist:
+                pass
+        return form
+
 class ModuleUpdateView(NextUrlMixin, UpdateView):
     """Handles editing an existing module."""
 
     model = Module
     form_class = ModuleForm
-    template_name = "core/edit.html"
+    template_name = "core/modules/edit.html"
     default_redirect_url_name = MODULE_LIST_URL
 
     def get_context_data(self, **kwargs: object) -> dict:
@@ -129,7 +152,7 @@ class ModuleDetailView(DetailView):
     """Displays detailed information about a module."""
 
     model = Module
-    template_name = "core/detail.html"
+    template_name = "core/modules/detail.html"
 
     def get_module_fields(
             self, module: Module,
@@ -144,11 +167,7 @@ class ModuleDetailView(DetailView):
                 "value": module.machine,
                 "url": reverse("machine_detail",args=[module.machine.pk]),
             },
-            {
-                "label": "Артикул",
-                "value": module.part_number or "Артикул не указан",
-            },
-            {"label": "Серийный номер", "value": module.serial},
+            {"label": "Децимальный номер", "value": module.decimal},
             {
                 "label": "Производитель",
                 "value": module.manufacturer.name \
@@ -158,13 +177,6 @@ class ModuleDetailView(DetailView):
                     ) if module.manufacturer else None,
             },
             {"label": "Статус", "value": module.get_module_status_display()},
-            {
-                "label": "Чертёж",
-                "value": module.blueprint.naming_scheme \
-                    if module.blueprint else "Чертеж не указан",
-                "url": reverse("blueprint_detail", args=[module.blueprint.pk]) \
-                    if module.blueprint else None,
-            },
             {
                 "label": "Родительский модуль",
                 "value": module.parent.name \
@@ -176,13 +188,24 @@ class ModuleDetailView(DetailView):
 
     def get_context_data(self, **kwargs: object) -> dict:
         """Add module fields and actions to context."""
-        context = super().get_context_data(**kwargs)
         module = self.object
+        request = self.request
+        context = super().get_context_data(**kwargs)
+
+        scheme_url: str | None = request.build_absolute_uri(
+            module.scheme_file.url) \
+            if module.scheme_file else None
+        step_url: str | None = request.build_absolute_uri(
+            module.step_file.url) \
+            if module.step_file else None
+
         context.update(
             {
                 "title": "Модуль",
                 "subtitle": f"{module.name} - {module.version}",
                 "fields": self.get_module_fields(module),
+                "scheme_url": scheme_url,
+                "step_url": step_url,
                 "module_tree": build_module_tree(module),
                 "add_url": reverse("module_add"),
                 "edit_url": reverse(

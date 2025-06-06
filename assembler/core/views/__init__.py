@@ -1,12 +1,5 @@
 """Views package exports for core application."""
 
-from core.views.blueprint import (
-    BlueprintCreateView,
-    BlueprintDeleteView,
-    BlueprintDetailView,
-    BlueprintListView,
-    BlueprintUpdateView,
-)
 from core.views.client import (
     ClientCreateView,
     ClientDeleteView,
@@ -71,11 +64,6 @@ from core.views.user import (
 )
 
 __all__ = [
-    "BlueprintCreateView",
-    "BlueprintDeleteView",
-    "BlueprintDetailView",
-    "BlueprintListView",
-    "BlueprintUpdateView",
     "ClientCreateView",
     "ClientDeleteView",
     "ClientDetailView",

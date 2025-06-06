@@ -70,9 +70,20 @@ document.addEventListener('DOMContentLoaded', function() {
     const totalForms = document.getElementById('id_' + '{{ formset.prefix }}' + '-TOTAL_FORMS');
     const emptyFormTemplate = document.getElementById('empty-form-template').children[0].cloneNode(true);
     const urlParams = new URLSearchParams(window.location.search);
-    const moduleId = urlParams.get('module');
+    const moduleId = urlParams.get('module')
+    
+    function initSelect2(element) {
+        $(element).djangoSelect2({
+            width: '100%',
+            dropdownParent: $(element).closest('.card-body')
+        });
+    }
 
-    // Скрываем все существующие DELETE чекбоксы
+    $('.django-select2').djangoSelect2({
+        width: '100%',
+        dropdownParent: $('.card-body')
+    });
+
     document.querySelectorAll('[id$="-DELETE"]').forEach(checkbox => {
         checkbox.style.display = 'none';
     });
@@ -82,6 +93,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function addDeleteButton(row) {
+        const deleteCheckbox = row.querySelector('input[name$="-DELETE"]');
+        if (deleteCheckbox) {
+            deleteCheckbox.style.display = 'none';
+        }
         const deleteBtn = document.createElement('button');
         deleteBtn.type = 'button';
         deleteBtn.className = 'btn btn-red btn-sm mt-2';
@@ -100,25 +115,25 @@ document.addEventListener('DOMContentLoaded', function() {
         row.appendChild(deleteBtn);
     }
 
-    addButton.addEventListener('click', function() {
+     addButton.addEventListener('click', function() {
         const newForm = emptyFormTemplate.cloneNode(true);
         const formIndex = parseInt(totalForms.value);
-        
         newForm.innerHTML = newForm.innerHTML.replace(/__prefix__/g, formIndex);
-        
-        if (moduleId) {
-            const moduleSelect = newForm.querySelector('select[name$="-module"]');
-            if (moduleSelect) {
-                moduleSelect.value = moduleId;
-                moduleSelect.dispatchEvent(new Event('change'));
-            }
-        }
-
         formsetContainer.appendChild(newForm);
         addDeleteButton(newForm);
         updateTotalForms(formIndex + 1);
+
+        $(newForm).find('.django-select2').djangoSelect2();
         
-        newForm.querySelector('[id$="-DELETE"]').style.display = 'none';
+        if (moduleId) {
+
+            const moduleSelect = newForm.querySelector('select[name$="-module"]');
+            if (moduleSelect) {
+                setTimeout(function() {
+                    $(moduleSelect).val(moduleId).trigger('change');
+                }, 0);
+            }
+        }
     });
 
     formsetContainer.querySelectorAll('.formset-row').forEach(row => {
@@ -126,9 +141,17 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     if (moduleId) {
-        document.querySelectorAll('#formset-container .formset-row select[name$="-module"]').forEach(select => {
-            select.value = moduleId;
-        });
+        const firstModuleSelect = document.querySelector('#formset-container select[name$="-module"]');
+        if (firstModuleSelect) {
+            let option = firstModuleSelect.querySelector('option[value="' + moduleId + '"]');
+            if (!option) {
+                option = document.createElement('option');
+                option.value = moduleId;
+                option.textContent = "{{ module_name }}";
+                firstModuleSelect.appendChild(option);
+            }
+            $(firstModuleSelect).val(moduleId).trigger('change');
+        }
     }
 });
     </script>

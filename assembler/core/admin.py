@@ -1,7 +1,7 @@
 """Admin configuration for core app models.
 
 Includes admin interfaces and inline configurations for User, Role,
-Client, Manufacturer, Blueprint, Machine, Module, Part, and change logging.
+Client, Manufacturer, Machine, Module, Part, and change logging.
 """
 
 from __future__ import annotations
@@ -13,7 +13,6 @@ from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 
 from core.models import (
-    Blueprint,
     ChangesLog,
     Client,
     Machine,
@@ -126,19 +125,6 @@ class ManufacturerAdmin(admin.ModelAdmin):
     list_filter = ("country",)
 
 
-# =================== BLUEPRINT ===================
-
-
-@admin.register(Blueprint)
-class BlueprintAdmin(admin.ModelAdmin):
-    """Admin configuration for the Blueprint model."""
-
-    list_display = ("naming_scheme", "version", "developer")
-    search_fields = ("naming_scheme__icontains", "developer__email")
-    list_filter = ("developer",)
-    autocomplete_fields = ("developer",)
-
-
 # =================== MACHINE ===================
 
 
@@ -171,17 +157,33 @@ class MachineClientAdmin(admin.ModelAdmin):
 
 @admin.register(Module)
 class ModuleAdmin(admin.ModelAdmin):
-    """Admin configuration for the Module model."""
+    """Admin configuration for the Module model, highlighting new fields and structure.
 
-    list_display = ("name", "version", "machine", "parent", "module_status")
+    Shows key technical and manufacturing fields, including status, parent, manufacturer
+    and blueprint files (PDF, STEP).
+    Supports hierarchy and filtering by status and machine.
+    """
+
+    list_display = (
+        "name",
+        "version",
+        "machine",
+        "parent",
+        "manufacturer",
+        "module_status",
+        "scheme_file",
+        "step_file",
+    )
     search_fields = (
         "name__icontains",
         "machine__name__icontains",
         "parent__name__icontains",
-        "manufacturer",
+        "manufacturer__name__icontains",
+        "decimal",
+        "version",
     )
-    list_filter = ("machine", "module_status")
-    autocomplete_fields = ("machine", "parent")
+    list_filter = ("machine", "module_status", "manufacturer")
+    autocomplete_fields = ("machine", "parent", "manufacturer")
     inlines: ClassVar[list[str]] = [ModulePartInline]
 
 

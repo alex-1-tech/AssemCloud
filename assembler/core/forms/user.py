@@ -42,7 +42,7 @@ class UserRegistrationForm(forms.ModelForm):
     )
 
     class Meta:
-        """Model metadata for Blueprint."""
+        """Model metadata for User."""
 
         model = User
         fields = ("first_name", "last_name", "email", "phone", "address")

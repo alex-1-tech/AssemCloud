@@ -1,6 +1,5 @@
 """Forms package exports for core application."""
 
-from core.forms.blueprint import BlueprintForm
 from core.forms.client import ClientForm
 from core.forms.machine import MachineForm
 from core.forms.manufacturer import ManufacturerForm
@@ -18,7 +17,6 @@ from core.forms.user import (
 )
 
 __all__ = [
-    "BlueprintForm",
     "ClientForm",
     "MachineForm",
     "ManufacturerForm",

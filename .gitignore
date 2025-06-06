@@ -39,3 +39,8 @@ ENV/
 
 # Git itself
 .git/
+
+# other
+*.DS_Store
+.ruff_cache/
+.well-known/

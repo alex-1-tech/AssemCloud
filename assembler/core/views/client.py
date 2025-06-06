@@ -37,7 +37,7 @@ class ClientListView(QuerySetMixin, ListView):
         context.update(
             {
                 "title": "Клиенты",
-                "items": self.get_blueprint_items(context["clients"]),
+                "items": self.get_client_items(context["clients"]),
                 "add_url": reverse("client_add"),
                 "empty_message": "Клиенты не найдены.",
                 "user_roles": list(
@@ -47,7 +47,7 @@ class ClientListView(QuerySetMixin, ListView):
         )
         return context
 
-    def get_blueprint_items(self, clients: list[Client]) -> list[dict[str, Any]]:
+    def get_client_items(self, clients: list[Client]) -> list[dict[str, Any]]:
         """Generate a list of dictionary items.
 
         Representing client metadata for UI rendering.

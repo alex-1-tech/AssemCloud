@@ -1,0 +1,22 @@
+{% extends "core/detail.html" %}
+{% block detail_extra %}
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'assembler/css/tree.css' %}">
+    {% if machine_tree %}
+        <div class="border rounded p-4 bg-light shadow-sm mb-4" style="background: #f8f9fa;">
+            <h5 class="mb-4 text-center">Состав машины</h5>
+            <ul class="tree">
+                <li>
+                    <details open>
+                        <summary>Машина: {{ machine_tree.machine.name }}</summary>
+                        <ul>
+                            {% for node in machine_tree.modules %}
+                                {% include "components/assembly_tree.html" with node=node %}
+                            {% endfor %}
+                        </ul>
+                    </details>
+                </li>
+            </ul>
+        </div>
+    {% endif %}
+{% endblock %}

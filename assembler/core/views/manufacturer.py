@@ -51,7 +51,7 @@ class ManufacturerListView(QuerySetMixin, ListView):
         ) -> list[dict[str, Any]]:
         """Generate a list of dictionary items.
 
-        Representing blueprint metadata for UI rendering.
+        Representing client metadata for UI rendering.
         """
         return [
             {

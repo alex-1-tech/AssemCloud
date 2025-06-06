@@ -35,7 +35,7 @@ def dashboard_view(request: HttpRequest) -> HttpResponse:
     ).order_by("due_date")
     sent_tasks = Task.objects.filter(
         sender=request.user,
-        status=Task.Status.IN_PROGRESS,
+        # status=Task.Status.IN_PROGRESS,
         due_date__gte=seven_days_ago,
     ).order_by("due_date")
     machines = Machine.objects.all()

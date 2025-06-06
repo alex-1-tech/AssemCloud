@@ -121,7 +121,7 @@ class MachineDetailView(DetailView):
     """Displays detailed information about a machine."""
 
     model = Machine
-    template_name = "core/detail.html"
+    template_name = "core/machines/detail.html"
 
     def get_context_data(self, **kwargs: dict[str, object]) -> dict[str, Any]:
         """Add machine fields, tree, and actions to context."""

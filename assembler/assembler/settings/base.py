@@ -27,7 +27,7 @@ DEBUG = config("DEBUG", default=False, cast=bool)
 
 ALLOWED_HOSTS = []
 
-# CSRF_TRUSTED_ORIGINS = [config("CSRF_TRUSTED_ORIGINS")]  # noqa: ERA001
+CSRF_TRUSTED_ORIGINS = ["https://92cf-178-236-244-154.ngrok-free.app"]
 
 # Application definition
 

@@ -3,14 +3,14 @@
         <details open>
             <summary>
                 <span class="module-label" data-module-id="{{ node.module.id }}">Модуль:</span>
-                <a href="{% url 'module_detail' node.module.id %}">{{ node.module.name }}</a>
+                <a class="detail_links" href="{% url 'module_detail' node.module.id %}">{{ node.module.name }}</a>
             </summary>
             {% if node.parts %}
                 <ul>
                     {% for part in node.parts %}
                         <li>
                             Деталь: <a href="{% url 'part_detail' part.part.id %}"  class="detail_links">{{ part.part.name }}</a>
-                            <a href="{% url 'modulepart_detail' part.id %}"  class="detail_links"> (x{{part.quantity}})</a>
+                            <a href="{% url 'modulepart_detail' part.id %}"  class="detail_links">(x{{ part.quantity }})</a>
                         </li>
                     {% endfor %}
                 </ul>

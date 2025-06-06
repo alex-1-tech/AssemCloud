@@ -23,8 +23,8 @@ Example:
         by `default_redirect_url_name`.
 
 Example:
-        class BlueprintCreateView(NextUrlMixin, CreateView):
-            default_redirect_url_name = "blueprint_list"
+        class ClientCreateView(NextUrlMixin, CreateView):
+            default_redirect_url_name = "client_list"
 
 These mixins are designed to reduce boilerplate and improve clarity in view definitions.
 

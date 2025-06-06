@@ -4,6 +4,7 @@ from typing import ClassVar
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LogoutView as UserLogoutView
 from django.urls import path
 
@@ -87,7 +88,6 @@ urlpatterns += [
 model_names = [
     "manufacturer",
     "part",
-    "blueprint",
     "client",
     "machine",
     "module",
@@ -169,21 +169,21 @@ urlpatterns.append(
         "tasks/<int:pk>/complete/",
         create_role_view(TaskCompleteView).as_view(),
         name="task_complete",
-    )
+    ),
 )
 urlpatterns.append(
     path(
         "tasks/<int:pk>/reopen/",
         create_role_view(TaskReopenView).as_view(),
         name="task_reopen",
-    )
+    ),
 )
 
 BaseWithRoleView = create_role_view(view_class=MachineListView)
 
 urlpatterns += [
     # other
-    path("", dashboard_view, name="dashboard"),
+    path("", login_required(dashboard_view), name="dashboard"),
 ]
 
 

@@ -5,10 +5,13 @@ Includes listing, creating, updating, viewing, and deleting tasks.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, ClassVar
 
+from django.contrib import messages
 from django.db.models import Q
+from django.shortcuts import redirect
 from django.urls import reverse
+from django.utils import timezone
 from django.views.generic import (
     CreateView,
     DeleteView,
@@ -16,9 +19,6 @@ from django.views.generic import (
     ListView,
     UpdateView,
 )
-from django.utils import timezone
-from django.shortcuts import redirect, get_object_or_404
-from django.contrib import messages
 
 from core.forms import TaskForm
 from core.mixins import NextUrlMixin, QuerySetMixin
@@ -26,9 +26,9 @@ from core.models import Task
 
 if TYPE_CHECKING:
     from django import forms
-    from django.http import HttpResponse
+    from django.http import HttpRequest, HttpResponse
 
-TASK_LIST_URL = "task_list"
+TASK_LIST_URL = "dashboard"
 
 
 class TaskListView(QuerySetMixin, ListView):
@@ -104,6 +104,15 @@ class TaskCreateView(NextUrlMixin, CreateView):
         """Set the sender of the task to the currently logged-in user before saving."""
         form.instance.sender = self.request.user
         return super().form_valid(form)
+
+    def get_initial(self) -> dict[str, object]:
+        """Return initial data for the form, including due_date from GET if present."""
+        initial = super().get_initial()
+        due_date = self.request.GET.get("due_date")
+        if due_date:
+            initial["due_date"] = due_date
+        return initial
+
 
 class TaskUpdateView(NextUrlMixin, UpdateView):
     """Handles editing an existing task."""
@@ -214,18 +223,30 @@ class TaskCompleteView(UpdateView):
     """Handles marking a task as complete."""
 
     model = Task
-    fields = []
+    fields: ClassVar[list] = []
 
-    def post(self, request, *args, **kwargs):
+    def post(
+        self,
+        request: HttpRequest,
+        *args: tuple[Any, ...],  # noqa: ARG002
+        **kwargs: dict[str, Any],  # noqa: ARG002
+    ) -> HttpResponse:
+        """Mark the task as complete."""
         task = self.get_object()
         if not task.completed_at:
             task.completed_at = timezone.now()
             task.status = Task.Status.COMPLETED
             task.save()
             messages.success(request, "Задача успешно завершена.")
-        return redirect('task_detail', pk=task.pk)
+        return redirect("task_detail", pk=task.pk)
 
-    def get(self, request, *args, **kwargs):
+    def get(
+        self,
+        request: HttpRequest,
+        *args: tuple[Any, ...],
+        **kwargs: dict[str, Any],
+    ) -> HttpResponse:
+        """Allow GET to trigger the same as POST for convenience."""
         return self.post(request, *args, **kwargs)
 
 
@@ -233,10 +254,18 @@ class TaskReopenView(UpdateView):
     """Handles reopening a completed task (sets completed_at to None)."""
 
     model = Task
-    fields = []
+    fields: ClassVar[list] = []
 
-    def post(self, request, *args, **kwargs):
-        """Reopen the task by clearing completed_at and setting status to in_progress."""
+    def post(
+        self,
+        request: HttpRequest,
+        *args: tuple[Any, ...],  # noqa: ARG002
+        **kwargs: dict[str, Any],  # noqa: ARG002
+    ) -> HttpResponse:
+        """Reopen the task by clearing completed_at.
+
+        Sets status to in_progress.
+        """
         task = self.get_object()
         if task.completed_at:
             task.completed_at = None
@@ -245,6 +274,11 @@ class TaskReopenView(UpdateView):
             messages.success(request, "Задача возвращена в процесс.")
         return redirect("task_detail", pk=task.pk)
 
-    def get(self, request, *args, **kwargs):
+    def get(
+        self,
+        request: HttpRequest,
+        *args: tuple[Any, ...],
+        **kwargs: dict[str, Any],
+    ) -> HttpResponse:
         """Allow GET to trigger the same as POST for convenience."""
         return self.post(request, *args, **kwargs)

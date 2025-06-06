@@ -31,7 +31,14 @@ def part_create_view(request: HttpRequest, pk: int|None = None) -> HttpResponse:
         or request.META.get("HTTP_REFERER")
         or "part_list"
     )
-
+    module_id = request.GET.get("module")
+    module_name = None
+    if module_id:
+        try:
+            module_obj = Module.objects.get(pk=module_id)
+            module_name = str(module_obj)
+        except Module.DoesNotExist:
+            module_name = ""
     if request.method == "POST":
         form = PartForm(request.POST)
         formset = ModulePartFormSet(request.POST)
@@ -54,6 +61,8 @@ def part_create_view(request: HttpRequest, pk: int|None = None) -> HttpResponse:
             "title": "Добавить деталь",
             "submit_label": "Создать",
             "next": next_url,
+            "module_id": module_id,
+            "module_name": module_name,
         },
     )
 

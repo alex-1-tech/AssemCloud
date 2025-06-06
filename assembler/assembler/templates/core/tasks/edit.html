@@ -9,24 +9,11 @@
                     <form method="post">
                         {% csrf_token %}
                         <input type="hidden" name="next" value="{{ next }}">
-                        {% if form.user %}
-                            {{ form.user.as_hidden }}
-                        {% endif %}
+                        {% if form.user %}{{ form.user.as_hidden }}{% endif %}
                         {% for field in form %}
                             <div class="mb-3">
                                 <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-                                {% if field.name == "blueprint" %}
-                                    <div class="d-flex align-items-center">
-                                        <div class="flex-grow-1 me-2">{{ field }}</div>
-                                        <a href="{% url 'blueprint_add' %}"
-                                           class="btn btn-green icon-link icon-link"
-                                           target="_blank">
-                                            <i class="bi bi-plus"></i>
-                                        </a>
-                                    </div>
-                                {% else %}
-                                    {{ field }}
-                                {% endif %}
+                                {{ field }}
                                 {% if field.errors %}<div class="text-danger small">{{ field.errors }}</div>{% endif %}
                             </div>
                         {% endfor %}

@@ -34,10 +34,6 @@
                            href="{% url 'part_list' %}">Детали</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if 'blueprint' in request.resolver_match.url_name %}active{% endif %}"
-                           href="{% url 'blueprint_list' %}">Чертежи</a>
-                    </li>
-                    <li class="nav-item">
                         <a class="nav-link {% if 'manufacturer' in request.resolver_match.url_name %}active{% endif %}"
                            href="{% url 'manufacturer_list' %}">Производители</a>
                     </li>
@@ -53,10 +49,9 @@
             {% endif %}
             <ul class="navbar-nav gap-2 mt-2 d-lg-none">
                 {% if user.is_authenticated %}
-                    <li class="nav-item">
-                        <a class="nav-link {% if 'task' in request.resolver_match.url_name %}active{% endif %}"
-                           href="{% url 'task_list' %}">Задачи</a>
-                    </li>
+                    <!-- <li class="nav-item">
+                        <a class="nav-link {% if 'task' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'task_list' %}">Задачи</a>
+                    </li> -->
                     <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.url_name == 'user_profile' %}active{% endif %}"
                            href="{% url 'user_profile' pk=request.user.pk %}">Профиль</a>
@@ -79,10 +74,9 @@
         <div class="d-none d-lg-flex align-items-center order-3">
             <ul class="navbar-nav gap-2">
                 {% if user.is_authenticated %}
-                    <li class="nav-item">
-                        <a class="nav-link {% if 'task' in request.resolver_match.url_name %}active{% endif %}"
-                           href="{% url 'task_list' %}">Задачи</a>
-                    </li>
+                    <!-- <li class="nav-item">
+                        <a class="nav-link {% if 'task' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'task_list' %}">Задачи</a>
+                    </li> -->
                     <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.url_name == 'user_profile' %}active{% endif %}"
                            href="{% url 'user_profile' pk=request.user.pk %}">Профиль</a>

@@ -1,6 +1,5 @@
 """Models package exports for core application."""
 
-from core.models.blueprint import Blueprint
 from core.models.client import Client, Manufacturer
 from core.models.log import ChangesLog
 from core.models.machine import Machine, MachineClient
@@ -11,7 +10,6 @@ from core.models.task import Task, TaskAttachment, TaskLink
 from core.models.user import User
 
 __all__ = [
-    "Blueprint",
     "ChangesLog",
     "Client",
     "Machine",

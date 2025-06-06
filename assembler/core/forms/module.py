@@ -4,13 +4,15 @@ This module contains the ModuleForm class, which extends BaseStyledForm,
 providing form fields and placeholder configurations for the Module model.
 """
 
+from __future__ import annotations
+
 from typing import ClassVar
 
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
 from core.forms.base import BaseStyledForm
-from core.models import Blueprint, Machine, Manufacturer, Module
+from core.models import Machine, Manufacturer, Module
 
 
 class ModuleForm(BaseStyledForm):
@@ -23,17 +25,17 @@ class ModuleForm(BaseStyledForm):
     """
 
     placeholders: ClassVar[dict[str, str]] = {
-        "part_number": _("Артикул"),
-        "serial": _("Серийный номер"),
+        "decimal": _("Децимальный номер"),
         "name": _("Название модуля"),
         "version": _("Версия"),
         "description": _("Описание"),
         "manufacturer": _("Производитель"),
+        "scheme_file": "PDF файл чертежа",
+        "step_file": "STEP файл модели",
     }
 
     select2_fields: ClassVar[dict[str, tuple]] = {
         "machine": (Machine, ["name__icontains"]),
-        "blueprint": (Blueprint, ["naming_scheme__icontains"]),
         "parent": (Module, ["name__icontains", "serial__icontains"]),
         "manufacturer": (Manufacturer, ["name__icontains"]),
     }
@@ -43,20 +45,20 @@ class ModuleForm(BaseStyledForm):
 
         model = Module
         fields = (
-            "machine",
-            "blueprint",
-            "part_number",
-            "serial",
             "name",
+            "decimal",
+            "version",
+            "machine",
             "parent",
             "manufacturer",
-            "version",
             "description",
             "module_status",
+            "scheme_file",
+            "step_file",
         )
 
 
-    def clean_parent(self) -> object:
+    def clean_parent(self) -> Module | None:
         """Validate the 'parent' field during form cleaning.
 
         This validation performs two main checks:
