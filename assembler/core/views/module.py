@@ -102,7 +102,7 @@ class ModuleCreateView(NextUrlMixin, CreateView):
         machine_id = self.request.GET.get("machine")
         parent_id  = self.request.GET.get("parent")
         if machine_id:
-            initial["machine"] = machine_id
+            initial["machines"] = [machine_id]
         if parent_id:
             initial["parent"] = parent_id
         return initial
@@ -122,8 +122,8 @@ class ModuleCreateView(NextUrlMixin, CreateView):
         if machine_id:
             try:
                 machine = Machine.objects.get(pk=machine_id)
-                form.fields["machine"].queryset = Machine.objects.filter(pk=machine.pk)
-                form.initial["machine"] = machine.pk
+                form.fields["machines"].queryset = Machine.objects.filter(pk=machine.pk)
+                form.initial["machines"] = [machine.pk]
             except Machine.DoesNotExist:
                 pass
         return form
@@ -162,11 +162,6 @@ class ModuleDetailView(DetailView):
         For displaying module attributes in the UI.
         """
         return [
-            {
-                "label": "Машина",
-                "value": module.machine,
-                "url": reverse("machine_detail",args=[module.machine.pk]),
-            },
             {"label": "Децимальный номер", "value": module.decimal},
             {
                 "label": "Производитель",

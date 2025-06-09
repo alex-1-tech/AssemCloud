@@ -50,5 +50,12 @@ class BaseStyledForm(forms.ModelForm):
             if field_name in self.fields and hasattr(self.instance, field_name):
                 value = getattr(self.instance, field_name, None)
                 if value:
-                    qs = model_cls.objects.filter(pk=value.pk) | model_cls.objects.all()
+                    if hasattr(value, "all"):
+                        pks = [obj.pk for obj in value.all()]
+                        qs = model_cls.objects.filter(pk__in=pks) | model_cls.objects.all()
+                    elif isinstance(value, (list, tuple, set)):
+                        pks = [obj.pk for obj in value]
+                        qs = model_cls.objects.filter(pk__in=pks) | model_cls.objects.all()
+                    else:
+                        qs = model_cls.objects.filter(pk=value.pk) | model_cls.objects.all()
                     self.fields[field_name].queryset = qs.distinct()

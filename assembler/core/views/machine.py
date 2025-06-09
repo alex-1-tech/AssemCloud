@@ -6,7 +6,7 @@ Includes listing, creating, updating, viewing, and deleting machines.
 from typing import Any
 
 from django.db.models import Q
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse
 from django.views.generic import (
     CreateView,
     DeleteView,
@@ -58,11 +58,11 @@ class MachineListView(QuerySetMixin, ListView):
             {
                 "title": machine.name,
                 "subtitle": machine.version,
+                "status": machine.get_status_display(),
                 "view_url": reverse("machine_detail", args=[machine.pk]),
                 "edit_url": reverse(
                     "machine_edit", args=[machine.pk],
                     ) + f"?next={self.request.get_full_path()}",
-                "delete_url": reverse("machine_delete", args=[machine.pk]),
                 "delete_confirm_message": f"Удалить машину {machine.name}?",
             }
             for machine in machines
@@ -140,11 +140,11 @@ class MachineDetailView(DetailView):
                         "is_links": True,
                     },
                 ],
+                "status": machine.get_status_display(),
                 "machine_tree": machine_tree,
                 "edit_url": reverse(
                     "machine_edit", args=[machine.pk],
                     ) + f"?next={self.request.get_full_path()}",
-                "delete_url": reverse("machine_delete", args=[machine.pk]),
                                 "add_url": reverse("machine_add"),
                 "add_label": "Добавить новую машину",
                 "user_roles": list(
@@ -158,6 +158,8 @@ class MachineDetailView(DetailView):
 class MachineDeleteView(NextUrlMixin, DeleteView):
     """Handles deletion confirmation for a machine."""
 
+    pass  # noqa: PIE790
+    '''
     model = Machine
     template_name = "core/confirm_delete.html"
     success_url = reverse_lazy("machine_list")
@@ -177,3 +179,4 @@ class MachineDeleteView(NextUrlMixin, DeleteView):
             },
         )
         return context
+    '''

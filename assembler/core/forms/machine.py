@@ -31,7 +31,7 @@ class MachineForm(BaseStyledForm):
         """Metadata for MachineForm."""
 
         model = Machine
-        fields = ("name", "version", "clients")
+        fields = ("name", "version", "status", "clients")
         widgets: ClassVar[dict[str, object]] = {
             "clients": ModelSelect2MultipleWidget(
                 model=Client,

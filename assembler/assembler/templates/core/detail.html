@@ -9,17 +9,35 @@
                 <div class="task-title-row"
                      style="flex-direction: column;
                             align-items: center;
-                            margin-bottom: 0">
+                            margin-bottom: 0.4rem; gap: 2px;">
                     <span class="task-title"
                           style="font-size: 22px;
                                  font-weight: 700;
                                  text-align: center;
                                  width: 100%;
-                                 color: #222">{{ title }}</span>
-                    {% if subtitle %}<h5 class="text-center mb-4">{{ subtitle }}</h5>{% endif %}
+                                 color: #222; margin-bottom: 2px;">{{ subtitle }}</span>
+                    {% if status %}
+                    <span class="badge-status {% if object.status == 'completed' %}completed{% elif object.status == 'in_progress' %}in-progress{% else %}abandoned{% endif %}"
+                              style="font-size: 13px;
+                                     border-radius: 10px;
+                                     padding: 4px 14px;
+                                     font-weight: 500;
+                                     opacity: 0.95; margin-top: 0;">{{ status }}</span>
+                    {% endif %}
+                    <div style="height: 8px;"></div>
                 </div>
                 <div class="meta-row">
                     <div class="meta-col">
+                        {% if object.machines.all %}
+                            <div class="meta-item">
+                                <strong>Машины:</strong>
+                                {% for machine in object.machines.all %}
+                                    <a href="{% url 'machine_detail' machine.pk %}" class="detail_links">{{ machine.name }}{% if machine.version %} ({{ machine.version }}){% endif %}</a>{% if not forloop.last %}, {% endif %}
+                                {% empty %}
+                                    <span class="text-muted">Нет связанных машин.</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
                         {% for field in fields %}
                             <div class="meta-item">
                                 <strong>{{ field.label }}:</strong>
@@ -58,8 +76,10 @@
                                     <a href="{{ edit_url }}" class="btn btn-blue btn-icon">
                                         <i class="bi bi-pencil"></i>
                                     </a>
-                                    <a href="{{ delete_url }}" class="btn btn-red btn-icon">
-                                        <i class="bi bi-trash"></i></a>
+                                    {% if title != "Машина" %}
+                                        <a href="{{ delete_url }}" class="btn btn-red btn-icon">
+                                            <i class="bi bi-trash"></i></a>
+                                    {% endif %}
                                 {% endif %}
                                 <a href="javascript:history.back()" class="btn btn-light btn-icon"><i class="bi bi-arrow-down-left"></i></a>
                             </div>
@@ -77,8 +97,10 @@
                                     <a href="{{ edit_url }}" class="btn btn-blue btn-icon">
                                         <i class="bi bi-pencil"></i>
                                     </a>
-                                    <a href="{{ delete_url }}" class="btn btn-red btn-icon">
-                                        <i class="bi bi-trash"></i></a>
+                                    {% if title != "Машина" %}
+                                        <a href="{{ delete_url }}" class="btn btn-red btn-icon">
+                                            <i class="bi bi-trash"></i></a>
+                                    {% endif %}
                                 {% endif %}
                                 <a href="javascript:history.back()" class="btn btn-light btn-icon"><i class="bi bi-arrow-down-left"></i></a>
                             </div>
@@ -98,8 +120,10 @@
                                     <a href="{{ edit_url }}" class="btn btn-blue btn-icon">
                                         <i class="bi bi-pencil"></i>
                                     </a>
-                                    <a href="{{ delete_url }}" class="btn btn-red btn-icon">
-                                        <i class="bi bi-trash"></i></a>
+                                    {% if title != "Машина" %}
+                                        <a href="{{ delete_url }}" class="btn btn-red btn-icon">
+                                            <i class="bi bi-trash"></i></a>
+                                    {% endif %}
                                 {% endif %}
                                 <a href="javascript:history.back()" class="btn btn-light btn-icon"><i class="bi bi-arrow-down-left"></i></a>
                             </div>
@@ -113,8 +137,10 @@
                                     <a href="{{ edit_url }}" class="btn btn-blue btn-icon">
                                         <i class="bi bi-pencil"></i>
                                     </a>
-                                    <a href="{{ delete_url }}" class="btn btn-red btn-icon">
-                                        <i class="bi bi-trash"></i></a>
+                                    {% if title != "Машина" %}
+                                        <a href="{{ delete_url }}" class="btn btn-red btn-icon">
+                                            <i class="bi bi-trash"></i></a>
+                                    {% endif %}
                                 {% endif %}
                                 <a href="javascript:history.back()" class="btn btn-light btn-icon"><i class="bi bi-arrow-down-left"></i></a>
                             </div>

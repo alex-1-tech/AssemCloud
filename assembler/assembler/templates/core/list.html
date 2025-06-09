@@ -6,7 +6,21 @@
         <div class="col-md-10">
             <div class="card shadow-sm">
                 <div class="card-body p-5">
-                    <h3 class="card-title mb-4 text-center">{{ title }}</h3>
+                    <h3 class="card-title mb-4 text-center position-relative">{{ title }}
+                        {% if title == "Машины" %}
+                            <span class="position-absolute top-0 end-0">
+                                {% if request.GET.status == "dropped" %}
+                                    <a href="?q={{ request.GET.q|default:'' }}" class="btn btn-sm btn-warning ms-2" title="Показать в процессе и завершённые">
+                                        <i class="bi bi-arrow-repeat"></i>
+                                    </a>
+                                {% else %}
+                                    <a href="?q={{ request.GET.q|default:'' }}&status=dropped" class="btn btn-sm btn-outline-danger ms-2" title="Показать брошенные">
+                                        <i class="bi bi-exclamation-triangle"></i>
+                                    </a>
+                                {% endif %}
+                            </span>
+                        {% endif %}
+                    </h3>
                     <form method="get" class="mb-4">
                         <div class="input-group">
                             <input type="text"
@@ -22,6 +36,7 @@
                     {% if items %}
                         <ul class="list-group list-group-flush">
                             {% for item in items %}
+                                {% if title != "Машины" or request.GET.status == "dropped" or item.status == "В процессе" or item.status == "Завершен" %}
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                     <div>
                                         <a href="{{ item.view_url }}" class="item-title-link">{{ item.title }}</a>
@@ -40,14 +55,17 @@
                                                title="Редактировать">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
-                                            <a href="{{ item.delete_url }}"
-                                               class="btn btn-sm btn-outline-danger"
-                                               title="Удалить">
-                                                <i class="bi bi-trash"></i>
-                                            </a>
+                                            {% if title != "Машины" %}
+                                                <a href="{{ item.delete_url }}"
+                                                class="btn btn-sm btn-outline-danger"
+                                                title="Удалить">
+                                                    <i class="bi bi-trash"></i>
+                                                </a>
+                                            {% endif %}
                                         {% endif %}
                                     </div>
                                 </li>
+                                {% endif %}
                             {% endfor %}
                         </ul>
                         {% if add_url %}

@@ -42,13 +42,11 @@ class Module(ReprMixin, NormalizeMixin, TimeStampedModelWithUser):
     and stores both 2D and 3D blueprint files for each module.
     """
 
-    machine = models.ForeignKey(
+    machines = models.ManyToManyField(
         "Machine",
-        on_delete=models.CASCADE,
+        through="ModuleMachine",
         related_name="modules",
         verbose_name=_("Машина"),
-        blank=False,
-        null=False,
     )
 
     decimal = models.CharField(
@@ -100,6 +98,7 @@ class Module(ReprMixin, NormalizeMixin, TimeStampedModelWithUser):
         verbose_name=_("Файл чертежа (STEP)"),
         help_text=_("3D-модель в формате STEP для CAD-систем"),
     )
+
     class ModuleStatus(models.TextChoices):
         """Enumeration of possible module statuses."""
 
@@ -119,7 +118,7 @@ class Module(ReprMixin, NormalizeMixin, TimeStampedModelWithUser):
         return f"{self.name or 'Без названия'} (S/N: {self.decimal or 'нет'})"
 
     class Meta:
-        """Model metadata: database table name, ordering, verbose names and indexes."""
+        """Мета-данные для Module."""
 
         db_table: ClassVar[str] = "modules"
         ordering: ClassVar[list[str]] = ["-updated_on"]
@@ -128,5 +127,47 @@ class Module(ReprMixin, NormalizeMixin, TimeStampedModelWithUser):
         indexes: ClassVar[list[models.Index]] = [
             models.Index(fields=["decimal"]),
             models.Index(fields=["name"]),
-            models.Index(fields=["machine", "decimal"]),
         ]
+
+
+class ModuleMachine(ReprMixin, models.Model):
+    """Intermediary model linking modules to machines with metadata.
+
+    This model enables a many-to-many relationship between `Module` and `Machine`
+    and supports additional fields like comments and creation date.
+    """
+
+    module = models.ForeignKey(
+        Module,
+        on_delete=models.CASCADE,
+        verbose_name=_("Модуль"),
+        help_text="Reference to the module in the association.",
+    )
+    machine = models.ForeignKey(
+        "Machine",
+        on_delete=models.CASCADE,
+        verbose_name=_("Машина"),
+        help_text="Reference to the machine in the association.",
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name=_("Дата добавления"),
+        help_text="Date and time when the association was created.",
+    )
+    comment = models.TextField(
+        blank=True,
+        verbose_name=_("Комментарий"),
+        help_text="Optional comment about the module-machine association.",
+    )
+
+    def __str__(self) -> str:
+        """Return a string showing the module-machine association."""
+        return f"{self.module} <-> {self.machine}"
+
+    class Meta:
+        """Model metadata: database table name, verbose names and unique constraint."""
+
+        db_table: ClassVar[str] = "module_machines"
+        verbose_name: ClassVar[str] = _("Связь Модуль-Машина")
+        verbose_name_plural: ClassVar[str] = _("Связи Модуль-Машина")
+        unique_together: ClassVar[tuple[str, str]] = ("module", "machine")

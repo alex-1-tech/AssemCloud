@@ -41,6 +41,20 @@ class Machine(ReprMixin, NormalizeMixin, models.Model):
         verbose_name=_("Клиент"),
     )
 
+    class Status(models.TextChoices):
+        """Enumeration of task status levels."""
+
+        IN_PROGRESS = "in_progress", _("В процессе")
+        COMPLETED = "completed", _("Завершена")
+        ABANDONED = "abandoned", _("Брошена")
+
+    status = models.CharField(
+        _("Состояние"),
+        max_length=20,
+        choices=Status.choices,
+        default=Status.IN_PROGRESS,
+    )
+
     def __str__(self) -> str:
         """Return string representation of the machine with name and version."""
         return f"{self.name} — {self.version or 'N/A'}"

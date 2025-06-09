@@ -154,6 +154,9 @@ for model in model_names:
             pattern, WithRoleView.as_view(), name=f"{model}_{action}",
         )
 
+        if model == "machine" and action == "delete":
+            continue
+
         if model == "part" and action in {"add", "edit"}:
             current_path = path(
                 pattern,

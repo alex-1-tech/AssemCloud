@@ -167,7 +167,6 @@ class ModuleAdmin(admin.ModelAdmin):
     list_display = (
         "name",
         "version",
-        "machine",
         "parent",
         "manufacturer",
         "module_status",
@@ -176,14 +175,14 @@ class ModuleAdmin(admin.ModelAdmin):
     )
     search_fields = (
         "name__icontains",
-        "machine__name__icontains",
+        "machines__name__icontains",
         "parent__name__icontains",
         "manufacturer__name__icontains",
         "decimal",
         "version",
     )
-    list_filter = ("machine", "module_status", "manufacturer")
-    autocomplete_fields = ("machine", "parent", "manufacturer")
+    list_filter = ("machines", "module_status", "manufacturer")
+    autocomplete_fields = ("machines", "parent", "manufacturer")
     inlines: ClassVar[list[str]] = [ModulePartInline]
 
 
