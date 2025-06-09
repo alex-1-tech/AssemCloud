@@ -30,9 +30,14 @@ class Part(ReprMixin, NormalizeMixin, TimeStampedModelWithUser):
 
     name = models.CharField(
         _("Название"),
-        max_length=255,
+        max_length=30,
         null=False,
         blank=False,
+    )
+
+    decimal = models.CharField(
+        _("Децимальный номер"),
+        max_length=100,
     )
 
     manufacturer = models.ForeignKey(
@@ -44,7 +49,7 @@ class Part(ReprMixin, NormalizeMixin, TimeStampedModelWithUser):
         verbose_name=_("Производители"),
     )
 
-    description = models.TextField(_("Описание детали"), blank=True, null=True)
+    description = models.TextField(_("Описание изделия"), blank=True, null=True)
 
     material = models.CharField(_("Материал"), max_length=100, blank=True)
 
@@ -58,13 +63,14 @@ class Part(ReprMixin, NormalizeMixin, TimeStampedModelWithUser):
         """Model metadata: database table name, verbose names, ordering and indexes."""
 
         db_table: ClassVar[str] = "parts"
-        verbose_name: ClassVar[str] = _("Деталь")
-        verbose_name_plural: ClassVar[str] = _("Детали")
+        verbose_name: ClassVar[str] = _("Изделие")
+        verbose_name_plural: ClassVar[str] = _("Изделия")
         ordering: ClassVar[list[str]] = ["name"]
         indexes: ClassVar[list[models.Index]] = [
-            # Index to optimize filtering by manufacture date
             models.Index(fields=["manufacture_date"]),
+            models.Index(fields=["decimal"]),
         ]
+
 
 
 class ModulePart(ReprMixin, models.Model):
@@ -85,7 +91,7 @@ class ModulePart(ReprMixin, models.Model):
         Part,
         on_delete=models.RESTRICT,
         related_name="part_modules",
-        verbose_name=_("Деталь"),
+        verbose_name=_("Изделие"),
     )
 
     quantity = models.PositiveIntegerField(
@@ -103,8 +109,8 @@ class ModulePart(ReprMixin, models.Model):
 
         db_table: ClassVar[str] = "module_part"
         ordering: ClassVar[list[str]] = ["id"]
-        verbose_name: ClassVar[str] = _("Связь Деталь-Модуль")
-        verbose_name_plural: ClassVar[str] = _("Связи Деталь-Модуль")
+        verbose_name: ClassVar[str] = _("Связь Изделие-Модуль")
+        verbose_name_plural: ClassVar[str] = _("Связи Изделие-Модуль")
         constraints: ClassVar[list[models.constraints.BaseConstraint]] = [
             models.CheckConstraint(
                 check=models.Q(quantity__gt=0),

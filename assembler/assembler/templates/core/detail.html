@@ -4,8 +4,8 @@
 {% load roles %}
 {% block content %}
     <div class="row justify-content-center mt-5">
-        <div class="col-md-10">
-            <div class="task-card">
+        <div class="{% if machine_tree or module_tree %}col-md-12{% else %}col-md-10{% endif %}">
+            <div class="task-card" style="padding: 3rem;">
                 <div class="task-title-row"
                      style="flex-direction: column;
                             align-items: center;
@@ -91,7 +91,7 @@
                                 <a href="{% url 'module_add' %}?machine={{ module_tree.module.machine.pk }}&parent={{ module_tree.module.pk }}&next={% url 'module_detail' module.id %}"
                                    class="btn btn-green btn-lg">Добавить подмодуль</a>
                                 <a href="{% url 'part_add' %}?module={{ module_tree.module.pk }}&next={% url 'module_detail' module.id %}"
-                                   class="btn btn-yellow btn-lg">Добавить деталь</a>
+                                   class="btn btn-yellow btn-lg">Добавить изделие</a>
                             </div>
                             <div class="actions-group">
                                 {% if user_roles|has_any_role:"Администратор,Директор" or title != "Клиент" %}

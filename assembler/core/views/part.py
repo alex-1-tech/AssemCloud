@@ -35,10 +35,10 @@ class PartListView(QuerySetMixin, ListView):
 
         context.update(
             {
-                "title": "Детали",
+                "title": "Изделия",
                 "items": self.get_part_items(context["items"]),
                 "add_url": reverse("part_add"),
-                "empty_message": "Детали не найдены.",
+                "empty_message": "Изделия не найдены.",
                 "user_roles": list(
                     self.request.user.roles.values_list("role__name", flat=True),
                 ),
@@ -65,7 +65,7 @@ class PartListView(QuerySetMixin, ListView):
                     "part_edit", args=[part.pk],
                     ) + f"?next={self.request.get_full_path()}",
                 "delete_url": reverse("part_delete", args=[part.pk]),
-                "delete_confirm_message": f"Удалить деталь {part.name}?",
+                "delete_confirm_message": f"Удалить изделие {part.name}?",
             }
             for part in parts
         ]
@@ -132,7 +132,7 @@ class PartDetailView(DetailView):
         part = self.object
         context.update(
             {
-                "title": "Деталь",
+                "title": "Изделие",
                 "subtitle": part.name,
                 "fields": self.get_part_fields(part),
                 "add_url": reverse("part_add"),
@@ -140,7 +140,7 @@ class PartDetailView(DetailView):
                     "part_edit", args=[part.pk],
                 ) + f"?next={self.request.get_full_path()}",
                 "delete_url": reverse("part_delete", args=[part.pk]),
-                "add_label": "Добавить новую деталь",
+                "add_label": "Добавить новое изделие",
                 "user_roles": list(
                     self.request.user.roles.values_list("role__name", flat=True),
                 ),
@@ -162,8 +162,8 @@ class PartDeleteView(NextUrlMixin, DeleteView):
         part = self.object
         context.update(
             {
-                "title": "Удалить деталь",
-                "message": f"Вы уверены, что хотите удалить деталь {part.name}?",
+                "title": "Удалить изделие",
+                "message": f"Вы уверены, что хотите удалить изделие {part.name}?",
                 "confirm_label": "Удалить",
                 "cancel_label": "Отмена",
                 "cancel_url": reverse("part_detail", args=[part.pk]),

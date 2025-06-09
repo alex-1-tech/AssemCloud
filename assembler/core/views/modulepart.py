@@ -76,7 +76,7 @@ class ModulePartCreateView(CreateView):
         context = super().get_context_data(**kwargs)
         context.update(
             {
-                "title": "Добавить деталь в модуль",
+                "title": "Добавить изделие в модуль",
                 "submit_label": "Создать",
             },
         )
@@ -127,7 +127,7 @@ class ModulePartDetailView(DetailView):
                         "url": reverse("module_detail", args=[obj.module.pk]),
                     },
                     {
-                        "label": "Деталь",
+                        "label": "Изделие",
                         "value": name_part,
                         "url": reverse("part_detail", args=[obj.part.pk]),
                     },

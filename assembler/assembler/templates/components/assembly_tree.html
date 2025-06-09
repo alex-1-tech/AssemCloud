@@ -2,15 +2,25 @@
     {% if node.parts or node.submodules %}
         <details open>
             <summary>
-                <span class="module-label" data-module-id="{{ node.module.id }}">Модуль:</span>
-                <a class="detail_links" href="{% url 'module_detail' node.module.id %}">{{ node.module.name }}</a>
+                    <span class="module-label" data-module-id="{{ node.module.id }}" data-machine-id="{{ node.module.machine.id }}">Модуль:</span>
+                <a class="detail_links" href="{% url 'module_detail' node.module.id %}">
+                    {{ node.module.decimal }} | {{ node.module.name }}
+                </a>
             </summary>
             {% if node.parts %}
                 <ul>
                     {% for part in node.parts %}
                         <li>
-                            Деталь: <a href="{% url 'part_detail' part.part.id %}"  class="detail_links">{{ part.part.name }}</a>
-                            <a href="{% url 'modulepart_detail' part.id %}"  class="detail_links">(x{{ part.quantity }})</a>
+                            <span class="part-label" data-part-id="{{ part.part.id }}" data-modulepart-id="{{ part.id }}">
+                                Изделие: <a href="{% url 'part_detail' part.part.id %}"  class="detail_links">
+                                    {% if part.part.decimal %}
+                                        {{ part.part.decimal }} | {{ part.part.name }}
+                                    {% else %}
+                                        {{ part.part.name }}
+                                    {% endif %}
+                                </a>
+                                <a href="{% url 'modulepart_detail' part.id %}"  class="detail_links">(x{{ part.quantity }})</a>
+                            </span>
                         </li>
                     {% endfor %}
                 </ul>
@@ -24,8 +34,10 @@
             {% endif %}
         </details>
     {% else %}
-        <span class="module-label" data-module-id="{{ node.module.id }}">
-            Модуль: <a href="{% url 'module_detail' node.module.id %}"  class="detail_links">{{ node.module.name }}</a>
+        <span class="module-label" data-module-id="{{ node.module.id }}" data-machine-id="{{ node.module.machine.id }}">
+            Модуль: <a href="{% url 'module_detail' node.module.id %}"  class="detail_links">
+                {{ node.module.decimal }} | {{ node.module.name }}
+            </a>
         </span>
     {% endif %}
 </li>
@@ -41,13 +53,15 @@
       label.addEventListener('contextmenu', function (e) {
         e.preventDefault();
         const moduleId = this.dataset.moduleId;
-        const machineId = 1;
+        const machineId = this.dataset.machineId;
         const moduleDeleteUrlTemplate = "{% url 'module_delete' 0 %}".replace("0", moduleId);
+        const moduleEditUrlTemplate = "{% url 'module_edit' pk=0 %}".replace("0", moduleId);
 
         menu.innerHTML = `
-          <a href="{% url 'module_add' %}?machine=${machineId}&parent=${moduleId}">Добавить подмодуль</a>
-          <a href="{% url 'part_add' %}?module=${moduleId}">Добавить деталь</a>
-          <a href="${moduleDeleteUrlTemplate}">Удалить модуль</a>
+            <a href="${moduleEditUrlTemplate}">Редактировать модуль</a>
+            <a href="{% url 'module_add' %}?machine=${machineId}&parent=${moduleId}">Добавить подмодуль</a>
+            <a href="{% url 'part_add' %}?module=${moduleId}">Добавить изделие</a>
+            <a href="${moduleDeleteUrlTemplate}">Удалить модуль</a>
         `;
 
         const rect = this.getBoundingClientRect();
@@ -56,7 +70,28 @@
 
         menu.style.top = `${top}px`;
         menu.style.left = `${left}px`;
-        console.log(menu.style.top,  menu.style.left)
+        menu.style.display = 'block';
+      });
+    });
+
+    document.querySelectorAll('.part-label').forEach(label => {
+      label.addEventListener('contextmenu', function (e) {
+        e.preventDefault();
+        const partId = this.dataset.partId;
+        const modulePartId = this.dataset.modulepartId;
+        const partEditUrl = "{% url 'part_edit' 0 %}".replace("0", partId);
+        const modulePartEditUrl = "{% url 'modulepart_edit' 0 %}".replace("0", modulePartId);
+        const modulePartDeleteUrl = "{% url 'modulepart_delete' 0 %}".replace("0", modulePartId);
+        menu.innerHTML = `
+            <a href="${partEditUrl}">Редактировать изделие</a>
+            <a href="${modulePartEditUrl}">Редактировать связь</a>
+            <a href="${modulePartDeleteUrl}">Удалить связь</a>
+        `;
+        const rect = this.getBoundingClientRect();
+        const top = window.scrollY + rect.bottom;
+        const left = window.scrollX + rect.left;
+        menu.style.top = `${top}px`;
+        menu.style.left = `${left}px`;
         menu.style.display = 'block';
       });
     });

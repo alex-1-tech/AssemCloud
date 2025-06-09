@@ -21,12 +21,12 @@ class ModulePartForm(BaseStyledForm):
 
     placeholders: ClassVar[dict[str, str]] = {
         "module": "Модуль",
-        "part": "Деталь",
+        "part": "Изделие",
         "quantity": "Количество",
     }
 
     select2_fields: ClassVar[dict[str, tuple]] = {
-        "module": (Module, ["name__icontains", "serial__icontains"]),
+        "module": (Module, ["name__icontains", "decimal__icontains"]),
         "part": (Part, ["name__icontains"]),
     }
 

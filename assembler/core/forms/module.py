@@ -36,7 +36,7 @@ class ModuleForm(BaseStyledForm):
 
     select2_fields: ClassVar[dict[str, tuple]] = {
         "machine": (Machine, ["name__icontains"]),
-        "parent": (Module, ["name__icontains", "serial__icontains"]),
+        "parent": (Module, ["name__icontains", "decimal__icontains"]),
         "manufacturer": (Manufacturer, ["name__icontains"]),
     }
 

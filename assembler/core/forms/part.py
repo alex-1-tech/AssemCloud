@@ -22,6 +22,7 @@ class PartForm(BaseStyledForm):
 
     placeholders: ClassVar[dict[str, str]] = {
         "name": "Название",
+        "decimal": "Децимальный номер",
         "manufacturer": "Производитель",
         "description": "Описание",
         "material": "Материал",
@@ -37,7 +38,14 @@ class PartForm(BaseStyledForm):
         """Metadata for PartForm."""
 
         model = Part
-        fields = ("name", "manufacturer", "description", "material", "manufacture_date")
+        fields = (
+            "name",
+            "decimal",
+            "manufacturer",
+            "description",
+            "material",
+            "manufacture_date",
+            )
         widgets: ClassVar[dict[str, object]] = {
             "manufacture_date": forms.DateInput(attrs={"type": "date"}),
         }

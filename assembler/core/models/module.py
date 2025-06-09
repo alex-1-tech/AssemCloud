@@ -2,12 +2,12 @@
 
 This module defines the `Module` model, which represents components of a machine.
 It includes technical and manufacturing information such as blueprint files (PDF, STEP),
-part number, serial number, version, status, manufacturer, and
+part number, decimal number, version, status, manufacturer, and
 parent module (for nested module structures).
 
 Key fields:
 - machine: Reference to the machine this module belongs to.
-- decimal: Decimal (serial/part) number of the module.
+- decimal: Decimal (decimal/part) number of the module.
 - name: Name of the module.
 - parent: Optional reference to a parent module (for hierarchy).
 - manufacturer: Optional reference to the manufacturer.
@@ -58,7 +58,7 @@ class Module(ReprMixin, NormalizeMixin, TimeStampedModelWithUser):
 
     name = models.CharField(
         _("Название модуля"),
-        max_length=255,
+        max_length=30,
         blank=False,
         null=False,
     )
@@ -115,7 +115,7 @@ class Module(ReprMixin, NormalizeMixin, TimeStampedModelWithUser):
     )
 
     def __str__(self) -> str:
-        """Return string representation of the module including name and serial number."""  # noqa: E501
+        """Return string representation of the module including name and decimal number."""  # noqa: E501
         return f"{self.name or 'Без названия'} (S/N: {self.decimal or 'нет'})"
 
     class Meta:
