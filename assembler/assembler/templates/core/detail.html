@@ -90,7 +90,7 @@
                                     justify-content: space-between">
                             <div class="actions-group">
                                 <a href="{% url 'module_add' %}?machine={{ machine_tree.machine.pk }}&next={% url 'machine_detail' machine.id %}&machine={{ machine_tree.machine.pk }}"
-                                   class="btn btn-green btn-lg">Добавить модуль</a>
+                                   class="btn btn-green btn-lg"><i class="bi bi-boxes" style="margin-right: 6px;"></i>Добавить модуль</a>
                             </div>
                             <div class="actions-group">
                                 {% if user_roles|has_any_role:"Администратор,Директор" or title != "Клиент" %}
@@ -105,15 +105,15 @@
                                 <a href="javascript:history.back()" class="btn btn-light btn-icon"><i class="bi bi-arrow-down-left"></i></a>
                             </div>
                         </div>
-                    {% elif module_tree %}
+                    {% elif module_tree %}  
                         <div class="actions-row"
                              style="margin-top: 24px;
                                     justify-content: space-between">
                             <div class="actions-group">
                                 <a href="{% url 'module_add' %}?machine={{ module_tree.module.machine.pk }}&parent={{ module_tree.module.pk }}&next={% url 'module_detail' module.id %}"
-                                   class="btn btn-green btn-lg">Добавить подмодуль</a>
+                                   class="btn btn-green btn-lg"><i class="bi bi-boxes" style="margin-right: 6px;"></i>Добавить подмодуль</a>
                                 <a href="{% url 'part_add' %}?module={{ module_tree.module.pk }}&next={% url 'module_detail' module.id %}"
-                                   class="btn btn-yellow btn-lg">Добавить изделие</a>
+                                   class="btn btn-yellow btn-lg"><i class="bi bi-box" style="margin-right: 6px;"></i>Добавить изделие</a>
                             </div>
                             <div class="actions-group">
                                 {% if user_roles|has_any_role:"Администратор,Директор" or title != "Клиент" %}

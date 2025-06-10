@@ -103,6 +103,7 @@ class TaskCreateView(NextUrlMixin, CreateView):
     def form_valid(self, form: forms.ModelForm) -> HttpResponse:
         """Set the sender of the task to the currently logged-in user before saving."""
         form.instance.sender = self.request.user
+        messages.info(self.request, "Успешно создано")
         return super().form_valid(form)
 
     def get_initial(self) -> dict[str, object]:
@@ -137,6 +138,7 @@ class TaskUpdateView(NextUrlMixin, UpdateView):
         """Ensure recipient is set: use form value or keep old if not provided."""
         if not form.cleaned_data.get("recipient"):
             form.instance.recipient = self.object.recipient
+        messages.info(self.request, "Успешно изменено")
         return super().form_valid(form)
 
     def get_initial(self) -> dict[str, object]:

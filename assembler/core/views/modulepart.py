@@ -3,6 +3,7 @@
 Includes listing, creating, updating, viewing, and deleting module-part links.
 """
 
+from django.contrib import messages
 from django.db.models import Q
 from django.urls import reverse, reverse_lazy
 from django.views.generic import (
@@ -82,6 +83,11 @@ class ModulePartCreateView(CreateView):
         )
         return context
 
+    def form_valid(self, form: ModulePartForm) -> object:
+        """Show success message on creation."""
+        messages.info(self.request, "Успешно добавлено")
+        return super().form_valid(form)
+
 
 class ModulePartUpdateView(UpdateView):
     """Handles editing an existing module-part relationship."""
@@ -101,6 +107,11 @@ class ModulePartUpdateView(UpdateView):
             },
         )
         return context
+
+    def form_valid(self, form: ModulePartForm) -> object:
+        """Show success message on update."""
+        messages.info(self.request, "Успешно изменено")
+        return super().form_valid(form)
 
 
 class ModulePartDetailView(DetailView):

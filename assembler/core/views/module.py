@@ -6,6 +6,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from django.contrib import messages
 from django.db.models import Q
 from django.urls import reverse
 from django.views.generic import (
@@ -128,6 +129,11 @@ class ModuleCreateView(NextUrlMixin, CreateView):
                 pass
         return form
 
+    def form_valid(self, form: ModuleForm) -> object:
+        """Show success message on creation."""
+        messages.info(self.request, "Успешно добавлено")
+        return super().form_valid(form)
+
 class ModuleUpdateView(NextUrlMixin, UpdateView):
     """Handles editing an existing module."""
 
@@ -146,6 +152,11 @@ class ModuleUpdateView(NextUrlMixin, UpdateView):
             },
         )
         return context
+
+    def form_valid(self, form: ModuleForm) -> object:
+        """Show success message on update."""
+        messages.info(self.request, "Успешно изменено")
+        return super().form_valid(form)
 
 
 class ModuleDetailView(DetailView):

@@ -4,6 +4,7 @@ Includes listing, creating, updating, viewing, and deleting manufacturers.
 """
 from typing import Any
 
+from django.contrib import messages
 from django.db.models import Q
 from django.urls import reverse
 from django.views.generic import (
@@ -94,6 +95,11 @@ class ManufacturerCreateView(NextUrlMixin, CreateView):
         )
         return context
 
+    def form_valid(self, form: ManufacturerForm) -> object:
+        """Show success message on creation."""
+        messages.info(self.request, "Успешно добавлено")
+        return super().form_valid(form)
+
 
 class ManufacturerUpdateView(NextUrlMixin, UpdateView):
     """Handles editing an existing manufacturer."""
@@ -113,6 +119,11 @@ class ManufacturerUpdateView(NextUrlMixin, UpdateView):
             },
         )
         return context
+
+    def form_valid(self, form: ManufacturerForm) -> object:
+        """Show success message on update."""
+        messages.info(self.request, "Успешно изменено")
+        return super().form_valid(form)
 
 
 class ManufacturerDetailView(DetailView):

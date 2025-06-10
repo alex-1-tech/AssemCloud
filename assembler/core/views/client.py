@@ -6,6 +6,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from django.contrib import messages
 from django.db.models import Q
 from django.urls import reverse
 from django.views.generic import (
@@ -95,6 +96,11 @@ class ClientCreateView(NextUrlMixin, CreateView):
         )
         return context
 
+    def form_valid(self, form: ClientForm) -> object:
+        """Show success message on creation."""
+        messages.info(self.request, "Успешно добавлено")
+        return super().form_valid(form)
+
 
 class ClientUpdateView(NextUrlMixin, UpdateView):
     """Handles editing an existing client."""
@@ -114,6 +120,11 @@ class ClientUpdateView(NextUrlMixin, UpdateView):
             },
         )
         return context
+
+    def form_valid(self, form: ClientForm) -> object:
+        """Show success message on update."""
+        messages.info(self.request, "Успешно изменено")
+        return super().form_valid(form)
 
 
 class ClientDetailView(DetailView):
