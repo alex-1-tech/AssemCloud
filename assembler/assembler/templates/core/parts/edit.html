@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const emptyFormTemplate = document.getElementById('empty-form-template').children[0].cloneNode(true);
     const urlParams = new URLSearchParams(window.location.search);
     const moduleId = urlParams.get('module')
-    
+
     function initSelect2(element) {
         $(element).djangoSelect2({
             width: '100%',

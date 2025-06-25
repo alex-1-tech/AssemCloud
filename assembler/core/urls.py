@@ -1,4 +1,5 @@
 """URL configuration for the core application."""
+
 from typing import ClassVar
 
 from django.conf import settings
@@ -13,7 +14,11 @@ from core.mixins import RoleRequiredMixin
 from core.services import first_access_level, second_access_level
 from core.views import (
     CustomPasswordResetConfirmView,
+    MachineImportProcessView,
+    MachineImportSelectView,
     MachineListView,
+    ModuleImportProcessView,
+    ModuleImportSelectView,
     ResendVerificationView,
     UserDetailView,
     UserListView,
@@ -22,10 +27,17 @@ from core.views import (
     UserRegisterView,
     UserUpdateView,
     dashboard_view,
+    module_create_view,
     part_create_view,
     verify_email_view,
 )
-from core.views.task import TaskCompleteView, TaskReopenView
+from core.views.task import (
+    TaskAbandonView,
+    TaskAcceptView,
+    TaskCompleteView,
+    TaskRejectView,
+    TaskReopenView,
+)
 
 # users
 urlpatterns = [
@@ -87,6 +99,7 @@ urlpatterns += [
 # objects
 model_names = [
     "manufacturer",
+    "machinemodule",
     "part",
     "client",
     "machine",
@@ -103,6 +116,7 @@ view_types = {
     "delete": "DeleteView",
 }
 
+
 def create_role_view(view_class: object) -> object:
     """Wrap a given Django view class with role-based access control.
 
@@ -111,14 +125,15 @@ def create_role_view(view_class: object) -> object:
     view class restricts access to users who have at least one of the predefined roles:
     "Директор", "Конструктор", "Тестировщик", or "Программист".
     """
+
     class WithRoleView(RoleRequiredMixin, view_class):
-            """A view class that restricts access to users with specific roles.
+        """A view class that restricts access to users with specific roles.
 
-            Inherits from RoleRequiredMixin and a generic view class (`view_class`).
-            Only users who have at least one of the specified roles are allowed access.
-            """
+        Inherits from RoleRequiredMixin and a generic view class (`view_class`).
+        Only users who have at least one of the specified roles are allowed access.
+        """
 
-            required_roles: ClassVar[list[str]] = list(first_access_level.keys())
+        required_roles: ClassVar[list[str]] = list(first_access_level.keys())
 
     if view_class.__name__ not in [
         "ClientCreateView",
@@ -128,12 +143,14 @@ def create_role_view(view_class: object) -> object:
         WithRoleView.required_roles += list(second_access_level.keys())
     return WithRoleView
 
+
 for model in model_names:
     class_prefix = model.capitalize()  # "manufacturer" → "Manufacturer"
 
-    if class_prefix == "Modulepart":  # исключение
+    if class_prefix == "Modulepart":  # exceptions
         class_prefix = "ModulePart"
-
+    elif class_prefix == "Machinemodule":
+        class_prefix = "MachineModule"
     for action, suffix in view_types.items():
         class_name = f"{class_prefix}{suffix}"  # e.g. ManufacturerListView
         view_class = getattr(views, class_name)
@@ -151,41 +168,75 @@ for model in model_names:
         elif action == "delete":
             pattern = f"{model}s/<int:pk>/delete/"
         current_path = path(
-            pattern, WithRoleView.as_view(), name=f"{model}_{action}",
+            pattern,
+            WithRoleView.as_view(),
+            name=f"{model}_{action}",
         )
 
         if model == "machine" and action == "delete":
             continue
 
-        if model == "part" and action in {"add", "edit"}:
+        if model in {"part", "module"} and action in {"add", "edit"}:
             current_path = path(
                 pattern,
-                part_create_view,
-            name=f"{model}_{action}",
+                part_create_view if model == "part" else module_create_view,
+                name=f"{model}_{action}",
             )
 
         urlpatterns.append(current_path)
 
-# Добавляем url для завершения задачи
+# tasks
+task_actions = [
+    ("complete", TaskCompleteView),
+    ("reopen", TaskReopenView),
+    ("abandon", TaskAbandonView),
+    ("accept", TaskAcceptView),
+    ("reject", TaskRejectView),
+]
+
+for action, view in task_actions:
+    urlpatterns.append(
+        path(
+            f"tasks/<int:pk>/{action}/",
+            create_role_view(view).as_view(),
+            name=f"task_{action}",
+        ),
+    )
+
+# webhook
 urlpatterns.append(
-    path(
-        "tasks/<int:pk>/complete/",
-        create_role_view(TaskCompleteView).as_view(),
-        name="task_complete",
-    ),
-)
-urlpatterns.append(
-    path(
-        "tasks/<int:pk>/reopen/",
-        create_role_view(TaskReopenView).as_view(),
-        name="task_reopen",
-    ),
+    path("telegram-webhook/", views.telegram_webhook, name="telegram_webhook"),
 )
 
 BaseWithRoleView = create_role_view(view_class=MachineListView)
 
 urlpatterns += [
     # other
+    path(
+        "users/toggle-telegram-notifications/",
+        views.ToggleTelegramNotificationsView.as_view(),
+        name="toggle_telegram_notifications",
+    ),
+    path(
+        "machines/import/select/",
+        MachineImportSelectView.as_view(),
+        name="machine_import_select",
+    ),
+    path(
+        "machines/import/process/",
+        MachineImportProcessView.as_view(),
+        name="machine_import_process",
+    ),
+    path(
+        "modules/import/select/",
+        ModuleImportSelectView.as_view(),
+        name="module_import_select",
+    ),
+    path(
+        "modules/import/process/",
+        ModuleImportProcessView.as_view(),
+        name="module_import_process",
+    ),
     path("", login_required(dashboard_view), name="dashboard"),
 ]
 

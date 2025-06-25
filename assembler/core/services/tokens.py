@@ -3,6 +3,7 @@
 Provides functionality to decode user ID from base64 and verify
 the activation token for user account activation.
 """
+
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.signing import BadSignature
 from django.utils.encoding import force_str

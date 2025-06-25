@@ -2,6 +2,7 @@
 
 Includes listing, creating, updating, viewing, and deleting parts.
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -20,6 +21,7 @@ from core.mixins import NextUrlMixin, QuerySetMixin
 from core.models import Part
 
 PART_LIST_URL = "part_list"
+
 
 class PartListView(QuerySetMixin, ListView):
     """Displays a list of all parts."""
@@ -47,8 +49,9 @@ class PartListView(QuerySetMixin, ListView):
         return context
 
     def get_part_items(
-        self, parts: list[Part],
-        ) -> list[dict[str, Any]]:
+        self,
+        parts: list[Part],
+    ) -> list[dict[str, Any]]:
         """Generate a list of dictionary items.
 
         Representing part metadata for UI rendering.
@@ -62,14 +65,15 @@ class PartListView(QuerySetMixin, ListView):
                 ),
                 "view_url": reverse("part_detail", args=[part.pk]),
                 "edit_url": reverse(
-                    "part_edit", args=[part.pk],
-                    ) + f"?next={self.request.get_full_path()}",
+                    "part_edit",
+                    args=[part.pk],
+                )
+                + f"?next={self.request.get_full_path()}",
                 "delete_url": reverse("part_delete", args=[part.pk]),
                 "delete_confirm_message": f"Удалить изделие {part.name}?",
             }
             for part in parts
         ]
-
 
     def get_queryset(self) -> object:
         """Return a queryset of clients filtered by the search query."""
@@ -86,11 +90,11 @@ class PartCreateView(NextUrlMixin, CreateView):
     pass  # noqa: PIE790
 
 
-
 class PartUpdateView(NextUrlMixin, UpdateView):
     """Handles editing an existing part."""
 
     pass  # noqa: PIE790
+
 
 class PartDetailView(DetailView):
     """Displays detailed information about a part."""
@@ -99,8 +103,9 @@ class PartDetailView(DetailView):
     template_name = "core/detail.html"
 
     def get_part_fields(
-        self, part: Part,
-        ) -> list[dict[str, Any]]:
+        self,
+        part: Part,
+    ) -> list[dict[str, Any]]:
         """Construct a list of field metadata.
 
         For displaying part attributes in the UI.
@@ -137,8 +142,10 @@ class PartDetailView(DetailView):
                 "fields": self.get_part_fields(part),
                 "add_url": reverse("part_add"),
                 "edit_url": reverse(
-                    "part_edit", args=[part.pk],
-                ) + f"?next={self.request.get_full_path()}",
+                    "part_edit",
+                    args=[part.pk],
+                )
+                + f"?next={self.request.get_full_path()}",
                 "delete_url": reverse("part_delete", args=[part.pk]),
                 "add_label": "Добавить новое изделие",
                 "user_roles": list(

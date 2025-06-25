@@ -2,15 +2,13 @@
 
 This module defines the `Module` model, which represents components of a machine.
 It includes technical and manufacturing information such as blueprint files (PDF, STEP),
-part number, decimal number, version, status, manufacturer, and
-parent module (for nested module structures).
+part number, decimal number, version, status, manufacturer.
 
 Key fields:
 - machine: Reference to the machine this module belongs to.
 - decimal: Decimal (decimal/part) number of the module.
 - name: Name of the module.
-- parent: Optional reference to a parent module (for hierarchy).
-- manufacturer: Optional reference to the manufacturer.
+=- manufacturer: Optional reference to the manufacturer.
 - version: Version string.
 - description: Optional text description.
 - scheme_file: PDF blueprint file.
@@ -42,13 +40,6 @@ class Module(ReprMixin, NormalizeMixin, TimeStampedModelWithUser):
     and stores both 2D and 3D blueprint files for each module.
     """
 
-    machines = models.ManyToManyField(
-        "Machine",
-        through="ModuleMachine",
-        related_name="modules",
-        verbose_name=_("Машина"),
-    )
-
     decimal = models.CharField(
         _("Децимальный номер"),
         max_length=100,
@@ -59,15 +50,6 @@ class Module(ReprMixin, NormalizeMixin, TimeStampedModelWithUser):
         max_length=30,
         blank=False,
         null=False,
-    )
-
-    parent = models.ForeignKey(
-        "self",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="submodules",
-        verbose_name=_("Родительский модуль"),
     )
 
     manufacturer = models.ForeignKey(
@@ -130,7 +112,7 @@ class Module(ReprMixin, NormalizeMixin, TimeStampedModelWithUser):
         ]
 
 
-class ModuleMachine(ReprMixin, models.Model):
+class MachineModule(ReprMixin, models.Model):
     """Intermediary model linking modules to machines with metadata.
 
     This model enables a many-to-many relationship between `Module` and `Machine`
@@ -139,35 +121,58 @@ class ModuleMachine(ReprMixin, models.Model):
 
     module = models.ForeignKey(
         Module,
-        on_delete=models.CASCADE,
+        on_delete=models.RESTRICT,
         verbose_name=_("Модуль"),
         help_text="Reference to the module in the association.",
+        related_name="module_machines",
     )
     machine = models.ForeignKey(
         "Machine",
-        on_delete=models.CASCADE,
+        on_delete=models.RESTRICT,
         verbose_name=_("Машина"),
-        help_text="Reference to the machine in the association.",
-    )
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name=_("Дата добавления"),
-        help_text="Date and time when the association was created.",
-    )
-    comment = models.TextField(
+        null=True,
         blank=True,
-        verbose_name=_("Комментарий"),
-        help_text="Optional comment about the module-machine association.",
+        help_text="Reference to the machine in the association.",
+        related_name="machine_modules",
+    )
+    parent_module = models.ForeignKey(
+        Module,
+        on_delete=models.RESTRICT,
+        verbose_name=_("Родительский модуль"),
+        null=True,
+        blank=True,
+        related_name="parent_modules",
+    )
+    quantity = models.PositiveIntegerField(
+        _("Количество"),
+        default=1,
     )
 
     def __str__(self) -> str:
         """Return a string showing the module-machine association."""
-        return f"{self.module} <-> {self.machine}"
+        if self.machine is None:
+            return f"{self.parent_module} <-> {self.module} (x{self.quantity})"
+        return f"{self.machine} <-> {self.module} (x{self.quantity})"
 
     class Meta:
         """Model metadata: database table name, verbose names and unique constraint."""
 
         db_table: ClassVar[str] = "module_machines"
+        ordering: ClassVar[list[str]] = ["id"]
         verbose_name: ClassVar[str] = _("Связь Модуль-Машина")
         verbose_name_plural: ClassVar[str] = _("Связи Модуль-Машина")
         unique_together: ClassVar[tuple[str, str]] = ("module", "machine")
+        constraints: ClassVar[list[models.constraints.BaseConstraint]] = [
+            models.CheckConstraint(
+                check=models.Q(quantity__gt=0),
+                name="quantity_module_machine_positive",
+            ),
+            models.UniqueConstraint(
+                fields=["module", "machine"],
+                name="unique_module_machine",
+            ),
+            models.UniqueConstraint(
+                fields=["module", "parent_module"],
+                name="unique_parent_module_module",
+            ),
+        ]

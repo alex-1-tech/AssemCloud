@@ -23,6 +23,7 @@ from core.services.assembly_tree import build_machine_tree
 
 MACHINE_LIST_URL = "machine_list"
 
+
 class MachineListView(QuerySetMixin, ListView):
     """Displays a list of all machines."""
 
@@ -39,8 +40,9 @@ class MachineListView(QuerySetMixin, ListView):
                 "title": "Машины",
                 "items": self.get_machine_items(context["machines"]),
                 "add_url": reverse("machine_add"),
-                "empty_message": "Ничего не найдено по вашему запросу."\
-                      if self.request.GET.get("q") else None,
+                "empty_message": "Ничего не найдено по вашему запросу."
+                if self.request.GET.get("q")
+                else None,
                 "user_roles": list(
                     self.request.user.roles.values_list("role__name", flat=True),
                 ),
@@ -49,8 +51,9 @@ class MachineListView(QuerySetMixin, ListView):
         return context
 
     def get_machine_items(
-        self, machines: list[Machine],
-        ) -> list[dict[str, Any]]:
+        self,
+        machines: list[Machine],
+    ) -> list[dict[str, Any]]:
         """Generate a list of dictionary items.
 
         Representing machine metadata for UI rendering.
@@ -62,8 +65,10 @@ class MachineListView(QuerySetMixin, ListView):
                 "status": machine.get_status_display(),
                 "view_url": reverse("machine_detail", args=[machine.pk]),
                 "edit_url": reverse(
-                    "machine_edit", args=[machine.pk],
-                    ) + f"?next={self.request.get_full_path()}",
+                    "machine_edit",
+                    args=[machine.pk],
+                )
+                + f"?next={self.request.get_full_path()}",
                 "delete_confirm_message": f"Удалить машину {machine.name}?",
             }
             for machine in machines
@@ -76,6 +81,7 @@ class MachineListView(QuerySetMixin, ListView):
             q,
             Q(Q(name__icontains=q) | Q(version__icontains=q)),
         )
+
 
 class MachineCreateView(NextUrlMixin, CreateView):
     """Handles creation of a new machine."""
@@ -110,7 +116,6 @@ class MachineUpdateView(NextUrlMixin, UpdateView):
     template_name = "core/edit.html"
     default_redirect_url_name = MACHINE_LIST_URL
 
-
     def get_context_data(self, **kwargs: dict[str, object]) -> dict[str, Any]:
         """Add context metadata for editing a machine."""
         context = super().get_context_data(**kwargs)
@@ -138,6 +143,7 @@ class MachineDetailView(DetailView):
         """Add machine fields, tree, and actions to context."""
         machine = self.object
         machine_tree = build_machine_tree(machine)
+        print(machine_tree)
         context = super().get_context_data(**kwargs)
         context.update(
             {
@@ -154,9 +160,11 @@ class MachineDetailView(DetailView):
                 "status": machine.get_status_display(),
                 "machine_tree": machine_tree,
                 "edit_url": reverse(
-                    "machine_edit", args=[machine.pk],
-                    ) + f"?next={self.request.get_full_path()}",
-                                "add_url": reverse("machine_add"),
+                    "machine_edit",
+                    args=[machine.pk],
+                )
+                + f"?next={self.request.get_full_path()}",
+                "add_url": reverse("machine_add"),
                 "add_label": "Добавить новую машину",
                 "user_roles": list(
                     self.request.user.roles.values_list("role__name", flat=True),

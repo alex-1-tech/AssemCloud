@@ -46,6 +46,8 @@ class MachineForm(BaseStyledForm):
         # Select2 already applies its own styling, so avoid overriding it
         if "clients" in self.fields:
             self.fields["clients"].widget.attrs.pop("class", None)
-            self.fields["clients"].widget.attrs.update({
-                "style": "width: 100%; min-height: 40px;",
-            })
+            self.fields["clients"].widget.attrs.update(
+                {
+                    "style": "width: 100%; min-height: 40px;",
+                }
+            )

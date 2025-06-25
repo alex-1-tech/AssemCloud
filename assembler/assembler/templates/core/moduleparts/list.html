@@ -1,109 +1,110 @@
 {% extends 'base.html' %}
 {% block title %}{{ title }}{% endblock %}
 {% block content %}
-    <div class="row justify-content-center mt-5">
-        <div class="col-md-10">
-            <div class="card shadow-sm">
-                <div class="card-body p-5">
-                    <h3 class="card-title mb-4 text-center">{{ title }}</h3>
-                    <form method="get" class="mb-4">
-                        <div class="input-group">
-                            <input type="text"
-                                   name="q"
-                                   class="form-control"
-                                   placeholder="Поиск..."
-                                   value="{{ request.GET.q|default:'' }}">
-                            <button class="btn btn-outline-secondary ms-2 icon-link" type="submit">
-                                <i class="bi bi-search"></i>
-                            </button>
+<div class="row justify-content-center mt-5">
+    <div class="col-md-10">
+        <div class="card shadow-sm">
+            <div class="card-body p-5">
+                <h3 class="card-title mb-4 text-center">{{ title }}</h3>
+                <form method="get" class="mb-4">
+                    <div class="input-group">
+                        <input type="text"
+                               name="q"
+                               class="form-control"
+                               placeholder="Поиск..."
+                               value="{{ request.GET.q|default:'' }}">
+                        <button class="btn btn-outline-secondary ms-2 icon-link" type="submit">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </form>
+                {% if machinemodules %}
+                    <ul class="list-group list-group-flush">
+                        {% for mm in machinemodules %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <a href="{% url 'machinemodule_detail' mm.pk %}"
+                                   class="item-title-link flex-grow-1">
+                                    {{ mm.machine.name }} — {{ mm.module.name }}
+                                </a>
+                                <form method="post"
+                                      action="{% url 'machinemodule_edit' mm.pk %}"
+                                      class="inline-qty-form d-flex align-items-center">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="machine" value="{{ mm.machine.pk }}">
+                                    <input type="hidden" name="module" value="{{ mm.module.pk }}">
+                                    <input type="number"
+                                           name="quantity"
+                                           value="{{ mm.quantity }}"
+                                           min="0"
+                                           class="form-control quantity-input"
+                                           style="width: 80px">
+                                </form>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    {% if add_url %}
+                        <div class="d-grid mt-4">
+                            <a href="{{ add_url }}" class="btn btn-green btn-lg">Добавить</a>
                         </div>
-                    </form>
-                    {% if moduleparts %}
-                        <ul class="list-group list-group-flush">
-                            {% for mp in moduleparts %}
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    <a href="{% url 'modulepart_detail' mp.pk %}"
-                                       class="item-title-link flex-grow-1">
-                                        {{ mp.module.name }} — {{ mp.part.name }}
-                                    </a>
-                                    <form method="post"
-                                          action="{% url 'modulepart_edit' mp.pk %}"
-                                          class="inline-qty-form d-flex align-items-center">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="module" value="{{ mp.module.pk }}">
-                                        <input type="hidden" name="part" value="{{ mp.part.pk }}">
-                                        <input type="number"
-                                               name="quantity"
-                                               value="{{ mp.quantity }}"
-                                               min="0"
-                                               class="form-control quantity-input"
-                                               style="width: 80px">
-                                    </form>
-                                </li>
-                            {% endfor %}
-                        </ul>
-                        {% if add_url %}
-                            <div class="d-grid mt-4">
-                                <a href="{{ add_url }}" class="btn btn-green btn-lg">Добавить</a>
-                            </div>
-                        {% endif %}
-                        {% if is_paginated %}
-                            <nav aria-label="Page navigation" class="mt-4">
-                                <ul class="pagination justify-content-center gap-2">
-                                    {% if page_obj.has_previous %}
-                                        <li class="page-item">
-                                            {% with request.GET.q as qparam %}
-                                                <a class="btn btn-outline-primary btn-sm"
-                                                   href="?q={{ qparam }}&page={{ page_obj.previous_page_number }}">
-                                                    <i class="bi bi-chevron-left"></i>
-                                                </a>
-                                            {% endwith %}
-                                        </li>
-                                    {% else %}
-                                        <li class="page-item disabled">
-                                            <span class="btn btn-outline-secondary btn-sm disabled">
-                                                <i class="bi bi-chevron-left"></i>
-                                            </span>
-                                        </li>
-                                    {% endif %}
-                                    {% for num in paginator.page_range %}
-                                        <li class="page-item {% if page_obj.number == num %}active{% endif %}">
-                                            <a class="btn btn-sm {% if page_obj.number == num %}btn-gray{% else %}btn-outline-primary{% endif %}"
-                                               href="?q={{ request.GET.q }}&page={{ num }}">{{ num }}</a>
-                                        </li>
-                                    {% endfor %}
-                                    {% if page_obj.has_next %}
-                                        <li class="page-item">
-                                            {% with request.GET.q as qparam %}
-                                                <a class="btn btn-outline-primary btn-sm"
-                                                   href="?q={{ qparam }}&page={{ page_obj.next_page_number }}">
-                                                    <i class="bi bi-chevron-right"></i>
-                                                </a>
-                                            {% endwith %}
-                                        </li>
-                                    {% else %}
-                                        <li class="page-item disabled">
-                                            <span class="btn btn-outline-secondary btn-sm disabled">
-                                                <i class="bi bi-chevron-right"></i>
-                                            </span>
-                                        </li>
-                                    {% endif %}
-                                </ul>
-                            </nav>
-                        {% endif %}
-                    {% else %}
-                        <p class="text-center text-muted">{{ empty_message|default:"Ничего не найдено." }}</p>
-                        {% if add_url %}
-                            <div class="d-grid mt-4">
-                                <a href="{{ add_url }}" class="btn btn-green btn-lg">Добавить</a>
-                            </div>
-                        {% endif %}
                     {% endif %}
-                </div>
+                    {% if is_paginated %}
+                        <nav aria-label="Page navigation" class="mt-4">
+                            <ul class="pagination justify-content-center gap-2">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        {% with request.GET.q as qparam %}
+                                            <a class="btn btn-outline-primary btn-sm"
+                                               href="?q={{ qparam }}&page={{ page_obj.previous_page_number }}">
+                                                <i class="bi bi-chevron-left"></i>
+                                            </a>
+                                        {% endwith %}
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="btn btn-outline-secondary btn-sm disabled">
+                                            <i class="bi bi-chevron-left"></i>
+                                        </span>
+                                    </li>
+                                {% endif %}
+                                {% for num in paginator.page_range %}
+                                    <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                                        <a class="btn btn-sm {% if page_obj.number == num %}btn-gray{% else %}btn-outline-primary{% endif %}"
+                                           href="?q={{ request.GET.q }}&page={{ num }}">{{ num }}</a>
+                                    </li>
+                                {% endfor %}
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        {% with request.GET.q as qparam %}
+                                            <a class="btn btn-outline-primary btn-sm"
+                                               href="?q={{ qparam }}&page={{ page_obj.next_page_number }}">
+                                                <i class="bi bi-chevron-right"></i>
+                                            </a>
+                                        {% endwith %}
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="btn btn-outline-secondary btn-sm disabled">
+                                            <i class="bi bi-chevron-right"></i>
+                                        </span>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    {% endif %}
+                {% else %}
+                    <p class="text-center text-muted">{{ empty_message|default:"Ничего не найдено." }}</p>
+                    {% if add_url %}
+                        <div class="d-grid mt-4">
+                            <a href="{{ add_url }}" class="btn btn-green btn-lg">Добавить</a>
+                        </div>
+                    {% endif %}
+                {% endif %}
             </div>
         </div>
     </div>
-    <script>
+</div>
+
+<script>
 function debounce(fn, delay) {
   let timer = null;
   return function(...args) {
@@ -146,5 +147,5 @@ document.addEventListener('DOMContentLoaded', function() {
     searchInput.addEventListener('input', autoSubmit);
   }
 });
-    </script>
+</script>
 {% endblock %}

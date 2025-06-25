@@ -5,6 +5,7 @@ For normalization, phone validation and user-related tracking fields.
 This module includes common validators, reusable mixins for field normalization,
 timestamp tracking, and a helper for user foreign key definition.
 """
+
 from __future__ import annotations
 
 from typing import Callable
@@ -23,11 +24,12 @@ PHONE_VALIDATOR = RegexValidator(
 
 # === Foreign Key Helper ===
 
+
 def user_fk(
-        related_name: str,
-        verbose_name: str,
-        help_text: str|None = None,
-    ) -> models.ForeignKey:
+    related_name: str,
+    verbose_name: str,
+    help_text: str | None = None,
+) -> models.ForeignKey:
     """Return a ForeignKey to the User model with standardized parameters."""
     return models.ForeignKey(
         "User",
@@ -41,6 +43,7 @@ def user_fk(
 
 
 # === Abstract Models ===
+
 
 class TimeStampedModelWithUser(models.Model):
     """Abstract model with created/updated timestamps and user references."""
@@ -81,32 +84,34 @@ class ReprMixin(models.Model):
 
 # === Normalization Utilities ===
 
-def normalize_phone(value: str|None) -> str|None:
+
+def normalize_phone(value: str | None) -> str | None:
     """Remove spaces from phone number and trim it."""
     return value.replace(" ", "").strip() if value else value
 
 
-def normalize_email(value: str|None) -> str|None:
+def normalize_email(value: str | None) -> str | None:
     """Normalize email to lowercase and trim."""
     return value.lower().strip() if value else value
 
 
-def normalize_country(value: str|None) -> str|None:
+def normalize_country(value: str | None) -> str | None:
     """Convert country code to uppercase and trim."""
     return value.upper().strip() if value else value
 
 
-def normalize_language(value: str|None) -> str|None:
+def normalize_language(value: str | None) -> str | None:
     """Convert language code to lowercase and trim."""
     return value.lower().strip() if value else value
 
 
-def normalize_name(value: str|None) -> str|None:
+def normalize_name(value: str | None) -> str | None:
     """Trim leading and trailing whitespace."""
     return value.strip() if value else value
 
 
 # === Normalization Mixin ===
+
 
 class NormalizeMixin(models.Model):
     """Abstract mixin that automatically normalizes field values on clean().
@@ -126,7 +131,7 @@ class NormalizeMixin(models.Model):
 
         for field in self._meta.fields:
             field_name = field.name
-            normalize_method: Callable|None = getattr(
+            normalize_method: Callable | None = getattr(
                 self,
                 f"normalize_{field_name}",
                 None,

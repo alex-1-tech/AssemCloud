@@ -11,13 +11,7 @@ from core.models import Module, ModulePart, Part
 
 
 class ModulePartForm(BaseStyledForm):
-    """Form for creating or updating a ModulePart instance.
-
-    Attributes:
-        placeholders (ClassVar[dict[str, str]]):
-            A mapping of form field names to their placeholder text in Russian.
-
-    """
+    """Form for creating or updating a ModulePart instance."""
 
     placeholders: ClassVar[dict[str, str]] = {
         "module": "Модуль",
@@ -30,7 +24,7 @@ class ModulePartForm(BaseStyledForm):
         "part": (Part, ["name__icontains"]),
     }
 
-    def __init__(self, *args:object, **kwargs:object) -> None:
+    def __init__(self, *args: object, **kwargs: object) -> None:
         """Init ModulePartForm method."""
         super().__init__(*args, **kwargs)
         self.fields["module"].queryset = Module.objects.all()

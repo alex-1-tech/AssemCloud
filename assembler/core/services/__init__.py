@@ -2,6 +2,7 @@
 
 from core.services.email import send_verification_email, verify_email
 from core.services.roles_info import first_access_level, second_access_level
+from core.services.telegram_bot import send_telegram_message
 from core.services.tokens import account_activation_token, check_token_uid
 
 __all__ = [
@@ -9,6 +10,7 @@ __all__ = [
     "check_token_uid",
     "first_access_level",
     "second_access_level",
+    "send_telegram_message",
     "send_verification_email",
     "verify_email",
 ]

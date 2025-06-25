@@ -195,7 +195,8 @@ class UserViewsTest(TestCase):
     def test_profile_view_authorized(self) -> None:
         """Authenticated users can access their profile page."""
         login_successful = self.client.login(
-            email="user@example.com", password=self.default_password,
+            email="user@example.com",
+            password=self.default_password,
         )
         self.assertTrue(login_successful)  # noqa: PT009
         response = self.client.get(reverse("user_profile", kwargs={"pk": self.user.pk}))
@@ -204,7 +205,8 @@ class UserViewsTest(TestCase):
     def test_update_profile_view(self) -> None:
         """Authenticated user can update their profile."""
         login_successful = self.client.login(
-            email="user@example.com", password=self.default_password,
+            email="user@example.com",
+            password=self.default_password,
         )
         self.assertTrue(login_successful)  # noqa: PT009
         data = {
@@ -213,7 +215,8 @@ class UserViewsTest(TestCase):
             "email": "user@example.com",
         }
         response = self.client.post(
-            reverse("user_edit", kwargs={"pk": self.user.pk}), data,
+            reverse("user_edit", kwargs={"pk": self.user.pk}),
+            data,
         )
         self.assertEqual(response.status_code, 302)  # noqa: PT009
         self.user.refresh_from_db()
@@ -240,7 +243,8 @@ class UserViewsTest(TestCase):
     def test_password_change(self) -> None:
         """User can change password and log in with new password."""
         login_successful = self.client.login(
-            email="user@example.com", password=self.default_password,
+            email="user@example.com",
+            password=self.default_password,
         )
         self.assertTrue(login_successful)  # noqa: PT009
         data = {
@@ -253,7 +257,8 @@ class UserViewsTest(TestCase):
 
         self.client.logout()
         login_with_new_password = self.client.login(
-            email="user@example.com", password=self.new_password,
+            email="user@example.com",
+            password=self.new_password,
         )
         self.assertTrue(login_with_new_password)  # noqa: PT009
 

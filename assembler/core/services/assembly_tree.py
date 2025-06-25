@@ -1,108 +1,80 @@
-"""Module for building and printing a hierarchical assembly tree.
-
-Assembly tree of machines, modules, submodules, and parts.
-"""
 from __future__ import annotations
 
 import logging
 from typing import Any
 
+from core.models import MachineModule, Module
+
 logger = logging.getLogger(__name__)
-def build_machine_tree(machine: object) -> dict[str, object | list[dict[str, object]]]:
-    """Build a tree of modules and parts for a given machine.
 
-    Fetches all modules related to the machine, including nested submodules and parts,
-    and organizes them into a hierarchical structure starting from root modules.
-    """
-    modules = (
-        machine.modules.select_related("parent")
-        .prefetch_related(
-            "module_parts__part",
-            "submodules__module_parts__part",
-            "submodules__submodules",
-        )
-        .all()
+
+def build_machine_tree(machine: object) -> dict[str, Any]:
+    """Build a hierarchical tree for a Machine."""
+    root_links = (
+        machine.machine_modules
+        .filter(parent_module__isnull=True)
+        .select_related("module")
     )
-
-    root_modules = [m for m in modules if m.parent is None]
-
     return {
         "machine": machine,
-        "modules": [build_module_tree(m) for m in root_modules],
+        "modules": [
+            build_module_tree(link.module, visited=set(), link=link)
+            for link in root_links
+        ],
     }
 
 
-def build_module_tree(module: object) -> dict[str, object | list[dict[str, object]]]:
-    """Build a tree of submodules and parts for a single module.
+def build_module_tree(
+    module: Module,
+    visited: set[int] | None = None,
+    link: MachineModule | None = None,
+) -> dict[str, Any]:
+    """Рекурсивно строит узел иерархии для одного модуля."""
+    # Если уже были в этом модуле — обрываем ветвь
+    if visited is None:
+        visited = set()
+    if module.pk in visited:
+        return {
+            "module": module,
+            "quantity": link.quantity if link else None,
+            "link_id": link.pk if link else None,
+            "parts": [],
+            "submodules": [],
+            "note": "cycle_detected",
+        }
 
-    Recursively processes submodules and their parts, constructing
-    a nested structure representing the module hierarchy.
-    """
-    submodules = (
-        module.submodules.select_related("parent")
-        .prefetch_related(
-            "module_parts__part",
-            "submodules__module_parts__part",
-            "submodules__submodules",
-        )
-        .all()
+    visited.add(module.pk)
+
+    # Собираем детали текущего модуля
+    parts: list[dict[str, Any]] = [
+    {
+        "part": mp.part,
+        "quantity": mp.quantity,
+        "link_id": mp.pk,
+    }
+    for mp in module.module_parts.select_related("part").all()
+]
+
+    # Собираем дочерние модули: все MachineModule, где parent_module == текущий
+    child_links = (
+        MachineModule.objects
+        .filter(parent_module=module)
+        .select_related("module")
     )
 
-    parts = [
-        {
-            "part": mp.part,
-            "quantity": mp.quantity,
-            "id":mp.pk,
-        }
-        for mp in module.module_parts.all()
-    ]
-    def build_submodule_node(
-            submodule: object,
-        ) -> dict[str, object | list[dict[str, object]]]:
-        parts_sub = [
-            {
-            "part": mp.part,
-            "quantity": mp.quantity,
-            "id":mp.pk,
-        }
-            for mp in submodule.module_parts.all()
-        ]
-
-        subsubmodules = [
-            build_submodule_node(subsubmodule)
-            for subsubmodule in submodule.submodules.all()
-        ]
-
-        return {
-            "module": submodule,
-            "parts": parts_sub,
-            "submodules": subsubmodules,
-        }
+    submodules: list[dict[str, Any]] = []
+    for child_link in child_links:
+        node = build_module_tree(
+            child_link.module,
+            visited,
+            link=child_link,
+        )
+        submodules.append(node)
 
     return {
         "module": module,
+        "quantity": link.quantity if link else None,
+        "link_id": link.pk if link else None,
         "parts": parts,
-        "submodules": [build_submodule_node(sm) for sm in submodules],
+        "submodules": submodules,
     }
-
-
-def print_assembly_tree(tree: dict[str, Any], indent: int = 0) -> None:
-    """Print the modules and parts tree in a readable format."""
-    if indent == 0:
-        # Top-level print, can be customized if needed
-        pass
-
-    for module_node in tree.get("modules", []):
-        logger.info(
-            logger.info("%sModule: %s", " " * indent, module_node["module"].name),
-        )
-
-        for part_info in module_node.get("parts", []):
-            logger.info(
-                "%sPart: %s, Quantity: %s",
-                " " * (indent + 4),
-                part_info["part"].name,
-                part_info["quantity"],
-            )
-        for submodule in module_node.get("submodules", []):
-            print_assembly_tree({"modules": [submodule]}, indent + 4)

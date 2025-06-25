@@ -11,6 +11,7 @@ Includes:
 - UserPasswordChangeForm: for authenticated users to change their password.
 - UserSetPasswordForm: for setting a new password after password reset.
 """
+
 from typing import Any
 
 from django import forms

@@ -1,4 +1,5 @@
 """Description of roles."""
+
 from typing import ClassVar
 
 first_access_level: ClassVar[dict[str, str]] = {

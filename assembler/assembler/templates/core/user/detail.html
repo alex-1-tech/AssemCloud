@@ -127,5 +127,64 @@
             <div class="alert alert-info mt-3 mb-0">У вас пока нет задач.</div>
         </div>
     {% endif %}
+    <style>
+        .toggle-switch {
+            position: relative;
+            width: 48px;
+            height: 26px;
+            display: inline-block;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .3s;
+            border-radius: 26px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+        }
+        input:checked + .slider {
+            background-color: #1976d2;
+        }
+        input:checked + .slider:before {
+            transform: translateX(22px);
+        }
+    </style>
+    <div class="task-card" style="margin-top: 24px; margin-bottom: 24px; padding: 20px 24px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; gap: 18px;">
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+            <div style="font-size: 17px; font-weight: 600; color: #1a237e;">
+                Уведомления о новых задачах
+            </div>
+            <div style="font-size: 15px; color: #444;">
+                Чтобы подключить уведомления о новых задачах, напишите в Telegram-боту <a href="https://t.me/assemblecloudbot" target="_blank" style="color: #1976d2; text-decoration: underline;">@assemblecloudbot</a>
+            </div>
+        </div>
+        <form method="post" action="{% url 'toggle_telegram_notifications' %}" style="display: flex; align-items: center; gap: 10px;">
+            {% csrf_token %}
+            <label class="toggle-switch">
+                <input type="checkbox" name="wants_telegram_notifications" {% if user_profile.wants_telegram_notifications %}checked{% endif %} onchange="this.form.submit()">
+                <span class="slider"></span>
+            </label>
+        </form>
+    </div>
 {% endblock %}
 {% block actions_goup %}{% endblock %}

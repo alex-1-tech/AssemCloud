@@ -1,4 +1,5 @@
 """Viewd for managing parts with module-part link."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -12,7 +13,7 @@ if TYPE_CHECKING:
     from django.http import HttpRequest, HttpResponse
 
 
-def part_create_view(request: HttpRequest, pk: int|None = None) -> HttpResponse:
+def part_create_view(request: HttpRequest, pk: int | None = None) -> HttpResponse:
     """Handle the creation of a Part instance and its associated ModulePart entries.
 
     This view is responsible for displaying and processing a form for creating a new
@@ -50,7 +51,6 @@ def part_create_view(request: HttpRequest, pk: int|None = None) -> HttpResponse:
     else:
         form = PartForm()
         formset = ModulePartFormSet()
-
     return render(
         request,
         "core/parts/edit.html",
@@ -65,6 +65,7 @@ def part_create_view(request: HttpRequest, pk: int|None = None) -> HttpResponse:
             "module_name": module_name,
         },
     )
+
 
 def part_edit_view(request: HttpRequest, pk: int) -> HttpResponse:
     """Handle the editing of a Part instance and its associated ModulePart entries.

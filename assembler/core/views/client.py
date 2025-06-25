@@ -2,6 +2,7 @@
 
 Includes listing, creating, updating, viewing, and deleting clients.
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -59,14 +60,15 @@ class ClientListView(QuerySetMixin, ListView):
                 "subtitle": client.country,
                 "view_url": reverse("client_detail", args=[client.pk]),
                 "edit_url": reverse(
-                    "client_edit", args=[client.pk],
-                    ) + f"?next={self.request.get_full_path()}",
+                    "client_edit",
+                    args=[client.pk],
+                )
+                + f"?next={self.request.get_full_path()}",
                 "delete_url": reverse("client_delete", args=[client.pk]),
                 "delete_confirm_message": f"Удалить клиента {client.name}?",
             }
             for client in clients
         ]
-
 
     def get_queryset(self) -> object:
         """Return a queryset of clients filtered by the search query."""
@@ -146,12 +148,14 @@ class ClientDetailView(DetailView):
                     {"label": "Телефон", "value": client.phone},
                 ],
                 "edit_url": reverse(
-                    "client_edit", args=[client.pk],
-                    ) + f"?next={self.request.get_full_path()}",
+                    "client_edit",
+                    args=[client.pk],
+                )
+                + f"?next={self.request.get_full_path()}",
                 "delete_url": reverse("client_delete", args=[client.pk]),
-                                "add_url": reverse("client_add"),
+                "add_url": reverse("client_add"),
                 "add_label": "Добавить нового клиента",
-                "user_roles":list(
+                "user_roles": list(
                     self.request.user.roles.values_list("role__name", flat=True),
                 ),
             },

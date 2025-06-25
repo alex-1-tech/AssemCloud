@@ -26,12 +26,16 @@
                             {% endif %}
                         </td>
                         <td class="text-center" style="width:32px;">
-                            {% if task.status == 'completed' %}
-                                <span class="text-success" title="Завершена"><i class="bi bi-check-circle small"></i></span>
+                            {% if task.status == 'in_progress' %}
+                                <span class="text-warning" title="В процессе"><i class="bi bi-hourglass-split small"></i></span>
+                            {% elif task.status == 'on_review' %}
+                                <span class="text-primary" title="На проверке"><i class="bi bi-search small"></i></span>
+                            {% elif task.status == 'accepted' %}
+                                <span class="text-success" title="Принята"><i class="bi bi-check-circle small"></i></span>
+                            {% elif task.status == 'rejected' %}
+                                <span class="text-danger" title="Отклонена"><i class="bi bi-x-circle small"></i></span>
                             {% elif task.status == 'abandoned' %}
                                 <span class="text-secondary" title="Брошена"><i class="bi bi-x-circle small"></i></span>
-                            {% else %}
-                                <span class="text-warning" title="В процессе"><i class="bi bi-hourglass-split small"></i></span>
                             {% endif %}
                         </td>
                         <td style="min-width:200px;">
@@ -57,8 +61,5 @@
                 {% endfor %}
             </tbody>
         </table>
-        <div class="card-footer text-end">
-            <a href="{% url 'task_add' %}" class="btn btn-blue">Добавить задачу</a>
-        </div>
     </div>
 </div>

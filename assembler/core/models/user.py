@@ -4,6 +4,7 @@ This module defines a custom user model that uses email as the unique identifier
 and includes additional fields such as phone, address, and email verification status.
 It also provides a custom user manager for creating users and superusers.
 """
+
 from __future__ import annotations
 
 from typing import ClassVar
@@ -30,7 +31,10 @@ class UserManager(BaseUserManager):
     """
 
     def create_user(
-        self, email: str, password: str|None = None, **extra_fields: object,
+        self,
+        email: str,
+        password: str | None = None,
+        **extra_fields: object,
     ) -> User:
         """Create and save a regular user with the given email and password."""
         if not email:
@@ -42,7 +46,10 @@ class UserManager(BaseUserManager):
         return user
 
     def create_superuser(
-        self, email: str, password: str|None = None, **extra_fields: object,
+        self,
+        email: str,
+        password: str | None = None,
+        **extra_fields: object,
     ) -> User:
         """Create and save a superuser with the given email and password."""
         extra_fields.setdefault("is_staff", True)
@@ -88,6 +95,17 @@ class User(ReprMixin, NormalizeMixin, AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(_("Staff"), default=False)
     date_joined = models.DateTimeField(_("Date joined"), default=timezone.now)
     is_email_verified = models.BooleanField(default=False)
+    telegram_chat_id = models.CharField(
+        _("Telegram chat ID"),
+        blank=True,
+        max_length=255,
+        help_text=_("Telegram chat ID for notifications."),
+    )
+    wants_telegram_notifications = models.BooleanField(
+        _("Wants Telegram notifications"),
+        default=True,
+        help_text=_("Should the user receive notifications in Telegram?"),
+    )
 
     objects = UserManager()
 

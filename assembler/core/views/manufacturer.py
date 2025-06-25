@@ -2,6 +2,7 @@
 
 Includes listing, creating, updating, viewing, and deleting manufacturers.
 """
+
 from typing import Any
 
 from django.contrib import messages
@@ -20,6 +21,7 @@ from core.mixins import NextUrlMixin, QuerySetMixin
 from core.models import Manufacturer
 
 MANUFACTURER_LIST_URL = "manufacturer_list"
+
 
 class ManufacturerListView(QuerySetMixin, ListView):
     """Displays a list of all manufacturers."""
@@ -48,8 +50,9 @@ class ManufacturerListView(QuerySetMixin, ListView):
         return context
 
     def get_manufacturer_items(
-        self, manufacturers: list[Manufacturer],
-        ) -> list[dict[str, Any]]:
+        self,
+        manufacturers: list[Manufacturer],
+    ) -> list[dict[str, Any]]:
         """Generate a list of dictionary items.
 
         Representing client metadata for UI rendering.
@@ -60,8 +63,10 @@ class ManufacturerListView(QuerySetMixin, ListView):
                 "subtitle": manufacturer.country,
                 "view_url": reverse("manufacturer_detail", args=[manufacturer.pk]),
                 "edit_url": reverse(
-                    "manufacturer_edit", args=[manufacturer.pk],
-                    ) + f"?next={self.request.get_full_path()}",
+                    "manufacturer_edit",
+                    args=[manufacturer.pk],
+                )
+                + f"?next={self.request.get_full_path()}",
                 "delete_url": reverse("manufacturer_delete", args=[manufacturer.pk]),
                 "delete_confirm_message": f"Удалить {manufacturer.name}?",
             }
@@ -75,6 +80,7 @@ class ManufacturerListView(QuerySetMixin, ListView):
             q,
             Q(Q(name__icontains=q) | Q(country__icontains=q)),
         )
+
 
 class ManufacturerCreateView(NextUrlMixin, CreateView):
     """Handles creation of a new manufacturer."""
@@ -147,8 +153,10 @@ class ManufacturerDetailView(DetailView):
                 ],
                 "add_url": reverse("manufacturer_add"),
                 "edit_url": reverse(
-                    "manufacturer_edit", args=[manufacturer.pk],
-                    ) + f"?next={self.request.get_full_path()}",
+                    "manufacturer_edit",
+                    args=[manufacturer.pk],
+                )
+                + f"?next={self.request.get_full_path()}",
                 "delete_url": reverse("manufacturer_delete", args=[manufacturer.pk]),
                 "add_label": "Добавить нового производителя",
                 "user_roles": list(

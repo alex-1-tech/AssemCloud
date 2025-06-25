@@ -115,10 +115,12 @@ class UserListView(ListView):
             for user in context["users"]
         ]
 
-        context.update({
-            "title": "Пользователи",
-            "items": items,
-        })
+        context.update(
+            {
+                "title": "Пользователи",
+                "items": items,
+            }
+        )
         context["user_roles"] = list(
             self.request.user.roles.values_list("role__name", flat=True),
         )
@@ -130,9 +132,9 @@ class UserListView(ListView):
         q = self.request.GET.get("q", "").strip()
         if q:
             qs = qs.filter(
-                Q(email__icontains=q) |
-                Q(first_name__icontains=q) |
-                Q(last_name__icontains=q),
+                Q(email__icontains=q)
+                | Q(first_name__icontains=q)
+                | Q(last_name__icontains=q),
             )
         return qs
 
@@ -161,9 +163,13 @@ class UserDetailView(LoginRequiredMixin, DetailView):
 
         context["user_profile"] = user
         context["user_roles"] = user.roles.select_related("role")
-        context["user_tasks"] = Task.objects.filter(
-            recipient=user,
-        ).select_related("sender").order_by("-due_date")
+        context["user_tasks"] = (
+            Task.objects.filter(
+                recipient=user,
+            )
+            .select_related("sender")
+            .order_by("-due_date")
+        )
         return context
 
 
@@ -183,8 +189,10 @@ class UserPasswordChangeView(PasswordChangeView):
 
 
 def verify_email_view(
-        request: HttpRequest, uidb64: str, token: str,
-    ) -> HttpResponseRedirect:
+    request: HttpRequest,
+    uidb64: str,
+    token: str,
+) -> HttpResponseRedirect:
     """Handle email verification via link from email."""
     return verify_email(request, uidb64, token)
 

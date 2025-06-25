@@ -11,15 +11,22 @@ from core.models import Machine, Task
 
 def get_task_color(task: Task) -> str:
     """Return a hex color code string based on the task's status and priority."""
-    if task.status == task.Status.COMPLETED:
-        return "#6c757d"
-    if task.priority == Task.Priority.HIGH:
-        return "#dc3545"
-    if task.priority == Task.Priority.MEDIUM:
-        return "#ffc107"
-    if task.priority == Task.Priority.LOW:
-        return "#198754"
-    return "#0d6efd"
+    color = "#0d6efd"  # default
+    if task.status == Task.Status.ON_REVIEW:
+        color = "#1976d2"  # blue
+    elif task.status == Task.Status.ACCEPTED:
+        color = "#219653"  # green
+    elif task.status == Task.Status.REJECTED:
+        color = "#c0392b"  # red
+    elif task.status == Task.Status.ABANDONED:
+        color = "#6c757d"  # gray
+    elif task.priority == Task.Priority.HIGH:
+        color = "#dc3545"
+    elif task.priority == Task.Priority.MEDIUM:
+        color = "#ffc107"
+    elif task.priority == Task.Priority.LOW:
+        color = "#198754"
+    return color
 
 
 def dashboard_view(request: HttpRequest) -> HttpResponse:
@@ -30,12 +37,10 @@ def dashboard_view(request: HttpRequest) -> HttpResponse:
     )
     received_tasks = Task.objects.filter(
         recipient=request.user,
-        status=Task.Status.IN_PROGRESS,
         due_date__gte=seven_days_ago,
     ).order_by("due_date")
     sent_tasks = Task.objects.filter(
         sender=request.user,
-        # status=Task.Status.IN_PROGRESS,
         due_date__gte=seven_days_ago,
     ).order_by("due_date")
     machines = Machine.objects.all()

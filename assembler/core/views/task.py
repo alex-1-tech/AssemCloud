@@ -64,8 +64,10 @@ class TaskListView(QuerySetMixin, ListView):
                      — {task.get_status_display()}",
                 "view_url": reverse("task_detail", args=[task.pk]),
                 "edit_url": reverse(
-                    "task_edit", args=[task.pk],
-                    ) + f"?next={self.request.get_full_path()}",
+                    "task_edit",
+                    args=[task.pk],
+                )
+                + f"?next={self.request.get_full_path()}",
                 "delete_url": reverse("task_delete", args=[task.pk]),
                 "delete_confirm_message": f"Удалить задачу '{task.title}'?",
             }
@@ -175,18 +177,22 @@ class TaskDetailView(DetailView):
                     },
                     {
                         "label": "Завершена",
-                        "value": task.completed_at.strftime(
-                            "%d.%m.%Y %H:%M") if task.completed_at else "—",
-                        },
+                        "value": task.sent_at.strftime("%d.%m.%Y %H:%M")
+                        if task.sent_at
+                        else "—",
+                    },
                     {
                         "label": "Срок выполнения",
-                        "value": task.due_date.strftime(
-                            "%d.%m.%Y") if task.due_date else "—",
-                        },
+                        "value": task.due_date.strftime("%d.%m.%Y")
+                        if task.due_date
+                        else "—",
+                    },
                 ],
                 "edit_url": reverse(
-                    "task_edit", args=[task.pk],
-                    ) + f"?next={self.request.get_full_path()}",
+                    "task_edit",
+                    args=[task.pk],
+                )
+                + f"?next={self.request.get_full_path()}",
                 "delete_url": reverse("task_delete", args=[task.pk]),
                 "add_url": reverse("task_add"),
                 "add_label": "Добавить новую задачу",
@@ -235,11 +241,15 @@ class TaskCompleteView(UpdateView):
     ) -> HttpResponse:
         """Mark the task as complete."""
         task = self.get_object()
-        if not task.completed_at:
-            task.completed_at = timezone.now()
-            task.status = Task.Status.COMPLETED
+        if not task.sent_at:
+            task.sent_at = timezone.now()
+            task.status = Task.Status.ON_REVIEW
             task.save()
             messages.success(request, "Задача успешно завершена.")
+        if task.sent_at:
+            task.status = Task.Status.ON_REVIEW
+            task.save()
+            messages.success(request, "Задача возвращена на проверку.")
         return redirect("task_detail", pk=task.pk)
 
     def get(
@@ -253,7 +263,7 @@ class TaskCompleteView(UpdateView):
 
 
 class TaskReopenView(UpdateView):
-    """Handles reopening a completed task (sets completed_at to None)."""
+    """Handles reopening a completed task (sets sent_at to None)."""
 
     model = Task
     fields: ClassVar[list] = []
@@ -264,16 +274,106 @@ class TaskReopenView(UpdateView):
         *args: tuple[Any, ...],  # noqa: ARG002
         **kwargs: dict[str, Any],  # noqa: ARG002
     ) -> HttpResponse:
-        """Reopen the task by clearing completed_at.
+        """Reopen the task by clearing sent_at.
 
         Sets status to in_progress.
         """
         task = self.get_object()
-        if task.completed_at:
-            task.completed_at = None
-            task.status = Task.Status.IN_PROGRESS
+        task.sent_at = None
+        task.status = Task.Status.IN_PROGRESS
+        task.save()
+        messages.success(request, "Задача возвращена в процесс.")
+        return redirect("task_detail", pk=task.pk)
+
+    def get(
+        self,
+        request: HttpRequest,
+        *args: tuple[Any, ...],
+        **kwargs: dict[str, Any],
+    ) -> HttpResponse:
+        """Allow GET to trigger the same as POST for convenience."""
+        return self.post(request, *args, **kwargs)
+
+
+class TaskAbandonView(UpdateView):
+    """Handles marking a task as abandoned (брошена)."""
+
+    model = Task
+    fields: ClassVar[list] = []
+
+    def post(
+        self,
+        request: HttpRequest,
+        *args: tuple[Any, ...],  # noqa: ARG002
+        **kwargs: dict[str, Any],  # noqa: ARG002
+    ) -> HttpResponse:
+        """Mark the task as abandoned."""
+        task = self.get_object()
+        if task.status != Task.Status.ABANDONED:
+            task.status = Task.Status.ABANDONED
+            task.sent_at = None
             task.save()
-            messages.success(request, "Задача возвращена в процесс.")
+            messages.success(request, "Задача отмечена как брошена.")
+        return redirect("task_detail", pk=task.pk)
+
+    def get(
+        self,
+        request: HttpRequest,
+        *args: tuple[Any, ...],
+        **kwargs: dict[str, Any],
+    ) -> HttpResponse:
+        """Allow GET to trigger the same as POST for convenience."""
+        return self.post(request, *args, **kwargs)
+
+
+class TaskAcceptView(UpdateView):
+    """Handles accepting a task (статус: принята)."""
+
+    model = Task
+    fields: ClassVar[list] = []
+
+    def post(
+        self,
+        request: HttpRequest,
+        *args: tuple[Any, ...],  # noqa: ARG002
+        **kwargs: dict[str, Any],  # noqa: ARG002
+    ) -> HttpResponse:
+        """Mark the task as accepted."""
+        task = self.get_object()
+        if task.status != Task.Status.ACCEPTED:
+            task.status = Task.Status.ACCEPTED
+            task.save()
+            messages.success(request, "Задача принята.")
+        return redirect("task_detail", pk=task.pk)
+
+    def get(
+        self,
+        request: HttpRequest,
+        *args: tuple[Any, ...],
+        **kwargs: dict[str, Any],
+    ) -> HttpResponse:
+        """Allow GET to trigger the same as POST for convenience."""
+        return self.post(request, *args, **kwargs)
+
+
+class TaskRejectView(UpdateView):
+    """Handles rejecting a task (статус: отклонена)."""
+
+    model = Task
+    fields: ClassVar[list] = []
+
+    def post(
+        self,
+        request: HttpRequest,
+        *args: tuple[Any, ...],  # noqa: ARG002
+        **kwargs: dict[str, Any],  # noqa: ARG002
+    ) -> HttpResponse:
+        """Mark the task as rejected."""
+        task = self.get_object()
+        if task.status != Task.Status.REJECTED:
+            task.status = Task.Status.REJECTED
+            task.save()
+            messages.success(request, "Задача отклонена.")
         return redirect("task_detail", pk=task.pk)
 
     def get(

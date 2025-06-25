@@ -15,6 +15,21 @@ from core.views.machine import (
     MachineListView,
     MachineUpdateView,
 )
+from core.views.machine_import import (
+    MachineImportProcessView,
+    MachineImportSelectView,
+)
+from core.views.machinemodule import (
+    MachineModuleCreateView,
+    MachineModuleDeleteView,
+    MachineModuleDetailView,
+    MachineModuleListView,
+    MachineModuleUpdateView,
+)
+from core.views.machinemoduleset import (
+    module_create_view,
+    module_edit_view,
+)
 from core.views.manufacturer import (
     ManufacturerCreateView,
     ManufacturerDeleteView,
@@ -29,6 +44,10 @@ from core.views.module import (
     ModuleListView,
     ModuleUpdateView,
 )
+from core.views.module_import import (
+    ModuleImportProcessView,
+    ModuleImportSelectView,
+)
 from core.views.modulepart import (
     ModulePartCreateView,
     ModulePartDeleteView,
@@ -36,7 +55,7 @@ from core.views.modulepart import (
     ModulePartListView,
     ModulePartUpdateView,
 )
-from core.views.modulepartset import part_create_view
+from core.views.modulepartset import part_create_view, part_edit_view
 from core.views.part import (
     PartCreateView,
     PartDeleteView,
@@ -51,6 +70,7 @@ from core.views.task import (
     TaskListView,
     TaskUpdateView,
 )
+from core.views.telegrambot import ToggleTelegramNotificationsView, telegram_webhook
 from core.views.user import (
     CustomPasswordResetConfirmView,
     ResendVerificationView,
@@ -73,7 +93,14 @@ __all__ = [
     "MachineCreateView",
     "MachineDeleteView",
     "MachineDetailView",
+    "MachineImportProcessView",
+    "MachineImportSelectView",
     "MachineListView",
+    "MachineModuleCreateView",
+    "MachineModuleDeleteView",
+    "MachineModuleDetailView",
+    "MachineModuleListView",
+    "MachineModuleUpdateView",
     "MachineUpdateView",
     "ManufacturerCreateView",
     "ManufacturerDeleteView",
@@ -83,6 +110,8 @@ __all__ = [
     "ModuleCreateView",
     "ModuleDeleteView",
     "ModuleDetailView",
+    "ModuleImportProcessView",
+    "ModuleImportSelectView",
     "ModuleListView",
     "ModulePartCreateView",
     "ModulePartDeleteView",
@@ -101,6 +130,7 @@ __all__ = [
     "TaskDetailView",
     "TaskListView",
     "TaskUpdateView",
+    "ToggleTelegramNotificationsView",
     "UserDetailView",
     "UserListView",
     "UserLoginView",
@@ -108,7 +138,10 @@ __all__ = [
     "UserRegisterView",
     "UserUpdateView",
     "dashboard_view",
+    "module_create_view",
+    "module_edit_view",
     "part_create_view",
+    "part_edit_view",
+    "telegram_webhook",
     "verify_email_view",
 ]
-

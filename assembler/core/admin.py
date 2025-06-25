@@ -17,6 +17,7 @@ from core.models import (
     Client,
     Machine,
     MachineClient,
+    MachineModule,
     Manufacturer,
     Module,
     ModulePart,
@@ -40,6 +41,15 @@ class ModulePartInline(admin.TabularInline):
     extra = 0
     autocomplete_fields = ("part",)
     classes: ClassVar[list[str]] = ["collapse"]  # collapse the block by default
+
+
+class MachineModuleInline(admin.TabularInline):
+    """Inline display of machine modules directly inside the machine form."""
+
+    model = MachineModule
+    extra = 0
+    autocomplete_fields = ("module",)
+    classes: ClassVar[list[str]] = ["collapse"]
 
 
 # =================== USERS ===================
@@ -167,7 +177,6 @@ class ModuleAdmin(admin.ModelAdmin):
     list_display = (
         "name",
         "version",
-        "parent",
         "manufacturer",
         "module_status",
         "scheme_file",
@@ -175,14 +184,12 @@ class ModuleAdmin(admin.ModelAdmin):
     )
     search_fields = (
         "name__icontains",
-        "machines__name__icontains",
-        "parent__name__icontains",
         "manufacturer__name__icontains",
         "decimal",
         "version",
     )
-    list_filter = ("machines", "module_status", "manufacturer")
-    autocomplete_fields = ("machines", "parent", "manufacturer")
+    list_filter = ("module_status", "manufacturer")
+    autocomplete_fields = ("manufacturer",)
     inlines: ClassVar[list[str]] = [ModulePartInline]
 
 
@@ -270,8 +277,9 @@ class ChangesLogAdmin(admin.ModelAdmin):
         return False
 
     def has_change_permission(
-            self, request: HttpRequest,  # noqa: ARG002
-            obj: ChangesLog | None = None,  # noqa: ARG002
-        ) -> bool:
+        self,
+        request: HttpRequest,  # noqa: ARG002
+        obj: ChangesLog | None = None,  # noqa: ARG002
+    ) -> bool:
         """Disable editing of change logs."""
         return False

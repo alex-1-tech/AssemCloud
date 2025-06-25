@@ -5,6 +5,7 @@ multiple `ModulePart` instances related to a single `Part` instance within the s
 form. It is used primarily in views or admin interfaces where a user can create
 or update a part along with its associated module links in a single submission.
 """
+
 from django.forms import inlineformset_factory
 
 from core.forms import ModulePartForm

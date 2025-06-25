@@ -26,8 +26,6 @@ class ManufacturerForm(BaseStyledForm):
         "phone": "+79991234567",
     }
 
-
-
     class Meta:
         """Metadata for ManufacturerForm."""
 

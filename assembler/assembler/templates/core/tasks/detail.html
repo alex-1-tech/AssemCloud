@@ -19,7 +19,13 @@
                                 gap: 10px;
                                 justify-content: center;
                                 margin-top: 2px">
-                        <span class="badge-status {% if object.status == 'completed' %}completed{% elif object.status == 'in_progress' %}in-progress{% else %}abandoned{% endif %}"
+                        <span class="badge-status 
+                              {% if object.status == 'in_progress' %}in-progress
+                              {% elif object.status == 'on_review' %}on-review
+                              {% elif object.status == 'accepted' %}accepted
+                              {% elif object.status == 'rejected' %}rejected
+                              {% elif object.status == 'abandoned' %}abandoned
+                              {% endif %}"
                               style="font-size: 13px;
                                      border-radius: 10px;
                                      padding: 4px 14px;
@@ -69,9 +75,9 @@
                             {% endif %}
                         </div>
                         <div class="meta-item">
-                            <i class="bi bi-calendar-check"></i> <b>Завершено:</b>
-                            {% if object.completed_at %}
-                                {{ object.completed_at|date:'d.m.Y H:i' }}
+                            <i class="bi bi-calendar-check"></i> <b>Отправлено:</b>
+                            {% if object.sent_at %}
+                                {{ object.sent_at|date:'d.m.Y H:i' }}
                             {% else %}
                                 —
                             {% endif %}
@@ -82,20 +88,48 @@
                      style="margin-top: 24px;
                             justify-content: center">
                     <div class="actions-group">
-                        <a href="{{ delete_url }}" class="btn btn-red btn-icon" title="Удалить"><i class="bi bi-trash"></i></a>
-                        {% if object.completed_at %}
-                            <a href="{% url 'task_reopen' object.pk %}"
-                               class="btn btn-gray btn-icon"
-                               title="Вернуть в процесс"><i class="bi bi-arrow-counterclockwise"></i></a>
+                        <!-- Action for sender -->
+                        {% if request.user == object.sender %}
+                            {% if object.status not in 'on_review accepted' %}
+                                <a href="{{ delete_url }}" class="btn btn-red btn-icon" title="Удалить"><i class="bi bi-trash"></i></a>
+                                <a href="{{ edit_url }}" class="btn btn-blue btn-icon" title="Редактировать"><i class="bi bi-pencil"></i></a>
+                            {% endif %}
+                            {% if object.status == 'on_review' %}
+                                <a href="{% url 'task_accept' object.pk %}" class="btn btn-green btn-icon" title="Принять задачу"><i class="bi bi-check2-circle"></i></a>
+                                <a href="{% url 'task_reject' object.pk %}" class="btn btn-red btn-icon" title="Отклонить задачу"><i class="bi bi-x-circle"></i></a>
+                            {% endif %}
+                            {% if object.status in 'accepted rejected' %}
+                                <a href="{% url 'task_complete' object.pk %}" class="btn btn-gray btn-icon" title="Вернуть в ожидание"><i class="bi bi-arrow-counterclockwise"></i></a>
+                            {% endif %}
+                            {% if object.status in 'abandoned' %}
+                                <a href="{% url 'task_reopen' object.pk %}"
+                                   class="btn btn-gray btn-icon"
+                                   title="Вернуть в процесс"><i class="bi bi-arrow-counterclockwise"></i></a>
+                            {% endif %}
                         {% endif %}
-                        {% if not object.completed_at %}
-                            <a href="{% url 'task_complete' object.pk %}"
-                               class="btn btn-green btn-icon"
-                               title="Выполнить задачу"><i class="bi bi-check2-circle"></i></a>
+                        
+                        <!-- Actions for recipient -->
+                        {% if request.user == object.recipient %}
+                            {% if object.status in 'in_progress rejected' %}
+                                <a href="{% url 'task_complete' object.pk %}"
+                                   class="btn btn-green btn-icon"
+                                   title="Выполнить задачу"><i class="bi bi-check2-circle"></i></a>
+                            {% endif %}
+                            {% if object.status in 'on_review abandoned' %}
+                                <a href="{% url 'task_reopen' object.pk %}"
+                                   class="btn btn-gray btn-icon"
+                                   title="Вернуть в процесс"><i class="bi bi-arrow-counterclockwise"></i></a>
+                            {% endif %}
                         {% endif %}
-                        <a href="{{ edit_url }}"
-                           class="btn btn-blue btn-icon"
-                           title="Редактировать"><i class="bi bi-pencil"></i></a>
+                        
+                        <!-- Action for both sender and recipient -->
+                        {% if request.user == object.sender or request.user == object.recipient %}
+                            {% if object.status in 'in_progress'  %}
+                                <a href="{% url 'task_abandon' object.pk %}"
+                                   class="btn btn-gray btn-icon"
+                                   title="Бросить задачу"><i class="bi bi-x-octagon"></i></a>
+                            {% endif %}
+                        {% endif %}
                     </div>
                 </div>
             </div>

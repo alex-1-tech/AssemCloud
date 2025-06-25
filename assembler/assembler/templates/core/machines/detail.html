@@ -11,7 +11,7 @@
                         <summary>Машина: {{ machine_tree.machine.name }}</summary>
                         <ul>
                             {% for node in machine_tree.modules %}
-                                {% include "components/assembly_tree.html" with node=node %}
+                                {% include "components/assembly_tree.html" with node=node machine_id=machine_tree.machine.id %}
                             {% endfor %}
                         </ul>
                     </details>

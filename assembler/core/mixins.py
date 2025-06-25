@@ -29,6 +29,7 @@ Example:
 These mixins are designed to reduce boilerplate and improve clarity in view definitions.
 
 """
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, ClassVar
@@ -54,10 +55,11 @@ class RoleRequiredMixin(LoginRequiredMixin):
     required_roles: ClassVar[list[str]] = []
 
     def dispatch(
-            self, request: HttpRequest,
-            *args: object,
-            **kwargs: object,
-        ) -> (HttpResponseRedirect | HttpResponse):
+        self,
+        request: HttpRequest,
+        *args: object,
+        **kwargs: object,
+    ) -> HttpResponseRedirect | HttpResponse:
         """Override dispatch method to enforce role-based access control."""
         user = request.user
         if not user.is_authenticated:
@@ -72,6 +74,7 @@ class RoleRequiredMixin(LoginRequiredMixin):
             raise PermissionDenied(error_msg)
 
         return super().dispatch(request, *args, **kwargs)
+
 
 class NextUrlMixin:
     """A reusable view mixin that handles redirection after successful form submission.
@@ -100,9 +103,7 @@ class NextUrlMixin:
 
     def get_success_url(self) -> str:
         """Determine the URL to redirect to after a successful form submission."""
-        next_url = (
-            self.request.GET.get("next")
-        )
+        next_url = self.request.GET.get("next")
         if next_url and url_has_allowed_host_and_scheme(
             next_url,
             allowed_hosts={self.request.get_host()},
@@ -110,6 +111,7 @@ class NextUrlMixin:
         ):
             return next_url
         return self.get_default_success_url()
+
 
 class QuerySetMixin:
     """A reusable mixin that adds basic search functionality.
@@ -122,8 +124,10 @@ class QuerySetMixin:
         return self.request.GET.get("q", "").strip()
 
     def get_queryset_default(
-        self, q: object, search_field: Q | None,
-        ) -> object:
+        self,
+        q: object,
+        search_field: Q | None,
+    ) -> object:
         """Return the filtered queryset based on the search query.
 
         Assumes `self.search_field` is a Q object already containing the query.

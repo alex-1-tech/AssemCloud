@@ -22,11 +22,14 @@ class TaskForm(BaseStyledForm):
     }
 
     select2_fields: ClassVar[dict[str, tuple]] = {
-        "recipient": (User, (
-            "first_name__icontains",
-            "last_name__icontains",
-            "email__icontains",
-        )),
+        "recipient": (
+            User,
+            (
+                "first_name__icontains",
+                "last_name__icontains",
+                "email__icontains",
+            ),
+        ),
     }
 
     class Meta:

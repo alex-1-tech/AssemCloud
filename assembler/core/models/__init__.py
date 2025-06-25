@@ -3,7 +3,7 @@
 from core.models.client import Client, Manufacturer
 from core.models.log import ChangesLog
 from core.models.machine import Machine, MachineClient
-from core.models.module import Module
+from core.models.module import MachineModule, Module
 from core.models.part import ModulePart, Part
 from core.models.roles import Role, UserRole
 from core.models.task import Task, TaskAttachment, TaskLink
@@ -14,6 +14,7 @@ __all__ = [
     "Client",
     "Machine",
     "MachineClient",
+    "MachineModule",
     "Manufacturer",
     "Module",
     "ModulePart",

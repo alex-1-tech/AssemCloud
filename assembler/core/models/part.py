@@ -38,6 +38,9 @@ class Part(ReprMixin, NormalizeMixin, TimeStampedModelWithUser):
     decimal = models.CharField(
         _("Децимальный номер"),
         max_length=100,
+        null=True,
+        blank=True,
+        help_text=_("Decimal number of the part, used for identification"),
     )
 
     manufacturer = models.ForeignKey(
@@ -70,7 +73,6 @@ class Part(ReprMixin, NormalizeMixin, TimeStampedModelWithUser):
             models.Index(fields=["manufacture_date"]),
             models.Index(fields=["decimal"]),
         ]
-
 
 
 class ModulePart(ReprMixin, models.Model):
@@ -114,7 +116,7 @@ class ModulePart(ReprMixin, models.Model):
         constraints: ClassVar[list[models.constraints.BaseConstraint]] = [
             models.CheckConstraint(
                 check=models.Q(quantity__gt=0),
-                name="quantity_positive",
+                name="quantity_module_part_positive",
             ),
             models.UniqueConstraint(
                 fields=["module", "part"],

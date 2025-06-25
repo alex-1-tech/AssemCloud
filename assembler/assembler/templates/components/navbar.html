@@ -22,11 +22,12 @@
             {% if user.is_authenticated %}
                 <ul class="navbar-nav gap-2">
                     <li class="nav-item">
-                        <a class="nav-link {% if 'machine' in request.resolver_match.url_name %}active{% endif %}"
+                        <a class="nav-link {% if 'machine' in request.resolver_match.url_name and 'module' not in request.resolver_match.url_name%}active{% endif %}"
                            href="{% url 'machine_list' %}">Машины</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if 'module' in request.resolver_match.url_name and 'part' not in request.resolver_match.url_name %}active{% endif %}"
+                        <a 
+                        class="nav-link {% if 'module' in request.resolver_match.url_name and 'part' not in request.resolver_match.url_name and 'machine' not in request.resolver_match.url_name %}active{% endif %}"
                            href="{% url 'module_list' %}">Модули</a>
                     </li>
                     <li class="nav-item">
@@ -40,6 +41,10 @@
                     <li class="nav-item">
                         <a class="nav-link {% if 'client' in request.resolver_match.url_name %}active{% endif %}"
                            href="{% url 'client_list' %}">Клиенты</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'machinemodule' in request.resolver_match.url_name %}active{% endif %}"
+                           href="{% url 'machinemodule_list' %}">Количество модулей</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if 'modulepart' in request.resolver_match.url_name %}active{% endif %}"

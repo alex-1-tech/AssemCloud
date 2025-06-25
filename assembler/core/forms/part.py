@@ -3,6 +3,7 @@
 This module contains the PartForm class, which extends BaseStyledForm,
 providing form fields and placeholder configurations for the Part model.
 """
+
 from typing import ClassVar
 
 from django import forms
@@ -33,7 +34,6 @@ class PartForm(BaseStyledForm):
         "manufacturer": (Manufacturer, ["name__icontains"]),
     }
 
-
     class Meta:
         """Metadata for PartForm."""
 
@@ -45,8 +45,7 @@ class PartForm(BaseStyledForm):
             "description",
             "material",
             "manufacture_date",
-            )
+        )
         widgets: ClassVar[dict[str, object]] = {
             "manufacture_date": forms.DateInput(attrs={"type": "date"}),
         }
-
