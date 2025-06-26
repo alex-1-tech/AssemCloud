@@ -18,30 +18,49 @@ class MachineModuleForm(BaseStyledForm):
     """Form for creating or updating a MachineModule instance."""
 
     placeholders: ClassVar[dict[str, str]] = {
-        "module": "Модуль",
         "machine": "Машина",
-        "parent_module": "Родительский модуль",
+        "module_link": "Модуль (справочник)",
+        "parent_module_link": "Родительский модуль (справочник)",
+        "module": "Узел иерархии (дочерний)",
+        "parent_module": "Узел иерархии (родительский)",
         "quantity": "Количество",
     }
 
     select2_fields: ClassVar[dict[str, tuple]] = {
-        "module": (Module, ["name__icontains", "decimal__icontains"]),
         "machine": (Machine, ["name__icontains"]),
-        "parent_module": (Module, ["name__icontains"]),
+        "module_link": (Module, ["name__icontains", "decimal__icontains"]),
+        "parent_module_link": (Module, ["name__icontains", "decimal__icontains"]),
+        "parent_module": (MachineModule, ["module_link__name__icontains"]),
     }
 
     def __init__(self, *args: object, **kwargs: object) -> None:
         """Init MachineModuleForm method."""
         super().__init__(*args, **kwargs)
-        self.fields["module"].queryset = Module.objects.all()
+        self.fields["module_link"].queryset = Module.objects.all()
+        self.fields["parent_module_link"].queryset = Module.objects.all()
         self.fields["machine"].queryset = Machine.objects.all()
-        self.fields["parent_module"].queryset = Module.objects.all()
+        self.fields["module"].queryset = MachineModule.objects.all()
+        self.fields["parent_module"].queryset = MachineModule.objects.all()
+
+        if self.instance and self.instance.pk:
+            self.fields["module"].queryset = \
+                self.fields["module"].queryset.exclude(pk=self.instance.pk)
+            self.fields["parent_module"].queryset = \
+                self.fields["parent_module"].queryset.exclude(pk=self.instance.pk)
+
 
     class Meta:
         """Metadata for MachineModuleForm."""
 
         model = MachineModule
-        fields = ("machine", "parent_module", "module", "quantity")
+        fields = (
+            "machine",
+            "module_link",
+            "parent_module_link",
+            "parent_module",
+            "module",
+            "quantity",
+        )
 
     def clean_parent(self) -> MachineModule | None:
         """Validate the 'parent' field during form cleaning.
@@ -52,13 +71,17 @@ class MachineModuleForm(BaseStyledForm):
         3. Ensures that the parent module is not a descendant of the current module.
         """
         parent = self.cleaned_data.get("parent_module")
-        if parent and parent == self.cleaned_data.get("module"):
-            msg = "Родительский модуль не может быть тем же, что и модуль."
+        if not parent:
+            return None
+
+        if self.instance.pk and parent.pk == self.instance.pk:
+            msg = "Родительский узел не может быть тем же, что и текущий."
             raise ValidationError(msg)
-        ancetor = parent
-        while ancetor:
-            if ancetor == self.cleaned_data.get("module"):
-                msg = "Циклическая связь модулей недопустима."
+
+        ancestor = parent
+        while ancestor is not None:
+            if self.instance.pk and ancestor.pk == self.instance.pk:
+                msg = "Циклическая связь узлов недопустима."
                 raise ValidationError(msg)
-            ancetor = ancetor.parent_module
+            ancestor = ancestor.parent_module
         return parent

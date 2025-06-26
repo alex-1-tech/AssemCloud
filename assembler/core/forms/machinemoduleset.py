@@ -12,10 +12,10 @@ from core.forms import MachineModuleForm
 from core.models import MachineModule, Module
 
 MachineModuleFormSet = inlineformset_factory(
-    Module,
-    MachineModule,
+    parent_model=Module,
+    model=MachineModule,
     form=MachineModuleForm,
+    fk_name="module_link",
     extra=1,
     can_delete=True,
-    fk_name="module",
 )
