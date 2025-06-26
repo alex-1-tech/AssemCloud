@@ -19,7 +19,9 @@ Key fields:
 from typing import ClassVar
 
 from django.core.validators import FileExtensionValidator
+from mptt.models import MPTTModel, TreeForeignKey
 
+from core.models import Machine, Manufacturer
 from core.models.base import (
     NormalizeMixin,
     ReprMixin,
@@ -27,7 +29,6 @@ from core.models.base import (
     _,
     models,
 )
-from core.models.client import Manufacturer
 
 
 class Module(ReprMixin, NormalizeMixin, TimeStampedModelWithUser):
@@ -112,37 +113,53 @@ class Module(ReprMixin, NormalizeMixin, TimeStampedModelWithUser):
         ]
 
 
-class MachineModule(ReprMixin, models.Model):
+class MachineModule(ReprMixin, MPTTModel):
     """Intermediary model linking modules to machines with metadata.
 
     This model enables a many-to-many relationship between `Module` and `Machine`
     and supports additional fields like comments and creation date.
     """
 
-    module = models.ForeignKey(
+    module_link = models.ForeignKey(
         Module,
         on_delete=models.RESTRICT,
-        verbose_name=_("Модуль"),
-        help_text="Reference to the module in the association.",
-        related_name="module_machines",
+        verbose_name=_("Модуль (справочник)"),
+        related_name="machine_modules_links",
     )
-    machine = models.ForeignKey(
-        "Machine",
+
+    module = TreeForeignKey(
+        "self",
         on_delete=models.RESTRICT,
-        verbose_name=_("Машина"),
+        related_name="children_modules",
+        verbose_name=_("Модуль"),
+    )
+
+    parent_module_link = models.ForeignKey(
+        Module,
+        on_delete=models.RESTRICT,
+        verbose_name=_("Родительский модуль (справочник)"),
         null=True,
         blank=True,
-        help_text="Reference to the machine in the association.",
-        related_name="machine_modules",
+        related_name="parent_module_links",
     )
-    parent_module = models.ForeignKey(
-        Module,
+
+    parent_module = TreeForeignKey(
+        "self",
         on_delete=models.RESTRICT,
         verbose_name=_("Родительский модуль"),
         null=True,
         blank=True,
         related_name="parent_modules",
     )
+
+    machine = models.ForeignKey(
+        Machine,
+        on_delete=models.RESTRICT,
+        verbose_name=_("Машина"),
+        help_text="Reference to the machine in the association.",
+        related_name="module_machines_links",
+    )
+
     quantity = models.PositiveIntegerField(
         _("Количество"),
         default=1,
@@ -150,15 +167,19 @@ class MachineModule(ReprMixin, models.Model):
 
     def __str__(self) -> str:
         """Return a string showing the module-machine association."""
-        if self.machine is None:
-            return f"{self.parent_module} <-> {self.module} (x{self.quantity})"
-        return f"{self.machine} <-> {self.module} (x{self.quantity})"
+        return f"{self.machine}:\
+             {self.parent_module_link} <-> {self.module_link} (x{self.quantity})"
+
+    class MPTTMeta:
+        """MPTT metadata for hierarchical structure."""
+
+        order_insertion_by: ClassVar[list[str]] = ["module_link__decimal"]
 
     class Meta:
         """Model metadata: database table name, verbose names and unique constraint."""
 
         db_table: ClassVar[str] = "module_machines"
-        ordering: ClassVar[list[str]] = ["id"]
+        ordering: ClassVar[list[str]] = ["tree_id", "id"]
         verbose_name: ClassVar[str] = _("Связь Модуль-Машина")
         verbose_name_plural: ClassVar[str] = _("Связи Модуль-Машина")
         unique_together: ClassVar[tuple[str, str]] = ("module", "machine")
@@ -168,11 +189,7 @@ class MachineModule(ReprMixin, models.Model):
                 name="quantity_module_machine_positive",
             ),
             models.UniqueConstraint(
-                fields=["module", "machine"],
-                name="unique_module_machine",
-            ),
-            models.UniqueConstraint(
-                fields=["module", "parent_module"],
+                fields=["module_link", "parent_module"],
                 name="unique_parent_module_module",
             ),
         ]
