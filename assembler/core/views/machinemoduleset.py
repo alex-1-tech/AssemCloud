@@ -31,14 +31,14 @@ def module_create_view(request: HttpRequest, pk: int | None = None) -> HttpRespo
 
     machine_id = request.GET.get("machine")
     machine_name = None
-    parent_module_id = request.GET.get("parent_module")
-    parent_module_name = None
-    if parent_module_id:
+    parent_id = request.GET.get("parent")
+    parent_name = None
+    if parent_id:
         try:
-            parent_module = Module.objects.get(pk=parent_module_id)
-            parent_module_name = str(parent_module)
+            parent = Module.objects.get(pk=parent_id)
+            parent_name = str(parent)
         except Module.DoesNotExist:
-            parent_module_name = ""
+            parent_name = ""
     if machine_id:
         try:
             machine_obj = Machine.objects.get(pk=machine_id)
@@ -69,8 +69,8 @@ def module_create_view(request: HttpRequest, pk: int | None = None) -> HttpRespo
             "next": next_url,
             "machine_id": machine_id,
             "machine_name": machine_name,
-            "parent_module_id": parent_module_id,
-            "parent_module_name": parent_module_name,
+            "parent_module_id": parent_id,
+            "parent_module_name": parent_name,
         },
     )
 

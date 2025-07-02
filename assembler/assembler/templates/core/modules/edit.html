@@ -45,7 +45,7 @@
                             {% if form.step_file.errors %}<div class="text-danger small">{{ form.step_file.errors }}</div>{% endif %}
                         </div>
                     </div>
-
+                    {% if formset %}
                     <!-- Formset: связи с машинами -->
                     <div class="border rounded p-3 mb-4 bg-light">
                         <h5 class="mb-3">Связи</h5>
@@ -95,6 +95,7 @@
                         </div>
                         <button type="button" id="add-form" class="btn btn-secondary mb-4">Добавить связь (машина)</button>
                     </div>
+                    {% endif %}
                     <!-- Кнопка отправки -->
                     <div class="d-grid">
                         <button type="submit" class="btn btn-primary">{{ submit_label }}</button>

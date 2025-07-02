@@ -76,7 +76,7 @@
                                     <a href="{{ edit_url }}" class="btn btn-blue btn-icon">
                                         <i class="bi bi-pencil"></i>
                                     </a>
-                                    {% if title != "Машина" %}
+                                    {% if title != "Машина" and title != "Модуль" %}
                                         <a href="{{ delete_url }}" class="btn btn-red btn-icon">
                                             <i class="bi bi-trash"></i></a>
                                     {% endif %}
@@ -89,7 +89,7 @@
                              style="margin-top: 24px;
                                     justify-content: space-between">
                             <div class="actions-group">
-                                <a href="{% url 'module_add' %}?machine={{ machine_tree.machine.pk }}&next={% url 'machine_detail' machine.id %}"
+                                <a href="{% url 'machinemodule_add' %}?machine={{ machine_tree.machine.pk }}&mode=machine&next={% url 'machine_detail' machine.id %}"
                                    class="btn btn-green btn-lg"><i class="bi bi-boxes" style="margin-right: 6px;"></i>Добавить модуль</a>
                             </div>
                             <div class="actions-group">
@@ -97,7 +97,7 @@
                                     <a href="{{ edit_url }}" class="btn btn-blue btn-icon">
                                         <i class="bi bi-pencil"></i>
                                     </a>
-                                    {% if title != "Машина" %}
+                                    {% if title != "Машина" and title != "Модуль" %}
                                         <a href="{{ delete_url }}" class="btn btn-red btn-icon">
                                             <i class="bi bi-trash"></i></a>
                                     {% endif %}
@@ -110,9 +110,9 @@
                              style="margin-top: 24px;
                                     justify-content: space-between">
                             <div class="actions-group">
-                                <a href="{% url 'module_add' %}?machine={{ module_tree.module.machine.pk }}&parent_module={{ module_tree.module.pk }}&next={% url 'module_detail' module.id %}"
+                                <a href="{% url 'machinemodule_add' %}?machine={{ module_tree.machine.pk }}&parent={{ module_tree.module.pk }}&mode=parentmodule&next={% url 'module_detail' module.id %}"
                                    class="btn btn-green btn-lg"><i class="bi bi-boxes" style="margin-right: 6px;"></i>Добавить подмодуль</a>
-                                <a href="{% url 'part_add' %}?module={{ module_tree.module.pk }}&next={% url 'module_detail' module.id %}"
+                                <a href="{% url 'modulepart_add' %}?module={{ module_tree.module.pk }}&next={% url 'module_detail' module.id %}"
                                    class="btn btn-yellow btn-lg"><i class="bi bi-box" style="margin-right: 6px;"></i>Добавить изделие</a>
                             </div>
                             <div class="actions-group">
@@ -137,7 +137,7 @@
                                     <a href="{{ edit_url }}" class="btn btn-blue btn-icon">
                                         <i class="bi bi-pencil"></i>
                                     </a>
-                                    {% if title != "Машина" %}
+                                    {% if title != "Машина" and title != "Модуль" %}
                                         <a href="{{ delete_url }}" class="btn btn-red btn-icon">
                                             <i class="bi bi-trash"></i></a>
                                     {% endif %}

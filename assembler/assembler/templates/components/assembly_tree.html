@@ -2,25 +2,25 @@
     {% if node.parts or node.submodules %}
         <details open>
             <summary>
-                <span class="module-label" data-module-id="{{ node.module.id }}" data-machine-id="{{ machine_id }}">Модуль:</span>
+                <span class="module-label" data-module-id="{{ node.module.id }}" data-machine-id="{{ machine_id }}" data-machinemodule-id="{{ node.link }}"><i class="bi bi-boxes"></i></span>
                 <a class="detail_links" href="{% url 'module_detail' node.module.id %}">
                     {{ node.module.decimal }} | {{ node.module.name }}
                 </a>
-                <a href="{% url 'machinemodule_detail' node.link_id %}" class="detail_links">(x{{ node.quantity }})</a>
+                <a href="{% url 'machinemodule_detail' node.link %}" class="detail_links">(x{{ node.quantity }})</a>
             </summary>
             {% if node.parts %}
                 <ul>
                     {% for part in node.parts %}
                         <li>
                             <span class="part-label" data-part-id="{{ part.part.id }}" data-modulepart-id="{{ part.id }}">
-                                Изделие: <a href="{% url 'part_detail' part.part.id %}"  class="detail_links">
+                                <i class="bi bi-gear"></i> <a href="{% url 'part_detail' part.part.id %}"  class="detail_links">
                                     {% if part.part.decimal %}
                                         {{ part.part.decimal }} | {{ part.part.name }}
                                     {% else %}
                                         {{ part.part.name }}
                                     {% endif %}
                                 </a>
-                                <a href="{% url 'modulepart_detail' part.link_id %}"  class="detail_links">(x{{ part.quantity }})</a>
+                                <a href="{% url 'modulepart_detail' part.link %}"  class="detail_links">(x{{ part.quantity }})</a>
                             </span>
                         </li>
                     {% endfor %}
@@ -35,11 +35,11 @@
             {% endif %}
         </details>
     {% else %} 
-        <span class="module-label" data-module-id="{{ node.module.id }}" data-machine-id="{{ machine_id }}">
-            Модуль: <a href="{% url 'module_detail' node.module.id %}"  class="detail_links">
+        <span class="module-label" data-module-id="{{ node.module.id }}" data-machine-id="{{ machine_id }} data-machinemodule-id="{{ node.link }}">
+            <i class="bi bi-boxes"></i> <a href="{% url 'module_detail' node.module.id %}"  class="detail_links">
                 {{ node.module.decimal }} | {{ node.module.name }}
             </a>
-            <a href="{% url 'machinemodule_detail' node.link_id %}" class="detail_links">(x{{ node.quantity }})</a>
+            <a href="{% url 'machinemodule_detail' node.link %}" class="detail_links"">(x{{ node.quantity }})</a>
         </span>
     {% endif %}
 </li>
@@ -56,17 +56,17 @@
         e.preventDefault();
         const moduleId = this.dataset.moduleId;
         const machineId = this.dataset.machineId;
-        const moduleDeleteUrlTemplate = "{% url 'module_delete' 0 %}".replace("0", moduleId);
+        const machinemoduleId = this.dataset.machinemoduleId;
+        const machinemoduleDeleteUrlTemplate = "{% url 'machinemodule_delete' 0 %}".replace("0", moduleId);
         const moduleEditUrlTemplate = "{% url 'module_edit' pk=0 %}".replace("0", moduleId);
+        const machinemoduleEditUrlTemplate = "{% url 'machinemodule_edit' pk=0 %}".replace("0", machinemoduleId);
 
         menu.innerHTML = `
-
-
-        
             <a href="${moduleEditUrlTemplate}">Редактировать модуль</a>
-            <a href="{% url 'module_add' %}?machine=${machineId}&parent_module=${moduleId}">Добавить подмодуль</a>
-            <a href="{% url 'part_add' %}?module=${moduleId}">Добавить изделие</a>
-            <a href="${moduleDeleteUrlTemplate}">Удалить модуль</a>
+            <a href="${machinemoduleEditUrlTemplate}">Редактировать связь</a>
+            <a href="{% url 'machinemodule_add' %}?machine=${machineId}&parent_module=${moduleId}">Добавить подмодуль</a>
+            <a href="{% url 'modulepart_add' %}?module=${moduleId}">Добавить изделие</a>
+            <a href="${machinemoduleDeleteUrlTemplate}">Удалить связь</a>
         `;
 
         const rect = this.getBoundingClientRect();

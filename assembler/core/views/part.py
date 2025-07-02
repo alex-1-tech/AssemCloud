@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from django.contrib import messages
 from django.db.models import Q
 from django.urls import reverse
 from django.views.generic import (
@@ -17,6 +18,7 @@ from django.views.generic import (
     UpdateView,
 )
 
+from core.forms import PartForm
 from core.mixins import NextUrlMixin, QuerySetMixin
 from core.models import Part
 
@@ -83,17 +85,50 @@ class PartListView(QuerySetMixin, ListView):
             Q(Q(name__icontains=q) | Q(manufacturer__name__icontains=q)),
         )
 
-
 class PartCreateView(NextUrlMixin, CreateView):
     """Handles creation of a new part."""
 
-    pass  # noqa: PIE790
+    model = Part
+    form_class = PartForm
+    template_name = "core/edit.html"
+    default_redirect_url_name = PART_LIST_URL
+
+    def get_context_data(self, **kwargs: dict[str, object]) -> dict[str, Any]:
+        """Add context metadata for creating a part."""
+        context = super().get_context_data(**kwargs)
+        context.update({
+            "title": "Добавить изделие",
+            "submit_label": "Создать",
+        })
+        return context
+
+    def form_valid(self, form: PartForm) -> object:
+        """Show success message on creation."""
+        messages.info(self.request, "Успешно добавлено")
+        return super().form_valid(form)
 
 
 class PartUpdateView(NextUrlMixin, UpdateView):
     """Handles editing an existing part."""
 
-    pass  # noqa: PIE790
+    model = Part
+    form_class = PartForm
+    template_name = "core/edit.html"
+    default_redirect_url_name = PART_LIST_URL
+
+    def get_context_data(self, **kwargs: dict[str, object]) -> dict[str, Any]:
+        """Add context metadata for editing a part."""
+        context = super().get_context_data(**kwargs)
+        context.update({
+            "title": "Редактировать изделие",
+            "submit_label": "Сохранить",
+        })
+        return context
+
+    def form_valid(self, form: PartForm) -> object:
+        """Show success message on update."""
+        messages.info(self.request, "Успешно изменено")
+        return super().form_valid(form)
 
 
 class PartDetailView(DetailView):

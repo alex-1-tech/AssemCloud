@@ -15,7 +15,7 @@ MachineModuleFormSet = inlineformset_factory(
     parent_model=Module,
     model=MachineModule,
     form=MachineModuleForm,
-    fk_name="module_link",
+    fk_name="module",
     extra=1,
     can_delete=True,
 )

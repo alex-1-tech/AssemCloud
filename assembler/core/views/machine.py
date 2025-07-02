@@ -143,7 +143,6 @@ class MachineDetailView(DetailView):
         """Add machine fields, tree, and actions to context."""
         machine = self.object
         machine_tree = build_machine_tree(machine)
-        print(machine_tree)
         context = super().get_context_data(**kwargs)
         context.update(
             {

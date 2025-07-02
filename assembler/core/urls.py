@@ -173,15 +173,17 @@ for model in model_names:
             name=f"{model}_{action}",
         )
 
-        if model == "machine" and action == "delete":
+        if model in {"machine", "module"} and action == "delete":
             continue
 
-        if model in {"part", "module"} and action in {"add", "edit"}:
+        """
+        if model in {"part"} and action in {"add", "edit"}:
             current_path = path(
                 pattern,
-                part_create_view if model == "part" else module_create_view,
+                part_create_view,
                 name=f"{model}_{action}",
             )
+        """
 
         urlpatterns.append(current_path)
 

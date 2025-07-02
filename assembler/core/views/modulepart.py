@@ -15,8 +15,10 @@ from django.views.generic import (
 )
 
 from core.forms import ModulePartForm
+from core.mixins import NextUrlMixin
 from core.models import ModulePart
 
+MODULEPART_LIST_URL = "modulepart_list"
 
 class ModulePartListView(ListView):
     """Displays a list of all module-part relationships."""
@@ -64,13 +66,13 @@ class ModulePartListView(ListView):
         return qs
 
 
-class ModulePartCreateView(CreateView):
+class ModulePartCreateView(NextUrlMixin, CreateView):
     """Handles creation of a new module-part relationship."""
 
     model = ModulePart
     form_class = ModulePartForm
     template_name = "core/edit.html"
-    success_url = reverse_lazy("modulepart_list")
+    default_redirect_url_name = MODULEPART_LIST_URL
 
     def get_context_data(self, **kwargs: object) -> dict:
         """Add context metadata for creating a module-part relationship."""
@@ -88,14 +90,21 @@ class ModulePartCreateView(CreateView):
         messages.info(self.request, "Успешно добавлено")
         return super().form_valid(form)
 
+    def get_initial(self) -> dict[str, object]:
+        """Return initial data for the form from GET if present."""
+        initial = super().get_initial()
+        module = self.request.GET.get("module")
+        if module:
+            initial["module"] = module
+        return initial
 
-class ModulePartUpdateView(UpdateView):
+class ModulePartUpdateView(NextUrlMixin, UpdateView):
     """Handles editing an existing module-part relationship."""
 
     model = ModulePart
     form_class = ModulePartForm
     template_name = "core/edit.html"
-    success_url = reverse_lazy("modulepart_list")
+    default_redirect_url_name = MODULEPART_LIST_URL
 
     def get_context_data(self, **kwargs: object) -> dict:
         """Add context metadata for editing a module-part relationship."""
@@ -156,12 +165,12 @@ class ModulePartDetailView(DetailView):
         return context
 
 
-class ModulePartDeleteView(DeleteView):
+class ModulePartDeleteView(NextUrlMixin, DeleteView):
     """Handles deletion confirmation for a module-part relationship."""
 
     model = ModulePart
     template_name = "core/confirm_delete.html"
-    success_url = reverse_lazy("modulepart_list")
+    default_redirect_url_name = MODULEPART_LIST_URL
 
     def get_context_data(self, **kwargs: object) -> dict:
         """Add confirmation message and actions to context."""

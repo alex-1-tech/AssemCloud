@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "django_select2",
     "channels",
     "markdownify",
+    "mptt",
 ]
 
 MIDDLEWARE = [

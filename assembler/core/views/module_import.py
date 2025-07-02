@@ -40,11 +40,11 @@ class ModuleImportProcessView(View):
             return redirect(reverse_lazy("module_import_select"))
 
         try:
-            parent_module = Module.objects.get(pk=module_id)
-            result = parse_module(xlsx_file, parent_module)
+            parent = Module.objects.get(pk=module_id)
+            result = parse_module(xlsx_file, parent)
             messages.success(
                 request,
-                f"Imported into module “{parent_module.name}”: "
+                f"Imported into module “{parent.name}”: "
                 f"{result['modules_created']} created, {result['links_created_or_updated']} linked.",
             )
         except Module.DoesNotExist:

@@ -18,7 +18,7 @@
                             <ul>
                                 {% for part in module_tree.parts %}
                                     <li>
-                                        Изделие: <a href="{% url 'part_detail' part.part.id %}" class="detail_links">{{ part.part.name }}</a>
+                                        <i class="bi bi-gear"></i> <a href="{% url 'part_detail' part.part.id %}" class="detail_links">{{ part.part.name }}</a>
                                         <a href="{% url 'modulepart_detail' part.link_id %}" class="detail_links">(x{{ part.quantity }})</a>
                                     </li>
                                 {% endfor %}

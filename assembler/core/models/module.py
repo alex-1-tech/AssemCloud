@@ -19,7 +19,6 @@ Key fields:
 from typing import ClassVar
 
 from django.core.validators import FileExtensionValidator
-from mptt.models import MPTTModel, TreeForeignKey
 
 from core.models import Machine, Manufacturer
 from core.models.base import (
@@ -113,51 +112,38 @@ class Module(ReprMixin, NormalizeMixin, TimeStampedModelWithUser):
         ]
 
 
-class MachineModule(ReprMixin, MPTTModel):
+class MachineModule(ReprMixin):
     """Intermediary model linking modules to machines with metadata.
 
     This model enables a many-to-many relationship between `Module` and `Machine`
     and supports additional fields like comments and creation date.
     """
 
-    module_link = models.ForeignKey(
+    module = models.ForeignKey(
         Module,
         on_delete=models.RESTRICT,
-        verbose_name=_("Модуль (справочник)"),
-        related_name="machine_modules_links",
-    )
-
-    module = TreeForeignKey(
-        "self",
-        on_delete=models.RESTRICT,
-        related_name="children_modules",
         verbose_name=_("Модуль"),
+        related_name="machine_modules",
     )
 
-    parent_module_link = models.ForeignKey(
+    parent = models.ForeignKey(
         Module,
-        on_delete=models.RESTRICT,
-        verbose_name=_("Родительский модуль (справочник)"),
-        null=True,
-        blank=True,
-        related_name="parent_module_links",
-    )
-
-    parent_module = TreeForeignKey(
-        "self",
         on_delete=models.RESTRICT,
         verbose_name=_("Родительский модуль"),
         null=True,
         blank=True,
-        related_name="parent_modules",
+        related_name="parent_module",
     )
+
 
     machine = models.ForeignKey(
         Machine,
         on_delete=models.RESTRICT,
         verbose_name=_("Машина"),
         help_text="Reference to the machine in the association.",
-        related_name="module_machines_links",
+        related_name="module_machines",
+        null=True,
+        blank=True,
     )
 
     quantity = models.PositiveIntegerField(
@@ -167,29 +153,23 @@ class MachineModule(ReprMixin, MPTTModel):
 
     def __str__(self) -> str:
         """Return a string showing the module-machine association."""
-        return f"{self.machine}:\
-             {self.parent_module_link} <-> {self.module_link} (x{self.quantity})"
-
-    class MPTTMeta:
-        """MPTT metadata for hierarchical structure."""
-
-        order_insertion_by: ClassVar[list[str]] = ["module_link__decimal"]
+        return f"{self.machine}: \
+            {self.parent} <-> {self.module} (x{self.quantity})"
 
     class Meta:
         """Model metadata: database table name, verbose names and unique constraint."""
 
-        db_table: ClassVar[str] = "module_machines"
-        ordering: ClassVar[list[str]] = ["tree_id", "id"]
+        db_table: ClassVar[str] = "machine_modules"
+        ordering: ClassVar[list[str]] = ["id"]
         verbose_name: ClassVar[str] = _("Связь Модуль-Машина")
         verbose_name_plural: ClassVar[str] = _("Связи Модуль-Машина")
-        unique_together: ClassVar[tuple[str, str]] = ("module", "machine")
         constraints: ClassVar[list[models.constraints.BaseConstraint]] = [
             models.CheckConstraint(
                 check=models.Q(quantity__gt=0),
                 name="quantity_module_machine_positive",
             ),
             models.UniqueConstraint(
-                fields=["module_link", "parent_module"],
+                fields=["module", "parent"],
                 name="unique_parent_module_module",
             ),
         ]

@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from django.contrib import messages
 from django.db.models import Q
 from django.urls import reverse
 from django.views.generic import (
@@ -17,6 +18,7 @@ from django.views.generic import (
     UpdateView,
 )
 
+from core.forms import ModuleForm
 from core.mixins import NextUrlMixin, QuerySetMixin
 from core.models import Module
 from core.services.assembly_tree import build_module_tree
@@ -65,7 +67,6 @@ class ModuleListView(QuerySetMixin, ListView):
                     args=[module.pk],
                 )
                 + f"?next={self.request.get_full_path()}",
-                "delete_url": reverse("module_delete", args=[module.pk]),
                 "delete_confirm_message": f"Удалить модуль {module.name}?",
             }
             for module in modules
@@ -83,13 +84,47 @@ class ModuleListView(QuerySetMixin, ListView):
 class ModuleCreateView(NextUrlMixin, CreateView):
     """Handles creation of a new module."""
 
-    pass  # noqa: PIE790
+    model = Module
+    form_class = ModuleForm
+    template_name = "core/modules/edit.html"
+    default_redirect_url_name = MODULE_LIST_URL
+
+    def get_context_data(self, **kwargs: dict[str, object]) -> dict[str, Any]:
+        """Add context metadata for creating a module."""
+        context = super().get_context_data(**kwargs)
+        context.update({
+            "title": "Добавить модуль",
+            "submit_label": "Создать",
+        })
+        return context
+
+    def form_valid(self, form: ModuleForm) -> object:
+        """Show success message on creation."""
+        messages.info(self.request, "Успешно добавлено")
+        return super().form_valid(form)
 
 
 class ModuleUpdateView(NextUrlMixin, UpdateView):
-    """Handles editing an existing module."""
+    """Handles editing of an existing module."""
 
-    pass  # noqa: PIE790
+    model = Module
+    form_class = ModuleForm
+    template_name = "core/modules/edit.html"
+    default_redirect_url_name = MODULE_LIST_URL
+
+    def get_context_data(self, **kwargs: dict[str, object]) -> dict[str, Any]:
+        """Add context metadata for editing a module."""
+        context = super().get_context_data(**kwargs)
+        context.update({
+            "title": "Редактировать модуль",
+            "submit_label": "Сохранить",
+        })
+        return context
+
+    def form_valid(self, form: ModuleForm) -> object:
+        """Show success message on update."""
+        messages.info(self.request, "Успешно изменено")
+        return super().form_valid(form)
 
 
 class ModuleDetailView(DetailView):
@@ -140,7 +175,6 @@ class ModuleDetailView(DetailView):
             else None
         )
         module_tree = build_module_tree(module)
-        print(module_tree)
         context.update(
             {
                 "title": "Модуль",
@@ -155,7 +189,6 @@ class ModuleDetailView(DetailView):
                     args=[module.pk],
                 )
                 + f"?next={self.request.get_full_path()}",
-                "delete_url": reverse("module_delete", args=[module.pk]),
                 "add_label": "Добавить новый модуль",
                 "user_roles": list(
                     self.request.user.roles.values_list("role__name", flat=True),
