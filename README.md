@@ -2,16 +2,17 @@
 
 **AssemCloud** is a web application for managing industrial machine and module assemblies, storing blueprints and STEP models, automatically generating assembly trees, assigning tasks, and organizing work via Email and Telegram.
 
----
+---   
+![screen_demo](https://github.com/user-attachments/assets/dc1aefeb-e39e-4a59-9e97-1f3ab23cbe3e)
 
 ## Description
 
 AssemCloud enables you to:
 
-- Store and organize PDF blueprints and 3D STEP models of modules, assemblies, and parts.  
-- Automatically generate an **assembly tree** for products based on uploaded STEP files.  
-- Manage **Machines**, **Modules**, **Module Sets**, and **Parts** through a user-friendly admin interface.  
-- Create and assign **Tasks** to users, track their status and progress.  
+- Store and organize PDF blueprints and 3D STEP models of modules, assemblies, and parts.
+- Automatically generate an **assembly tree** for products based on uploaded STEP files.
+- Manage **Machines**, **Modules**, **Module Sets**, and **Parts** through a user-friendly admin interface.
+- Create and assign **Tasks** to users, track their status and progress.
 - Control access and permissions through configurable **Roles** (e.g., Admin, Engineer, Collaborator).  
 - Send **Notifications** via Email and Telegram bot when tasks are created or updated.  
 - Import data files via web forms to quickly onboard new machines or components.
