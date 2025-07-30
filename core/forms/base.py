@@ -1,4 +1,4 @@
-"""Module defining BaseStyledForm as a base class for styled model forms."""
+"""BaseStyledForm: base class for styled model forms with placeholders."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ class BaseStyledForm(forms.ModelForm):
     select2_fields: ClassVar[dict[str, tuple[object, object]]] = {}
 
     def __init__(self, *args: object, **kwargs: object) -> None:
-        """Initialize form: placeholders, CSS, select2, queryset."""
+        """Initialize form and set placeholders, CSS, Select2 widgets, and querysets."""
         super().__init__(*args, **kwargs)
 
         self._set_placeholders()
@@ -54,8 +54,7 @@ class BaseStyledForm(forms.ModelForm):
                 value = getattr(self.instance, field_name, None)
                 if value:
                     self.fields[field_name].queryset = self._get_queryset_for_value(
-                        model_cls,
-                        value,
+                        model_cls, value
                     )
 
     def _get_queryset_for_value(self, model_cls: object, value: object) -> object:
