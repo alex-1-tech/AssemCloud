@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>{{ title }}</h1>
+            <div class="subtitle">{{ subtitle }}</div>
+        </div>
+        
+        <div class="content">
+            {% for category in field_categories %}
+                <div class="category">
+                    <div class="category-title">{{ category.name }}</div>
+                    <div class="row">
+                        {% for field in category.fields %}
+                            <div class="field">
+                                <span class="field-label">{{ field.0 }}:</span>
+                                <span>{{ field.1|default:"—" }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}
+            
+            {% if converters %}
+                <div class="converters-section">
+                    <div class="category-title">Преобразователи</div>
+                    <table class="converters-table">
+                        <thead>
+                            <tr>
+                                <th>Тип</th>
+                                <th>СН</th>
+                                <th>Частота</th>
+                                <th>Дата</th>
+                                <th>Разъём</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for converter in converters %}
+                                <tr>
+                                    <td>{{ converter.get_type_display|truncatechars:15 }}</td>
+                                    <td>{{ converter.serial|truncatechars:8 }}</td>
+                                    <td>{{ converter.frequency }}</td>
+                                    <td>{{ converter.release_date|date:"d.m.Y" }}</td>
+                                    <td>{{ converter.get_connector_type_display|truncatechars:25 }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="footer">
+            <div>Создано: {{ machine.created_at|date:"d.m.Y H:i" }}</div>
+            <div>Изменено: {{ machine.updated_at|date:"d.m.Y H:i" }}</div>
+        </div>
+    </div>
+</body>
+</html>

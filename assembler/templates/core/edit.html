@@ -1,0 +1,297 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h3 class="card-title text-center mb-4">{{ title }}</h3>
+      <form method="post">
+        {% csrf_token %}
+
+        {# -- Management form основной формы -- #}
+        {% if form.management_form %}
+          {{ form.management_form }}
+        {% endif %}
+
+        {# -- Management form formset -- #}
+        {{ converters.management_form }}
+
+        <input type="hidden" name="next" value="{{ next }}">
+
+        {# === Секции полей машины === #}
+        <h5 class="mt-4">Основная информация</h5>
+        <div class="row gx-3 mb-4">
+          <div class="col-md-6">
+            <label for="{{ form.serial_number.id_for_label }}" class="form-label">Серийный номер</label>
+            {{ form.serial_number }}
+            {% if form.serial_number.errors %}<div class="text-danger small">{{ form.serial_number.errors }}</div>{% endif %}
+          </div>
+          <div class="col-md-6">
+            <label for="{{ form.software.id_for_label }}" class="form-label">ПО</label>
+            {{ form.software }}
+            {% if form.software.errors %}<div class="text-danger small">{{ form.software.errors }}</div>{% endif %}
+          </div>
+          <div class="col-md-3 mt-3">
+            <label for="{{ form.software_version.id_for_label }}" class="form-label">Версия ПО</label>
+            {{ form.software_version }}
+            {% if form.software_version.errors %}<div class="text-danger small">{{ form.software_version.errors }}</div>{% endif %}
+          </div>
+        </div>
+
+        <h5>Зарядка и питание</h5>
+        <div class="row gx-3 mb-4">
+          <div class="col-md-4">
+            <label for="{{ form.tablet_charger_voltage.id_for_label }}" class="form-label">Зарядка планшета</label>
+            {{ form.tablet_charger_voltage }}
+            {% if form.tablet_charger_voltage.errors %}<div class="text-danger small">{{ form.tablet_charger_voltage.errors }}</div>{% endif %}
+          </div>
+          <div class="col-md-4">
+            <label for="{{ form.charger_model.id_for_label }}" class="form-label">Модель ЗУ</label>
+            {{ form.charger_model }}
+            {% if form.charger_model.errors %}<div class="text-danger small">{{ form.charger_model.errors }}</div>{% endif %}
+          </div>
+          <div class="col-md-2">
+            <label for="{{ form.charger_voltage.id_for_label }}" class="form-label">Напряжение</label>
+            {{ form.charger_voltage }}
+            {% if form.charger_voltage.errors %}<div class="text-danger small">{{ form.charger_voltage.errors }}</div>{% endif %}
+          </div>
+          <div class="col-md-2">
+            <label for="{{ form.charger_current.id_for_label }}" class="form-label">Ток</label>
+            {{ form.charger_current }}
+            {% if form.charger_current.errors %}<div class="text-danger small">{{ form.charger_current.errors }}</div>{% endif %}
+          </div>
+          <div class="col-12 mt-3">
+            <label for="{{ form.power_adapter.id_for_label }}" class="form-label">Адаптер питания</label>
+            {{ form.power_adapter }}
+            {% if form.power_adapter.errors %}<div class="text-danger small">{{ form.power_adapter.errors }}</div>{% endif %}
+          </div>
+        </div>
+
+        <h5>Аккумулятор</h5>
+        <div class="row gx-3 mb-4">
+          <div class="col-md-3">
+            <label for="{{ form.battery_voltage.id_for_label }}" class="form-label">Напряжение</label>
+            {{ form.battery_voltage }}
+            {% if form.battery_voltage.errors %}<div class="text-danger small">{{ form.battery_voltage.errors }}</div>{% endif %}
+          </div>
+          <div class="col-md-3">
+            <label for="{{ form.battery_capacity.id_for_label }}" class="form-label">Ёмкость</label>
+            {{ form.battery_capacity }}
+            {% if form.battery_capacity.errors %}<div class="text-danger small">{{ form.battery_capacity.errors }}</div>{% endif %}
+          </div>
+          <div class="col-md-6">
+            <label for="{{ form.battery_serial.id_for_label }}" class="form-label">Серийный номер</label>
+            {{ form.battery_serial }}
+            {% if form.battery_serial.errors %}<div class="text-danger small">{{ form.battery_serial.errors }}</div>{% endif %}
+          </div>
+        </div>
+
+        <h5>УЗК и драйверы</h5>
+        <div class="row gx-3 mb-4">
+          <div class="col-md-4">
+            <label for="{{ form.uzk_type.id_for_label }}" class="form-label">Тип УЗК</label>
+            {{ form.uzk_type }}
+            {% if form.uzk_type.errors %}<div class="text-danger small">{{ form.uzk_type.errors }}</div>{% endif %}
+          </div>
+          <div class="col-md-4">
+            <label for="{{ form.uzk_serial.id_for_label }}" class="form-label">Серийный номер УЗК</label>
+            {{ form.uzk_serial }}
+            {% if form.uzk_serial.errors %}<div class="text-danger small">{{ form.uzk_serial.errors }}</div>{% endif %}
+          </div>
+          <div class="col-md-4">
+            <label for="{{ form.uzk_manufacturer.id_for_label }}" class="form-label">Производитель</label>
+            {{ form.uzk_manufacturer }}
+            {% if form.uzk_manufacturer.errors %}<div class="text-danger small">{{ form.uzk_manufacturer.errors }}</div>{% endif %}
+          </div>
+          <div class="col-md-4 mt-3">
+            <label for="{{ form.driver_type.id_for_label }}" class="form-label">Тип драйвера</label>
+            {{ form.driver_type }}
+            {% if form.driver_type.errors %}<div class="text-danger small">{{ form.driver_type.errors }}</div>{% endif %}
+          </div>
+          <div class="col-md-4 mt-3">
+            <label for="{{ form.driver_serial.id_for_label }}" class="form-label">Серийный номер драйвера</label>
+            {{ form.driver_serial }}
+            {% if form.driver_serial.errors %}<div class="text-danger small">{{ form.driver_serial.errors }}</div>{% endif %}
+          </div>
+          <div class="col-md-4 mt-3">
+            <label for="{{ form.soc_serial.id_for_label }}" class="form-label">Серийный номер SOC</label>
+            {{ form.soc_serial }}
+            {% if form.soc_serial.errors %}<div class="text-danger small">{{ form.soc_serial.errors }}</div>{% endif %}
+          </div>
+        </div>
+
+        <h5>Кабели и шасси</h5>
+        <div class="row gx-3 mb-4">
+          <div class="col-md-4">
+            <label for="{{ form.cable_tip.id_for_label }}" class="form-label">Тип наконечника</label>
+            {{ form.cable_tip }}
+            {% if form.cable_tip.errors %}<div class="text-danger small">{{ form.cable_tip.errors }}</div>{% endif %}
+          </div>
+          <div class="col-md-4">
+            <label for="{{ form.chassis_type.id_for_label }}" class="form-label">Тип рамы</label>
+            {{ form.chassis_type }}
+            {% if form.chassis_type.errors %}<div class="text-danger small">{{ form.chassis_type.errors }}</div>{% endif %}
+          </div>
+          <div class="col-md-4">
+            <label for="{{ form.rsp_version.id_for_label }}" class="form-label">Версия РСП</label>
+            {{ form.rsp_version }}
+            {% if form.rsp_version.errors %}<div class="text-danger small">{{ form.rsp_version.errors }}</div>{% endif %}
+          </div>
+        </div>
+
+        <h5>Сканер</h5>
+        <div class="row gx-3 mb-4">
+          <div class="col-md-6">
+            <label for="{{ form.scanner_type.id_for_label }}" class="form-label">Тип сканера</label>
+            {{ form.scanner_type }}
+            {% if form.scanner_type.errors %}<div class="text-danger small">{{ form.scanner_type.errors }}</div>{% endif %}
+          </div>
+          <div class="col-md-6">
+            <label for="{{ form.scanner_version.id_for_label }}" class="form-label">Версия сканера</label>
+            {{ form.scanner_version }}
+            {% if form.scanner_version.errors %}<div class="text-danger small">{{ form.scanner_version.errors }}</div>{% endif %}
+          </div>
+        </div>
+
+        <h5>Планшет</h5>
+        <div class="row gx-3 mb-4">
+          <div class="col-md-4">
+            <label for="{{ form.tablet_brand.id_for_label }}" class="form-label">Фирма</label>
+            {{ form.tablet_brand }}
+            {% if form.tablet_brand.errors %}<div class="text-danger small">{{ form.tablet_brand.errors }}</div>{% endif %}
+          </div>
+          <div class="col-md-4">
+            <label for="{{ form.tablet_model.id_for_label }}" class="form-label">Модель</label>
+            {{ form.tablet_model }}
+            {% if form.tablet_model.errors %}<div class="text-danger small">{{ form.tablet_model.errors }}</div>{% endif %}
+          </div>
+          <div class="col-md-4">
+            <label for="{{ form.tablet_serial.id_for_label }}" class="form-label">Серийный номер</label>
+            {{ form.tablet_serial }}
+            {% if form.tablet_serial.errors %}<div class="text-danger small">{{ form.tablet_serial.errors }}</div>{% endif %}
+          </div>
+          <div class="col-md-4 mt-3">
+            <label for="{{ form.tablet_os.id_for_label }}" class="form-label">ОС</label>
+            {{ form.tablet_os }}
+            {% if form.tablet_os.errors %}<div class="text-danger small">{{ form.tablet_os.errors }}</div>{% endif %}
+          </div>
+          <div class="col-md-4 mt-3">
+            <label for="{{ form.tablet_driver1.id_for_label }}" class="form-label">DRIVER1</label>
+            {{ form.tablet_driver1 }}
+            {% if form.tablet_driver1.errors %}<div class="text-danger small">{{ form.tablet_driver1.errors }}</div>{% endif %}
+          </div>
+          <div class="col-md-4 mt-3">
+            <label for="{{ form.tablet_driver1_version.id_for_label }}" class="form-label">Версия DRIVER1</label>
+            {{ form.tablet_driver1_version }}
+            {% if form.tablet_driver1_version.errors %}<div class="text-danger small">{{ form.tablet_driver1_version.errors }}</div>{% endif %}
+          </div>
+          <div class="col-md-4 mt-3">
+            <label for="{{ form.tablet_driver2.id_for_label }}" class="form-label">DRIVER2</label>
+            {{ form.tablet_driver2 }}
+            {% if form.tablet_driver2.errors %}<div class="text-danger small">{{ form.tablet_driver2.errors }}</div>{% endif %}
+          </div>
+          <div class="col-md-4 mt-3">
+            <label for="{{ form.tablet_driver2_version.id_for_label }}" class="form-label">Версия DRIVER2</label>
+            {{ form.tablet_driver2_version }}
+            {% if form.tablet_driver2_version.errors %}<div class="text-danger small">{{ form.tablet_driver2_version.errors }}</div>{% endif %}
+          </div>
+        </div>
+
+        <hr>
+
+        <h5>Преобразователи</h5>
+        <div id="converters">
+          {% for cf in converters %}
+            <div class="card mb-3 p-3 position-relative converter-card">
+              {# Скрытое поле для управления удалением #}
+              <input type="hidden" 
+                     name="{{ cf.DELETE.html_name }}" 
+                     id="{{ cf.DELETE.id_for_label }}"
+                     value="{% if cf.DELETE.value %}on{% endif %}">
+              
+              <button type="button" 
+                      class="btn btn-danger btn-sm position-absolute top-0 end-0 remove-converter"
+                      aria-label="Удалить преобразователь">
+                Удалить
+              </button>
+
+              {# Отображаем только нужные поля, исключая DELETE #}
+              {% for f in cf.visible_fields %}
+                {% if f.name != "DELETE" %}
+                  <div class="mb-2">
+                    <label for="{{ f.id_for_label }}" class="form-label">{{ f.label }}</label>
+                    {{ f }}
+                    {% if f.errors %}<div class="text-danger small">{{ f.errors }}</div>{% endif %}
+                  </div>
+                {% endif %}
+              {% endfor %}
+            </div>
+          {% endfor %}
+        </div>
+        <button type="button" id="add-converter" class="btn btn-outline-secondary mb-4">Добавить преобразователь</button>
+
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <div class="d-grid">
+          <button type="submit" class="btn btn-primary">{{ submit_label|default:"Сохранить" }}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const container = document.getElementById('converters');
+  const totalForms = document.querySelector('[name="converters-TOTAL_FORMS"]');
+  const addBtn = document.getElementById('add-converter');
+
+  // Проверяем, есть ли хотя бы один элемент для клонирования
+  const templateCard = container.querySelector('.converter-card');
+  if (!templateCard) return;
+
+  addBtn.addEventListener('click', function() {
+    const count = parseInt(totalForms.value, 10);
+    const newCard = templateCard.cloneNode(true);
+
+    // Обновляем индексы в полях новой карточки
+    newCard.querySelectorAll('input, select, label').forEach(el => {
+      ['name', 'id', 'for'].forEach(attr => {
+        if (el.hasAttribute(attr)) {
+          const value = el.getAttribute(attr);
+          el.setAttribute(attr, value.replace(/-\d+-/, `-${count}-`));
+        }
+      });
+
+      // Сбрасываем значения полей
+      if (el.tagName === 'INPUT' || el.tagName === 'SELECT') {
+        if (el.type === 'checkbox' || el.type === 'radio') {
+          el.checked = false;
+        } else if (el.type !== 'hidden') {
+          el.value = '';
+        } else if (el.name.endsWith('-DELETE')) {
+          el.value = ''; // Сбрасываем флаг удаления
+        }
+      }
+    });
+
+    totalForms.value = count + 1;
+    container.appendChild(newCard);
+  });
+
+  container.addEventListener('click', function(e) {
+    if (e.target.classList.contains('remove-converter')) {
+      const card = e.target.closest('.converter-card');
+      const delInput = card.querySelector('input[type="hidden"][name$="-DELETE"]');
+      if (delInput) {
+        delInput.value = 'on'; // Помечаем на удаление
+      }
+      card.style.display = 'none';
+    }
+  });
+});
+</script>
+{% endblock %}
