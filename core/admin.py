@@ -1,4 +1,5 @@
 """Admin configuration for Kalmar32 equipment."""
+
 from django.contrib import admin
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
@@ -88,11 +89,7 @@ class Kalmar32Admin(admin.ModelAdmin):
         (
             _("Дополнительные компоненты"),
             {
-                "fields": (
-                    "manual_inclined",
-                    "straight",
-                    "photo_video_url"
-                ),
+                "fields": ("manual_inclined", "straight", "photo_video_url"),
             },
         ),
         (
@@ -118,4 +115,3 @@ class Kalmar32Admin(admin.ModelAdmin):
                 obj.photo_url,
             )
         return "-"
-

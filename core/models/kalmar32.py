@@ -2,6 +2,7 @@
 
 Includes registration, certification, components, and validation logic.
 """
+
 from datetime import date
 from typing import ClassVar
 
@@ -89,9 +90,9 @@ class Kalmar32(models.Model):
     )
     flash_drive = models.CharField(
         _("Флеш-накопитель с ПО"),
-        max_length=50,
+        max_length=150,
         blank=True,
-        validators=[MaxLengthValidator(50)],
+        validators=[MaxLengthValidator(150)],
         help_text=_("Наличие флеш-накопителя с ПО 'Кальмар 32+'"),
     )
     co3r_measure = models.CharField(
@@ -199,7 +200,6 @@ class Kalmar32(models.Model):
         help_text=_("URL фото оборудования"),
     )
 
-
     class Meta:
         """Meta options for Kalmar32 model."""
 
@@ -237,6 +237,6 @@ class Kalmar32(models.Model):
     def _validate_calibration_dates(self) -> None:
         """Validate consistency of calibration and shipment dates."""
         if self.calibration_date and self.calibration_date > timezone.now().date():
-                raise ValidationError(
-                    _("Дата калибровки не может быть в будущем"),
-                )
+            raise ValidationError(
+                _("Дата калибровки не может быть в будущем"),
+            )

@@ -17,7 +17,7 @@ def validate_serial_number_format(value: str) -> None:
 
 def validate_weight_positive(value: float) -> None:
     """Validate of a positive weight."""
-    if value <= 0:
+    if value < 0:
         raise ValidationError(
             _("Вес должен быть положительным числом"),
         )
