@@ -1,5 +1,6 @@
 """Views package exports for core application."""
 
+from core.views.kalmar32 import Kalmar32CreateView
 from core.views.machine import (
     MachineCreateView,
     MachineDeleteView,
@@ -9,8 +10,10 @@ from core.views.machine import (
     MachinePDFView,
     MachineUpdateView,
 )
+from core.views.report import ReportCreateView, ReportFileUploadView
 
 __all__ = [
+    "Kalmar32CreateView",
     "MachineCreateView",
     "MachineDeleteView",
     "MachineDetailView",
@@ -18,4 +21,6 @@ __all__ = [
     "MachineListView",
     "MachinePDFView",
     "MachineUpdateView",
+    "ReportCreateView",
+    "ReportFileUploadView",
 ]

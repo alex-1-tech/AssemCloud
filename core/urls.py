@@ -27,7 +27,23 @@ urlpatterns = [
         name="machines_delete",
     ),
 ]
-
+urlpatterns += [
+    path(
+        "api/kalmar32/",
+        views.Kalmar32CreateView.as_view(),
+        name="kalmar32-create",
+    ),
+    path(
+        "api/report/",
+        views.ReportCreateView.as_view(),
+        name="report-create",
+    ),
+    path(
+        "api/report/<str:report_identifier>/<str:file_type>/",
+        views.ReportFileUploadView.as_view(),
+        name="report-upload-file",
+    ),
+]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
