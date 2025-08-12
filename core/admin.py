@@ -4,7 +4,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 
-from .models import Kalmar32
+from .models import Kalmar32, Report
 
 
 @admin.register(Kalmar32)
@@ -113,5 +113,76 @@ class Kalmar32Admin(admin.ModelAdmin):
                 '<a href="{}" target="_blank"><img src="{}" width="50" height="50" style="object-fit: cover;"/></a>',  # noqa: E501
                 obj.photo_url,
                 obj.photo_url,
+            )
+        return "-"
+
+
+@admin.register(Report)
+class ReportAdmin(admin.ModelAdmin):
+    """Admin interface for managing Kalmar32 reports."""
+
+    list_display = (
+        "report_date",
+        "kalmar",
+        "number_to",
+        "download_pdf",
+        "download_json",
+    )
+    list_filter = ("report_date",)
+    search_fields = (
+        "kalmar__serial_number",
+        "kalmar__case_number",
+    )
+    date_hierarchy = "report_date"
+    ordering = ("-report_date",)
+
+    fieldsets = (
+        (
+            _("Общие сведения"),
+            {
+                "fields": (
+                    "kalmar",
+                    "report_date",
+                    "number_to",
+                ),
+            },
+        ),
+        (
+            _("Файлы отчета"),
+            {
+                "fields": (
+                    "json_report",
+                    "pdf_report",
+                ),
+            },
+        ),
+        (
+            _("Записи рельсов"),
+            {
+                "fields": (
+                    "rail_record_before",
+                    "rail_record_after",
+                ),
+            },
+        ),
+    )
+
+    @admin.display(description=_("Скачать PDF"))
+    def download_pdf(self, obj: Report) -> str:
+        """Provide a download link for the PDF report."""
+        if obj.pdf_report:
+            return format_html(
+                '<a href="{}" target="_blank">📄 PDF</a>',
+                obj.pdf_report.url,
+            )
+        return "-"
+
+    @admin.display(description=_("Скачать JSON"))
+    def download_json(self, obj: Report) -> str:
+        """Provide a download link for the JSON report."""
+        if obj.json_report:
+            return format_html(
+                '<a href="{}" target="_blank">🗂 JSON</a>',
+                obj.json_report.url,
             )
         return "-"
