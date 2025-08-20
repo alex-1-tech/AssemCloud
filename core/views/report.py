@@ -1,6 +1,7 @@
 """API views for Kalmar32 report management.
 
-This module provides direct file processing for Report model without using DRF serializers.
+This module provides direct file processing
+for Report model without using DRF serializers.
 Handles report creation (metadata) and file uploads in separate steps.
 and uses kalmar.serial_number as an additional unique key when locating reports.
 """

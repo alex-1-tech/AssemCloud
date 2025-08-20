@@ -121,6 +121,12 @@ class Report(models.Model):
         indexes: ClassVar[list] = [
             models.Index(fields=["report_date"]),
         ]
+        constraints: ClassVar[list] = [
+            models.UniqueConstraint(
+                fields=["kalmar", "report_date", "number_to"],
+                name="unique_report_per_kalmar_by_date",
+            )
+        ]
 
     def __str__(self) -> str:
         """Representate string of the report."""
@@ -138,6 +144,7 @@ class Report(models.Model):
         """Additional model validation."""
         super().clean()
         self._validate_dates()
+        self._validate_unique_constraint()
 
     def _validate_dates(self) -> None:
         """Ensure dates are valid."""
@@ -146,6 +153,18 @@ class Report(models.Model):
         if self.report_date > now.date():
             raise ValidationError(_("Дата отчета не может быть в будущем"))
 
+    def _validate_unique_constraint(self) -> None:
+        """Validate unique constraint for the three fields."""
+        if Report.objects.filter(
+            kalmar=self.kalmar,
+            report_date=self.report_date,
+            number_to=self.number_to,
+        ).exclude(pk=self.pk).exists():
+            msg = "Отчет с таким серийником, датой \
+                и номером проведения ТО уже существует"
+            raise ValidationError(
+                _(msg)
+            )
     @property
     def file_structure(self) -> str:
         """Return the expected file storage structure."""
