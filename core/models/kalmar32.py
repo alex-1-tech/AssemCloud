@@ -15,8 +15,6 @@ from django.utils.translation import gettext_lazy as _
 
 from core.validators import validate_serial_number_format, validate_weight_positive
 
-CALIBRATION_EXPIRE_DAYS: ClassVar[int] = 365
-
 
 class Kalmar32(models.Model):
     """Kalmar32 model with full equipment specification.
@@ -50,9 +48,9 @@ class Kalmar32(models.Model):
     )
     case_number = models.CharField(
         _("Номер кейса"),
-        max_length=50,
+        max_length=150,
         blank=True,
-        validators=[MaxLengthValidator(50)],
+        validators=[MaxLengthValidator(150)],
         help_text=_("Номер кейса для хранения оборудования"),
     )
 
