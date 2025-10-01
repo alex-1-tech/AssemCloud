@@ -216,7 +216,7 @@ class Kalmar32(models.Model):
 
     def __str__(self) -> str:
         """Return string representation of the object."""
-        return f"{self.serial_number} ({self.shipment_date})"
+        return f"s/n: {self.serial_number}"
 
     def save(self, *args: object, **kwargs: object) -> None:
         """Override save with additional processing."""

@@ -231,3 +231,53 @@ class Kalmar32CreateView(View):
         msg = f"Validation error: {message!s}"
         logger.exception(msg)
         return JsonResponse(response_data, status=status)
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class Kalmar32GetReportsView(View):
+    """View for retrieving Kalmar32 reports grouped by TO type.
+
+    Returns JSON response with report dates grouped by TO type:
+    {"TO-1": [date1, date2], "TO-2": [date3], "TO-3": []}
+    """
+
+    http_method_names: ClassVar[list[str]] = ["get"]
+
+    def get(self, request: HttpRequest, pk: str) -> JsonResponse:  # noqa: ARG002
+        """Get reports for specific Kalmar32 equipment grouped by TO type."""
+        try:
+            kalmar = Kalmar32.objects.get(serial_number=pk)
+            reports = kalmar.reports.all()
+
+            result = {"TO-1": [], "TO-2": [], "TO-3": []}
+
+            for report in reports:
+                to_type = report.number_to
+                if to_type in result:
+                    is_json = bool(report.json_report) and report.json_report.name != ""
+                    is_pdf = bool(report.pdf_report) and report.pdf_report.name != ""
+                    date = report.report_date.isoformat()
+                    result[to_type].append(
+                        {"date": date, "json": is_json, "pdf": is_pdf}
+                    )
+
+            return JsonResponse(result, status=200)
+
+        except Kalmar32.DoesNotExist:
+            return self._build_error_response("Kalmar32 not found", status=404)
+        except (ValueError, AttributeError, TypeError) as e:
+            return self._build_error_response(
+                "Data processing error", status=500, detail=str(e)
+            )
+
+    def _build_error_response(
+        self, message: str, status: int = 400, detail: str = ""
+    ) -> JsonResponse:
+        """Build error response."""
+        response_data = {
+            "error": message,
+            "status": "error",
+            "detail": detail,
+        }
+        logger.error("Error: %s, Detail: %s", message, detail)
+        return JsonResponse(response_data, status=status)

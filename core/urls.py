@@ -34,6 +34,11 @@ urlpatterns += [
         name="kalmar32-create",
     ),
     path(
+        "api/kalmar32/<str:pk>/get_reports",
+        views.Kalmar32GetReportsView.as_view(),
+        name="kalmar32-get-reports",
+    ),
+    path(
         "api/report/",
         views.ReportCreateView.as_view(),
         name="report-create",
