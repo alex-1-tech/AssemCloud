@@ -80,9 +80,9 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
         "NAME": "assembler_db",
-        "USER": "alex",
+        "USER":  config("USER"),
         "PASSWORD": config("PASSWORD"),
-        "HOST": "localhost",
+        "HOST":  config("HOST"),
         "PORT": "3306",
     },
 }

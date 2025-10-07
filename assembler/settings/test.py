@@ -6,9 +6,9 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
         "NAME": "test_assembler_db",
-        "USER": "alex",
+        "USER":  config("USER"),  # noqa: F405
         "PASSWORD": config("PASSWORD"),  # noqa: F405
-        "HOST": "localhost",
+        "HOST":  config("HOST"),  # noqa: F405
         "PORT": "3306",
     },
 }

@@ -21,6 +21,41 @@ from core.models import Kalmar32
 logger = logging.getLogger(__name__)
 
 
+def build_kalmar32_response_data(
+    kalmar32: Kalmar32, status_message: str
+) -> dict[str, Any]:
+    """Build standardized response data for Kalmar32 objects."""
+    return {
+        "id": kalmar32.id,
+        "serial_number": kalmar32.serial_number,
+        "shipment_date": kalmar32.shipment_date.isoformat(),
+        "case_number": kalmar32.case_number,
+        "first_phased_array_converters": kalmar32.first_phased_array_converters,
+        "second_phased_array_converters": kalmar32.second_phased_array_converters,
+        "battery_case": kalmar32.battery_case,
+        "aos_block": kalmar32.aos_block,
+        "flash_drive": kalmar32.flash_drive,
+        "co3r_measure": kalmar32.co3r_measure,
+        "calibration_certificate": kalmar32.calibration_certificate,
+        "calibration_date": kalmar32.calibration_date.isoformat()
+        if kalmar32.calibration_date
+        else None,
+        "has_tablet_screws": kalmar32.has_tablet_screws,
+        "has_ethernet_cable": kalmar32.has_ethernet_cable,
+        "battery_charger": kalmar32.battery_charger,
+        "tablet_charger": kalmar32.tablet_charger,
+        "has_tool_kit": kalmar32.has_tool_kit,
+        "software_check": kalmar32.software_check,
+        "photo_video_url": kalmar32.photo_video_url,
+        "weight": kalmar32.weight,
+        "notes": kalmar32.notes,
+        "manual_inclined": kalmar32.manual_inclined,
+        "straight": kalmar32.straight,
+        "photo_url": kalmar32.photo_url,
+        "status": status_message,
+    }
+
+
 @method_decorator(csrf_exempt, name="dispatch")
 class Kalmar32CreateView(View):
     """View for creating Kalmar32 equipment records via JSON API.
@@ -177,37 +212,9 @@ class Kalmar32CreateView(View):
         return JsonResponse(response_data, status=201)
 
     def _build_success_response(self, kalmar32: Kalmar32) -> JsonResponse:
-        """Build success response with all fields."""
-        response_data = {
-            "id": kalmar32.id,
-            "serial_number": kalmar32.serial_number,
-            "shipment_date": kalmar32.shipment_date.isoformat(),
-            "case_number": kalmar32.case_number,
-            "first_phased_array_converters": kalmar32.first_phased_array_converters,
-            "second_phased_array_converters": kalmar32.second_phased_array_converters,
-            "battery_case": kalmar32.battery_case,
-            "aos_block": kalmar32.aos_block,
-            "flash_drive": kalmar32.flash_drive,
-            "co3r_measure": kalmar32.co3r_measure,
-            "calibration_certificate": kalmar32.calibration_certificate,
-            "calibration_date": kalmar32.calibration_date.isoformat()
-            if kalmar32.calibration_date
-            else None,
-            "has_tablet_screws": kalmar32.has_tablet_screws,
-            "has_ethernet_cable": kalmar32.has_ethernet_cable,
-            "battery_charger": kalmar32.battery_charger,
-            "tablet_charger": kalmar32.tablet_charger,
-            "has_tool_kit": kalmar32.has_tool_kit,
-            "software_check": kalmar32.software_check,
-            "photo_video_url": kalmar32.photo_video_url,
-            "weight": kalmar32.weight,
-            "notes": kalmar32.notes,
-            "manual_inclined": kalmar32.manual_inclined,
-            "straight": kalmar32.straight,
-            "photo_url": kalmar32.photo_url,
-            "status": "created",
-        }
+        response_data = build_kalmar32_response_data(kalmar32, "created")
         return JsonResponse(response_data, status=201)
+
 
     def _build_error_response(
         self, message: str, status: int = 400, detail: str = ""
@@ -269,6 +276,61 @@ class Kalmar32GetReportsView(View):
             return self._build_error_response(
                 "Data processing error", status=500, detail=str(e)
             )
+
+    def _build_error_response(
+        self, message: str, status: int = 400, detail: str = ""
+    ) -> JsonResponse:
+        """Build error response."""
+        response_data = {
+            "error": message,
+            "status": "error",
+            "detail": detail,
+        }
+        logger.error("Error: %s, Detail: %s", message, detail)
+        return JsonResponse(response_data, status=status)
+
+
+class Kalmar32RetrieveView(View):
+    """View for retrieving Kalmar32 equipment records via JSON API.
+
+    Handles GET requests to retrieve equipment data by serial number.
+    Returns complete equipment data in JSON format.
+    """
+
+    http_method_names: ClassVar[list[str]] = ["get"]
+
+    def get(
+        self,
+        request: HttpRequest,  # noqa: ARG002
+        pk: str,
+    ) -> JsonResponse:
+        """Retrieve a Kalmar32 equipment record by serial number."""
+        try:
+            kalmar32 = self._get_kalmar32(pk)
+            return self._build_success_response(kalmar32)
+        except Kalmar32.DoesNotExist:
+            return self._build_error_response("Equipment not found", status=404)
+        except Exception as e:  # noqa: BLE001
+            return self._build_error_response(
+                "Internal server error", status=500, detail=str(e)
+            )
+
+    def _get_kalmar32(self, serial_number: str) -> Kalmar32:
+        """Retrieve Kalmar32 instance by serial number."""
+        try:
+            return Kalmar32.objects.get(serial_number=serial_number)
+        except Kalmar32.DoesNotExist:
+            msg = f"Equipment with serial number {serial_number} not found"
+            logger.exception(msg)
+            raise
+        except Exception as e:
+            msg = f"Database error: {e}"
+            logger.exception(msg)
+            raise
+
+    def _build_success_response(self, kalmar32: Kalmar32) -> JsonResponse:
+        response_data = build_kalmar32_response_data(kalmar32, "retrieved")
+        return JsonResponse(response_data, status=200)
 
     def _build_error_response(
         self, message: str, status: int = 400, detail: str = ""
