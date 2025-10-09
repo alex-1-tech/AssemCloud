@@ -25,7 +25,7 @@ SECRET_KEY = config("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config("DEBUG", default=False, cast=bool)
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "votum.asuscomm.com", "37.203.240.41"]
 
 CSRF_TRUSTED_ORIGINS = []  # ["https://2965-178-236-244-154.ngrok-free.app"]
 
