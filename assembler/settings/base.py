@@ -25,7 +25,15 @@ SECRET_KEY = config("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config("DEBUG", default=False, cast=bool)
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "votum.asuscomm.com", "37.203.240.41"]
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    "votum.asuscomm.com",
+    "37.203.240.41",
+    ".votum.asuscomm.com",
+    "votum.asuscomm.com:32222",
+    "37.203.240.41:32222",
+]
 
 CSRF_TRUSTED_ORIGINS = []  # ["https://2965-178-236-244-154.ngrok-free.app"]
 
@@ -78,9 +86,9 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
         "NAME": "assembler_db",
-        "USER":  config("USER"),
+        "USER": config("USER"),
         "PASSWORD": config("PASSWORD"),
-        "HOST":  config("HOST"),
+        "HOST": config("HOST"),
         "PORT": "3306",
     },
 }

@@ -1,33 +1,23 @@
 """Kalmar32 model for equipment specification and management.
 
-Includes registration, certification, components, and validation logic.
+Includes registration, components, and validation logic.
 """
 
 from datetime import date
 from typing import ClassVar
 
 from django.core.exceptions import ValidationError
-from django.core.validators import MaxLengthValidator, MinLengthValidator, URLValidator
+from django.core.validators import MaxLengthValidator, MinLengthValidator
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from core.validators import validate_serial_number_format, validate_weight_positive
+from core.validators import validate_serial_number_format
 
 
 class Kalmar32(models.Model):
-    """Kalmar32 model with full equipment specification.
-
-    Attributes:
-        serial_number (str): Unique equipment serial number.
-        shipment_date (date): Equipment shipment date.
-        case_number (str): Storage case number.
-        calibration_certificate (Optional[str]): Calibration certificate number.
-        calibration_date (Optional[date]): Last calibration date.
-        weight (Optional[float]): Weight with packaging in kg.
-
-    """
+    """Kalmar32 model with equipment specification."""
 
     # Регистрационные данные
     serial_number = models.CharField(
@@ -46,6 +36,7 @@ class Kalmar32(models.Model):
         default=date.today,
         help_text=_("Дата отгрузки оборудования со склада"),
     )
+
     case_number = models.CharField(
         _("Номер кейса"),
         max_length=150,
@@ -54,148 +45,119 @@ class Kalmar32(models.Model):
         help_text=_("Номер кейса для хранения оборудования"),
     )
 
-    # Основные компоненты
-    first_phased_array_converters = models.CharField(
-        _("Преобразователи РА2.25L16 1.1х10-17"),
-        max_length=50,
-        blank=True,
-        validators=[MaxLengthValidator(50)],
-        help_text=_("S/n первого преобразователя на фазированной решетке"),
-    )
-
-    second_phased_array_converters = models.CharField(
-        _("Преобразователи РА2.25L16 1.1х10-17"),
-        max_length=50,
-        blank=True,
-        validators=[MaxLengthValidator(50)],
-        help_text=_("S/n второго преобразователя на фазированной решетке"),
-    )
-    battery_case = models.CharField(
-        _("Корпус АКБ"),
-        max_length=50,
-        blank=True,
-        validators=[MaxLengthValidator(50)],
-        help_text=_("Серийный номер корпуса аккумулятора"),
-    )
-
-    # Блоки и модули
-    aos_block = models.CharField(
-        _("Блок AOS"),
-        max_length=50,
-        blank=True,
-        validators=[MaxLengthValidator(50)],
-        help_text=_("Номер блока AOS (распределительная коробка и коробка энкодеров)"),
-    )
-    flash_drive = models.CharField(
-        _("Флеш-накопитель с ПО"),
-        max_length=150,
-        blank=True,
-        validators=[MaxLengthValidator(150)],
-        help_text=_("Наличие флеш-накопителя с ПО 'Кальмар 32+'"),
-    )
-    co3r_measure = models.CharField(
-        _("Мера СО-3Р"),
-        max_length=50,
-        blank=True,
-        validators=[MaxLengthValidator(50)],
-        help_text=_("Номер меры СО-3Р"),
-    )
-
-    # Сертификация и проверки
-    calibration_certificate = models.CharField(
-        _("Сертификат калибровки"),
+    # PC tablet Latitude Dell 7230
+    pc_tablet_dell_7230 = models.CharField(
+        _("Планшет Dell 7230"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
-        help_text=_("Номер сертификата калибровки"),
-    )
-    calibration_date = models.DateField(
-        _("Дата калибровки"),
-        null=True,
-        blank=True,
-        help_text=_("Дата последней калибровки оборудования"),
+        help_text=_("PC tablet Latitude Dell 7230"),
     )
 
-    # ЗИП (комплект запасных частей)
-    has_tablet_screws = models.BooleanField(
-        _("Винты для планшета"),
-        default=False,
-        help_text=_("Наличие винтов 4х8мм для крепления планшета (4 шт)"),
-    )
-    has_ethernet_cable = models.BooleanField(
-        _("Интернет кабель"),
-        default=False,
-        help_text=_("Наличие патч-корда 0.5м, 100Мбит/сек"),
-    )
-    battery_charger = models.CharField(
-        _("Сетевая зарядка аккумулятора"),
-        max_length=50,
+    # -> link
+    software_installer_link = models.CharField(
+        _("Инсталлятор ПО"),
+        max_length=150,
         blank=True,
-        validators=[MaxLengthValidator(50)],
-        help_text=_("Номер сетевой зарядки аккумулятора"),
-    )
-    tablet_charger = models.CharField(
-        _("Зарядка планшета"),
-        max_length=50,
-        blank=True,
-        validators=[MaxLengthValidator(50)],
-        help_text=_("Номер зарядки для планшета"),
-    )
-    has_tool_kit = models.BooleanField(
-        _("Набор инструментов"),
-        default=False,
-        help_text=_(
-            "Наличие набора инструментов (сумка, шестигранники, отвертка, пассатижи)",
-        ),
+        help_text=_("Ссылка на файл инсталлятора для программного обеспечения"),
     )
 
-    # Проверка и документирование
-    software_check = models.CharField(
-        _("Проверка ПО"),
-        max_length=200,
+    ac_dc_power_adapter_dell = models.CharField(
+        _("AC/DC адаптер питания для Dell 7230"),
+        max_length=100,
         blank=True,
-        validators=[MaxLengthValidator(200)],
-        help_text=_("Результаты проверки работоспособности ПО"),
+        validators=[MaxLengthValidator(100)],
+        help_text=_("AC/DC Power adapter for Dell 7230"),
     )
-    photo_video_url = models.URLField(
-        _("Фото, видео"),
+
+    dc_charger_adapter_battery = models.CharField(
+        _("DC адаптер зарядки от батареи для Dell 7230"),
+        max_length=100,
         blank=True,
-        validators=[URLValidator()],
-        help_text=_("URL фотографии. видео преобразователей"),
+        validators=[MaxLengthValidator(100)],
+        help_text=_("DC Charger adapter for Dell 7230 from battery"),
     )
-    weight = models.FloatField(
-        _("Вес с упаковкой"),
-        null=True,
+
+    # Ultrasonic phased array PULSAR OEM 16/64
+    ultrasonic_phased_array_pulsar = models.CharField(
+        _("Ультразвуковая фазированная решетка PULSAR OEM 16/64"),
+        max_length=100,
         blank=True,
-        validators=[validate_weight_positive],
-        help_text=_("Вес оборудования с упаковкой в килограммах"),
+        validators=[MaxLengthValidator(100)],
+        help_text=_("Ultrasonic phased array PULSAR OEM 16/64 established"),
     )
+
+    manual_probs_36 = models.CharField(
+        _("Ручной преобразователь 36°"),
+        max_length=100,
+        blank=True,
+        validators=[MaxLengthValidator(100)],
+        help_text=_("Manual probs 36° RA2.25L16 0.9x10-17"),
+    )
+
+    straight_probs_0 = models.CharField(
+        _("Прямой преобразователь 0°"),
+        max_length=100,
+        blank=True,
+        validators=[MaxLengthValidator(100)],
+        help_text=_("Straight probs 0° RA5.0L16 0.6x10-17"),
+    )
+
+    has_dc_cable_battery = models.BooleanField(
+        _("DC кабель от батарейного блока"),
+        default=False,
+        help_text=_("DC Cable from battery box"),
+    )
+
+    has_ethernet_cables = models.BooleanField(
+        _("Ethernet кабель"),
+        default=False,
+        help_text=_("Ethernet cables"),
+    )
+
+    # DC Battery box
+    dc_battery_box = models.CharField(
+        _("Батарейный блок DC"),
+        max_length=100,
+        blank=True,
+        validators=[MaxLengthValidator(100)],
+        help_text=_("DC Battery box established"),
+    )
+
+    ac_dc_charger_adapter_battery = models.CharField(
+        _("AC/DC адаптер зарядки для батареи"),
+        max_length=100,
+        blank=True,
+        validators=[MaxLengthValidator(100)],
+        help_text=_("AC/DC Charger adapter for battery"),
+    )
+
+    # Calibration and tools
+    calibration_block_so_3r = models.CharField(
+        _("Калибровочный блок SO-3R"),
+        max_length=100,
+        blank=True,
+        validators=[MaxLengthValidator(100)],
+        help_text=_("Calibration bloc SO-3R"),
+    )
+
+    has_repair_tool_bag = models.BooleanField(
+        _("Ремонтный инструмент с сумкой"),
+        default=False,
+        help_text=_("Small repair tool with bag"),
+    )
+
+    has_installed_nameplate = models.BooleanField(
+        _("Установленная табличка с серийным номером"),
+        default=False,
+        help_text=_("Installed nameplate with serial number"),
+    )
+
+    # Дополнительные поля
     notes = models.TextField(
         _("Примечания"),
         blank=True,
         help_text=_("Дополнительные заметки по оборудованию"),
-    )
-
-    # Дополнительные компоненты
-    manual_inclined = models.CharField(
-        _("Ручной наклонный преобразователь"),
-        max_length=50,
-        blank=True,
-        validators=[MaxLengthValidator(50)],
-        help_text=_("Номер ручного наклонного РА2.25L16 0.9х10-17"),
-    )
-    straight = models.CharField(
-        _("Прямой преобразователь"),
-        max_length=50,
-        blank=True,
-        validators=[MaxLengthValidator(50)],
-        help_text=_("Номер прямого 0° РА5.0L16 0.6х10-17"),
-    )
-    photo_url = models.URLField(
-        _("Фото"),
-        blank=True,
-        validators=[URLValidator()],
-        help_text=_("URL фото оборудования"),
     )
 
     class Meta:
@@ -230,11 +192,11 @@ class Kalmar32(models.Model):
     def clean(self) -> None:
         """Additional model validation."""
         super().clean()
-        self._validate_calibration_dates()
+        self._validate_shipment_date()
 
-    def _validate_calibration_dates(self) -> None:
-        """Validate consistency of calibration and shipment dates."""
-        if self.calibration_date and self.calibration_date > timezone.now().date():
+    def _validate_shipment_date(self) -> None:
+        """Validate shipment date is not in future."""
+        if self.shipment_date and self.shipment_date > timezone.now().date():
             raise ValidationError(
-                _("Дата калибровки не может быть в будущем"),
+                _("Дата отгрузки не может быть в будущем"),
             )

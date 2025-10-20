@@ -30,28 +30,25 @@ def build_kalmar32_response_data(
         "serial_number": kalmar32.serial_number,
         "shipment_date": kalmar32.shipment_date.isoformat(),
         "case_number": kalmar32.case_number,
-        "first_phased_array_converters": kalmar32.first_phased_array_converters,
-        "second_phased_array_converters": kalmar32.second_phased_array_converters,
-        "battery_case": kalmar32.battery_case,
-        "aos_block": kalmar32.aos_block,
-        "flash_drive": kalmar32.flash_drive,
-        "co3r_measure": kalmar32.co3r_measure,
-        "calibration_certificate": kalmar32.calibration_certificate,
-        "calibration_date": kalmar32.calibration_date.isoformat()
-        if kalmar32.calibration_date
-        else None,
-        "has_tablet_screws": kalmar32.has_tablet_screws,
-        "has_ethernet_cable": kalmar32.has_ethernet_cable,
-        "battery_charger": kalmar32.battery_charger,
-        "tablet_charger": kalmar32.tablet_charger,
-        "has_tool_kit": kalmar32.has_tool_kit,
-        "software_check": kalmar32.software_check,
-        "photo_video_url": kalmar32.photo_video_url,
-        "weight": kalmar32.weight,
+        # PC tablet Latitude Dell 7230
+        "pc_tablet_dell_7230": kalmar32.pc_tablet_dell_7230,
+        "ac_dc_power_adapter_dell": kalmar32.ac_dc_power_adapter_dell,
+        "dc_charger_adapter_battery": kalmar32.dc_charger_adapter_battery,
+        # Ultrasonic phased array PULSAR OEM 16/64
+        "ultrasonic_phased_array_pulsar": kalmar32.ultrasonic_phased_array_pulsar,
+        "manual_probs_36": kalmar32.manual_probs_36,
+        "straight_probs_0": kalmar32.straight_probs_0,
+        "has_dc_cable_battery": kalmar32.has_dc_cable_battery,
+        "has_ethernet_cables": kalmar32.has_ethernet_cables,
+        # DC Battery box
+        "dc_battery_box": kalmar32.dc_battery_box,
+        "ac_dc_charger_adapter_battery": kalmar32.ac_dc_charger_adapter_battery,
+        # Calibration and tools
+        "calibration_block_so_3r": kalmar32.calibration_block_so_3r,
+        "has_repair_tool_bag": kalmar32.has_repair_tool_bag,
+        "has_installed_nameplate": kalmar32.has_installed_nameplate,
+        # Additional fields
         "notes": kalmar32.notes,
-        "manual_inclined": kalmar32.manual_inclined,
-        "straight": kalmar32.straight,
-        "photo_url": kalmar32.photo_url,
         "status": status_message,
     }
 
@@ -73,19 +70,18 @@ class Kalmar32CreateView(View):
     REQUIRED_FIELDS: ClassVar[tuple[str]] = {"serial_number", "shipment_date"}
     DATE_FIELDS: ClassVar[tuple[str]] = {
         "shipment_date",
-        "calibration_date",
     }
     BOOLEAN_FIELDS: ClassVar[tuple[str]] = {
-        "has_tablet_screws",
-        "has_ethernet_cable",
-        "has_tool_kit",
+        "has_dc_cable_battery",
+        "has_ethernet_cables",
+        "has_repair_tool_bag",
+        "has_installed_nameplate",
     }
-    FLOAT_FIELDS: ClassVar[tuple[str]] = {"weight"}
 
     def post(
         self,
         request: HttpRequest,
-        *args: object,  #  # noqa: ARG002
+        *args: object,  # noqa: ARG002
     ) -> JsonResponse:
         """Create a new Kalmar32 equipment record from JSON data.
 
@@ -101,7 +97,7 @@ class Kalmar32CreateView(View):
             {
                 "serial_number": "KALMAR-123",
                 "shipment_date": "2023-01-01",
-                "weight": 12.5
+                "pc_tablet_dell_7230": "Dell-7230-001"
             }
 
         """
@@ -150,8 +146,7 @@ class Kalmar32CreateView(View):
         """Convert and validate all field types."""
         processed = data.copy()
         processed = self._process_date_fields(processed)
-        processed = self._process_boolean_fields(processed)
-        return self._process_float_fields(processed)
+        return self._process_boolean_fields(processed)
 
     def _process_date_fields(self, data: dict[str, Any]) -> dict[str, Any]:
         for field in self.DATE_FIELDS:
@@ -161,7 +156,6 @@ class Kalmar32CreateView(View):
                 except ValueError as e:
                     msg = f"Invalid date format for {field}: {e}"
                     raise ValidationError(msg) from e
-
         return data
 
     def _process_boolean_fields(self, data: dict[str, Any]) -> dict[str, Any]:
@@ -171,16 +165,6 @@ class Kalmar32CreateView(View):
                     data[field] = data[field].lower() in ("true", "1", "yes")
                 elif not isinstance(data[field], bool):
                     data[field] = bool(data[field])
-        return data
-
-    def _process_float_fields(self, data: dict[str, Any]) -> dict[str, Any]:
-        for field in self.FLOAT_FIELDS:
-            if field in data and data[field] is not None:
-                try:
-                    data[field] = float(data[field])
-                except (ValueError, TypeError) as e:
-                    msg = f"Invalid number for {field}: {e}"
-                    raise ValidationError(msg) from e
         return data
 
     @transaction.atomic
@@ -194,27 +178,9 @@ class Kalmar32CreateView(View):
             raise ValidationError(str(e)) from e
 
     def _build_success_response(self, kalmar32: Kalmar32) -> JsonResponse:
-        """Build success response with created equipment data.
-
-        Args:
-            kalmar32: Created equipment instance.
-
-        Returns:
-            JsonResponse: JSON response with created data.
-
-        """
-        response_data = {
-            "id": kalmar32.id,
-            "serial_number": kalmar32.serial_number,
-            "shipment_date": kalmar32.shipment_date.isoformat(),
-            "status": "created",
-        }
-        return JsonResponse(response_data, status=201)
-
-    def _build_success_response(self, kalmar32: Kalmar32) -> JsonResponse:
+        """Build success response with created equipment data."""
         response_data = build_kalmar32_response_data(kalmar32, "created")
         return JsonResponse(response_data, status=201)
-
 
     def _build_error_response(
         self, message: str, status: int = 400, detail: str = ""
@@ -253,20 +219,12 @@ class Kalmar32GetReportsView(View):
     def get(self, request: HttpRequest, pk: str) -> JsonResponse:  # noqa: ARG002
         """Get reports for specific Kalmar32 equipment grouped by TO type."""
         try:
-            kalmar = Kalmar32.objects.get(serial_number=pk)
-            reports = kalmar.reports.all()
-
+            # Since Report model is removed, return empty structure
+            # This maintains API compatibility but returns no data
             result = {"TO-1": [], "TO-2": [], "TO-3": []}
 
-            for report in reports:
-                to_type = report.number_to
-                if to_type in result:
-                    is_json = bool(report.json_report) and report.json_report.name != ""
-                    is_pdf = bool(report.pdf_report) and report.pdf_report.name != ""
-                    date = report.report_date.isoformat()
-                    result[to_type].append(
-                        {"date": date, "json": is_json, "pdf": is_pdf}
-                    )
+            # Verify Kalmar32 exists
+            Kalmar32.objects.get(serial_number=pk)
 
             return JsonResponse(result, status=200)
 
@@ -329,6 +287,7 @@ class Kalmar32RetrieveView(View):
             raise
 
     def _build_success_response(self, kalmar32: Kalmar32) -> JsonResponse:
+        """Build success response with equipment data."""
         response_data = build_kalmar32_response_data(kalmar32, "retrieved")
         return JsonResponse(response_data, status=200)
 

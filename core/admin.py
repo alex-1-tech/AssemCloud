@@ -14,23 +14,23 @@ class Kalmar32Admin(admin.ModelAdmin):
     list_display = (
         "serial_number",
         "shipment_date",
-        "case_number",
+        "software_installer_link",
     )
     list_filter = (
         "shipment_date",
-        "calibration_date",
-        "has_tablet_screws",
-        "has_ethernet_cable",
-        "has_tool_kit",
+        "has_dc_cable_battery",
+        "has_ethernet_cables",
+        "has_repair_tool_bag",
+        "has_installed_nameplate",
     )
     search_fields = (
         "serial_number",
-        "case_number",
-        "calibration_certificate",
-        "first_phased_array_converters",
-        "second_phased_array_converters",
-        "battery_case",
-        "aos_block",
+        "pc_tablet_dell_7230",
+        "ultrasonic_phased_array_pulsar",
+        "manual_probs_36",
+        "straight_probs_0",
+        "dc_battery_box",
+        "calibration_block_so_3r",
     )
     date_hierarchy = "shipment_date"
     ordering = ("-shipment_date",)
@@ -46,75 +46,55 @@ class Kalmar32Admin(admin.ModelAdmin):
             },
         ),
         (
-            _("Основные компоненты"),
+            _("Планшет Dell 7230"),
             {
                 "fields": (
-                    "first_phased_array_converters",
-                    "second_phased_array_converters",
-                    "battery_case",
+                    "pc_tablet_dell_7230",
+                    "software_installer_link",
+                    "ac_dc_power_adapter_dell",
+                    "dc_charger_adapter_battery",
                 ),
             },
         ),
         (
-            _("Блоки и модули"),
+            _("Ультразвуковая фазированная решетка PULSAR OEM 16/64"),
             {
                 "fields": (
-                    "aos_block",
-                    "flash_drive",
-                    "co3r_measure",
+                    "ultrasonic_phased_array_pulsar",
+                    "manual_probs_36",
+                    "straight_probs_0",
+                    "has_dc_cable_battery",
+                    "has_ethernet_cables",
                 ),
             },
         ),
         (
-            _("Сертификация"),
+            _("Батарейный блок"),
             {
                 "fields": (
-                    "calibration_certificate",
-                    "calibration_date",
+                    "dc_battery_box",
+                    "ac_dc_charger_adapter_battery",
                 ),
             },
         ),
         (
-            _("Комплект ЗИП"),
+            _("Калибровка и инструменты"),
             {
                 "fields": (
-                    "has_tablet_screws",
-                    "has_ethernet_cable",
-                    "battery_charger",
-                    "tablet_charger",
-                    "has_tool_kit",
+                    "calibration_block_so_3r",
+                    "has_repair_tool_bag",
+                    "has_installed_nameplate",
                 ),
             },
         ),
         (
-            _("Дополнительные компоненты"),
+            _("Дополнительная информация"),
             {
-                "fields": ("manual_inclined", "straight", "photo_video_url"),
-            },
-        ),
-        (
-            _("Проверка и документирование"),
-            {
-                "fields": (
-                    "software_check",
-                    "weight",
-                    "photo_url",
-                    "notes",
-                ),
+                "fields": ("notes",),
             },
         ),
     )
 
-    @admin.display(description=_("Фото"))
-    def display_photo(self, obj: Kalmar32) -> str:
-        """Return an HTML image link if photo_url exists, otherwise return '-'."""
-        if obj.photo_url:
-            return format_html(
-                '<a href="{}" target="_blank"><img src="{}" width="50" height="50" style="object-fit: cover;"/></a>',  # noqa: E501
-                obj.photo_url,
-                obj.photo_url,
-            )
-        return "-"
 
 
 @admin.register(Report)
