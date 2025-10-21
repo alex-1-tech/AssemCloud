@@ -211,11 +211,11 @@ class ReportFileUploadView(View):
         """Get report by primary key or kalmar serial_number."""
         try:
             return Report.objects.get(pk=identifier)
-        except (ValueError, Report.DoesNotExist):
+        except (ValueError, Report.DoesNotExist) as exc:
             if not all([number_to, report_date]):
                 msg = "For lookup by serial number, \
                     both number_to and report_date are required"
-                raise ValidationError(msg)
+                raise ValidationError(msg) from exc
             return Report.objects.get(
                 kalmar__serial_number=identifier,
                 number_to=number_to,

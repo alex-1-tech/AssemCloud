@@ -14,7 +14,6 @@ class Kalmar32Admin(admin.ModelAdmin):
     list_display = (
         "serial_number",
         "shipment_date",
-        "software_installer_link",
     )
     list_filter = (
         "shipment_date",
@@ -50,7 +49,6 @@ class Kalmar32Admin(admin.ModelAdmin):
             {
                 "fields": (
                     "pc_tablet_dell_7230",
-                    "software_installer_link",
                     "ac_dc_power_adapter_dell",
                     "dc_charger_adapter_battery",
                 ),

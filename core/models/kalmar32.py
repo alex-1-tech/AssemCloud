@@ -54,14 +54,6 @@ class Kalmar32(models.Model):
         help_text=_("PC tablet Latitude Dell 7230"),
     )
 
-    # -> link
-    software_installer_link = models.CharField(
-        _("Инсталлятор ПО"),
-        max_length=150,
-        blank=True,
-        help_text=_("Ссылка на файл инсталлятора для программного обеспечения"),
-    )
-
     ac_dc_power_adapter_dell = models.CharField(
         _("AC/DC адаптер питания для Dell 7230"),
         max_length=100,
