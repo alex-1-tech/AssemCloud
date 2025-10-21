@@ -1,11 +1,11 @@
 """Django production settings for assembler project."""
-from pathlib import Path
+import os
 
-from .base import BASE_DIR
+from .base import *  # noqa: F403
 
 DEBUG = True
 # ALLOWED_HOSTS = ["votum.asuscomm.com", "37.203.240.41", "localhost", "127.0.0.1"]  # noqa: E501, ERA001
-STATIC_ROOT = Path(BASE_DIR) / "staticfiles"
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")  # noqa: F405, PTH118
 
 SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True
