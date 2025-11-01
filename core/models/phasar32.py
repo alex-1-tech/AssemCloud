@@ -54,15 +54,6 @@ class Phasar32(models.Model):
         help_text=_("PC tablet Latitude Dell 7230"),
     )
 
-    # -> link
-    software_installer = models.FileField(
-        _("Инсталлятор ПО"),
-        upload_to="phasar32_installers/",
-        blank=True,
-        null=True,
-        help_text=_("Файл инсталлятора для программного обеспечения"),
-    )
-
     personalised_name_tag = models.CharField(
         _("Персонализированная бирка"),
         max_length=100,

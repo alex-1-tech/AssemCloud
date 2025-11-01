@@ -23,6 +23,21 @@ urlpatterns = [
         name="kalmar32-get-reports",
     ),
     path(
+        "api/phasar32/",
+        views.Phasar32CreateView.as_view(),
+        name="phasar32-create",
+    ),
+    path(
+        "api/phasar32/<str:pk>/get_settings",
+        views.Phasar32RetrieveView.as_view(),
+        name="phasar32-get-settings",
+    ),
+    path(
+        "api/phasar32/<str:pk>/get_reports",
+        views.Phasar32GetReportsView.as_view(),
+        name="phasar32-get-reports",
+    ),
+    path(
         "api/report/",
         views.ReportCreateView.as_view(),
         name="report-create",

@@ -1,7 +1,7 @@
-"""API views for Kalmar32 equipment management.
+"""API views for Phasar32 equipment management.
 
 This module provides direct JSON processing
-for Kalmar32 model without using DRF serializers.
+for Phasar32 model without using DRF serializers.
 """
 
 import json
@@ -16,49 +16,50 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
-from core.models import Kalmar32, Report
+from core.models import Phasar32, Report
 
 logger = logging.getLogger(__name__)
 
 
-def build_kalmar32_response_data(
-    kalmar32: Kalmar32, status_message: str
+def build_phasar32_response_data(
+    phasar32: Phasar32, status_message: str
 ) -> dict[str, Any]:
-    """Build standardized response data for Kalmar32 objects."""
+    """Build standardized response data for Phasar32 objects."""
     return {
-        "id": kalmar32.id,
-        "serial_number": kalmar32.serial_number,
-        "shipment_date": kalmar32.shipment_date.isoformat(),
-        "case_number": kalmar32.case_number,
+        "id": phasar32.id,
+        "serial_number": phasar32.serial_number,
+        "shipment_date": phasar32.shipment_date.isoformat(),
+        "case_number": phasar32.case_number,
         # PC tablet Latitude Dell 7230
-        "pc_tablet_dell_7230": kalmar32.pc_tablet_dell_7230,
-        "ac_dc_power_adapter_dell": kalmar32.ac_dc_power_adapter_dell,
-        "dc_charger_adapter_battery": kalmar32.dc_charger_adapter_battery,
-        # Ultrasonic phased array PULSAR OEM 16/64
-        "ultrasonic_phased_array_pulsar": kalmar32.ultrasonic_phased_array_pulsar,
-        "manual_probs_36": kalmar32.manual_probs_36,
-        "straight_probs_0": kalmar32.straight_probs_0,
-        "has_dc_cable_battery": kalmar32.has_dc_cable_battery,
-        "has_ethernet_cables": kalmar32.has_ethernet_cables,
+        "pc_tablet_dell_7230": phasar32.pc_tablet_dell_7230,
+        "personalised_name_tag": phasar32.personalised_name_tag,
+        "ac_dc_power_adapter_dell": phasar32.ac_dc_power_adapter_dell,
+        "dc_charger_adapter_battery": phasar32.dc_charger_adapter_battery,
+        # Ultrasonic phased array PULSAR OEM 16/128
+        "ultrasonic_phased_array_pulsar": phasar32.ultrasonic_phased_array_pulsar,
+        "manual_probs_36": phasar32.manual_probs_36,
+        "has_dc_cable_battery": phasar32.has_dc_cable_battery,
+        "has_ethernet_cables": phasar32.has_ethernet_cables,
+        "water_tank_with_tap": phasar32.water_tank_with_tap,
         # DC Battery box
-        "dc_battery_box": kalmar32.dc_battery_box,
-        "ac_dc_charger_adapter_battery": kalmar32.ac_dc_charger_adapter_battery,
+        "dc_battery_box": phasar32.dc_battery_box,
+        "ac_dc_charger_adapter_battery": phasar32.ac_dc_charger_adapter_battery,
         # Calibration and tools
-        "calibration_block_so_3r": kalmar32.calibration_block_so_3r,
-        "has_repair_tool_bag": kalmar32.has_repair_tool_bag,
-        "has_installed_nameplate": kalmar32.has_installed_nameplate,
+        "calibration_block_so_3r": phasar32.calibration_block_so_3r,
+        "has_repair_tool_bag": phasar32.has_repair_tool_bag,
+        "has_installed_nameplate": phasar32.has_installed_nameplate,
         # Additional fields
-        "notes": kalmar32.notes,
+        "notes": phasar32.notes,
         "status": status_message,
     }
 
 
 @method_decorator(csrf_exempt, name="dispatch")
-class Kalmar32CreateView(View):
-    """View for creating Kalmar32 equipment records via JSON API.
+class Phasar32CreateView(View):
+    """View for creating Phasar32 equipment records via JSON API.
 
     Handles POST requests with JSON payload containing equipment data.
-    Performs validation and creates new Kalmar32 instances.
+    Performs validation and creates new Phasar32 instances.
 
     Attributes:
         http_method_names: List of allowed HTTP methods (POST only).
@@ -83,7 +84,7 @@ class Kalmar32CreateView(View):
         request: HttpRequest,
         *args: object,  # noqa: ARG002
     ) -> JsonResponse:
-        """Create a new Kalmar32 equipment record from JSON data.
+        """Create a new Phasar32 equipment record from JSON data.
 
         Args:
             request: HTTP request object containing JSON payload.
@@ -93,9 +94,9 @@ class Kalmar32CreateView(View):
             JsonResponse: Response with created data or validation errors.
 
         Example:
-            POST /api/kalmar32/
+            POST /api/phasar32/
             {
-                "serial_number": "KALMAR-123",
+                "serial_number": "PHASAR-123",
                 "shipment_date": "2023-01-01",
                 "pc_tablet_dell_7230": "Dell-7230-001"
             }
@@ -105,8 +106,8 @@ class Kalmar32CreateView(View):
             data = self._extract_request_data(request)
             self._validate_required_fields(data)
             processed_data = self._process_input_data(data)
-            kalmar32 = self._create_kalmar32(processed_data)
-            return self._build_success_response(kalmar32)
+            phasar32 = self._create_phasar32(processed_data)
+            return self._build_success_response(phasar32)
         except json.JSONDecodeError:
             return self._build_error_response("Invalid JSON", status=400)
         except ValidationError as e:
@@ -168,18 +169,18 @@ class Kalmar32CreateView(View):
         return data
 
     @transaction.atomic
-    def _create_kalmar32(self, data: dict[str, Any]) -> Kalmar32:
-        """Create Kalmar32 instance from validated data."""
+    def _create_phasar32(self, data: dict[str, Any]) -> Phasar32:
+        """Create Phasar32 instance from validated data."""
         try:
-            return Kalmar32.objects.update_or_create(
+            return Phasar32.objects.update_or_create(
                 serial_number=data["serial_number"], defaults=data
             )[0]
         except Exception as e:
             raise ValidationError(str(e)) from e
 
-    def _build_success_response(self, kalmar32: Kalmar32) -> JsonResponse:
+    def _build_success_response(self, phasar32: Phasar32) -> JsonResponse:
         """Build success response with created equipment data."""
-        response_data = build_kalmar32_response_data(kalmar32, "created")
+        response_data = build_phasar32_response_data(phasar32, "created")
         return JsonResponse(response_data, status=201)
 
     def _build_error_response(
@@ -207,8 +208,8 @@ class Kalmar32CreateView(View):
 
 
 @method_decorator(csrf_exempt, name="dispatch")
-class Kalmar32GetReportsView(View):
-    """View for retrieving Kalmar32 reports grouped by TO type.
+class Phasar32GetReportsView(View):
+    """View for retrieving Phasar32 reports grouped by TO type.
 
     Returns JSON response with report dates grouped by TO type:
     {"TO-1": ["2025-10-31", "2025-10-30"], "TO-2": ["2025-10-29"], "TO-3": []}
@@ -217,32 +218,32 @@ class Kalmar32GetReportsView(View):
     http_method_names: ClassVar[list[str]] = ["get"]
 
     def get(self, request: HttpRequest, pk: str) -> JsonResponse:  # noqa: ARG002
-        """Get reports for specific Kalmar32 equipment grouped by TO type."""
+        """Get reports for specific Phasar32 equipment grouped by TO type."""
         try:
-            # Verify Kalmar32 exists
-            kalmar32 = Kalmar32.objects.get(serial_number=pk)
+            # Verify Phasar32 exists
+            phasar32 = Phasar32.objects.get(serial_number=pk)
 
             # Get reports for this equipment
-            reports = self._get_reports_for_equipment(kalmar32)
+            reports = self._get_reports_for_equipment(phasar32)
 
             # Group by TO type and format dates
             result = self._group_reports_with_status(reports)
 
             return JsonResponse(result, status=200)
 
-        except Kalmar32.DoesNotExist:
-            return self._build_error_response("Kalmar32 not found", status=404)
+        except Phasar32.DoesNotExist:
+            return self._build_error_response("Phasar32 not found", status=404)
         except (ValueError, AttributeError, TypeError) as e:
             return self._build_error_response(
                 "Data processing error", status=500, detail=str(e)
             )
 
 
-    def _get_reports_for_equipment(self, kalmar32: Kalmar32) -> list[dict]:
-        """Retrieve reports for specific Kalmar32 equipment."""
+    def _get_reports_for_equipment(self, phasar32: Phasar32) -> list[dict]:
+        """Retrieve reports for specific Phasar32 equipment."""
         try:
             reports = (
-                Report.objects.filter(kalmar=kalmar32)
+                Report.objects.filter(phasar=phasar32)
                 .values("number_to", "report_date", "json_report", "pdf_report")
                 .order_by("-report_date")
             )
@@ -294,8 +295,8 @@ class Kalmar32GetReportsView(View):
         return JsonResponse(response_data, status=status)
 
 
-class Kalmar32RetrieveView(View):
-    """View for retrieving Kalmar32 equipment records via JSON API.
+class Phasar32RetrieveView(View):
+    """View for retrieving Phasar32 equipment records via JSON API.
 
     Handles GET requests to retrieve equipment data by serial number.
     Returns complete equipment data in JSON format.
@@ -308,22 +309,22 @@ class Kalmar32RetrieveView(View):
         request: HttpRequest,  # noqa: ARG002
         pk: str,
     ) -> JsonResponse:
-        """Retrieve a Kalmar32 equipment record by serial number."""
+        """Retrieve a Phasar32 equipment record by serial number."""
         try:
-            kalmar32 = self._get_kalmar32(pk)
-            return self._build_success_response(kalmar32)
-        except Kalmar32.DoesNotExist:
+            phasar32 = self._get_phasar32(pk)
+            return self._build_success_response(phasar32)
+        except Phasar32.DoesNotExist:
             return self._build_error_response("Equipment not found", status=404)
         except Exception as e:  # noqa: BLE001
             return self._build_error_response(
                 "Internal server error", status=500, detail=str(e)
             )
 
-    def _get_kalmar32(self, serial_number: str) -> Kalmar32:
-        """Retrieve Kalmar32 instance by serial number."""
+    def _get_phasar32(self, serial_number: str) -> Phasar32:
+        """Retrieve Phasar32 instance by serial number."""
         try:
-            return Kalmar32.objects.get(serial_number=serial_number)
-        except Kalmar32.DoesNotExist:
+            return Phasar32.objects.get(serial_number=serial_number)
+        except Phasar32.DoesNotExist:
             msg = f"Equipment with serial number {serial_number} not found"
             logger.exception(msg)
             raise
@@ -332,9 +333,9 @@ class Kalmar32RetrieveView(View):
             logger.exception(msg)
             raise
 
-    def _build_success_response(self, kalmar32: Kalmar32) -> JsonResponse:
+    def _build_success_response(self, phasar32: Phasar32) -> JsonResponse:
         """Build success response with equipment data."""
-        response_data = build_kalmar32_response_data(kalmar32, "retrieved")
+        response_data = build_phasar32_response_data(phasar32, "retrieved")
         return JsonResponse(response_data, status=200)
 
     def _build_error_response(

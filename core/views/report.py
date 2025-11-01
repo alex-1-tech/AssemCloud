@@ -1,9 +1,9 @@
-"""API views for Kalmar32 report management.
+"""API views for equipment report management.
 
 This module provides direct file processing
 for Report model without using DRF serializers.
 Handles report creation (metadata) and file uploads in separate steps.
-and uses kalmar.serial_number as an additional unique key when locating reports.
+and uses equipment serial_number as an additional unique key when locating reports.
 """
 
 from __future__ import annotations
@@ -20,7 +20,7 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
-from core.models import Kalmar32, Report
+from core.models import Kalmar32, Phasar32, Report
 
 if TYPE_CHECKING:
     from django.core.files.base import ContentFile
@@ -31,13 +31,14 @@ logger = logging.getLogger(__name__)
 
 @method_decorator(csrf_exempt, name="dispatch")
 class ReportCreateView(View):
-    """View for creating Kalmar32 reports via API."""
+    """View for creating equipment reports via API."""
 
     http_method_names: ClassVar[list[str]] = ["post"]
     REQUIRED_FIELDS: ClassVar[tuple[str, ...]] = (
         "serial_number",
         "upload_time",
         "number_to",
+        "equipment_type",
     )
 
     def post(self, request: HttpRequest) -> JsonResponse:
@@ -47,12 +48,18 @@ class ReportCreateView(View):
             metadata = self._parse_metadata(data)
             self._validate_metadata(metadata)
 
-            kalmar = self._get_kalmar_device(metadata["serial_number"])
+            equipment_type = metadata["equipment_type"]
+            serial_number = metadata["serial_number"]
+            equipment = self._get_equipment_device(equipment_type, serial_number)
+
             report_date = self._parse_report_date(metadata["upload_time"])
             number_to = metadata["number_to"]
 
             report = self._create_report(
-                kalmar=kalmar, report_date=report_date, number_to=number_to
+                equipment=equipment,
+                equipment_type=equipment_type,
+                report_date=report_date,
+                number_to=number_to,
             )
 
             return self._build_success_response(report)
@@ -61,8 +68,8 @@ class ReportCreateView(View):
             return self._build_error_response("Invalid JSON data", status=400)
         except ValidationError as e:
             return self._build_error_response(str(e), status=400)
-        except Kalmar32.DoesNotExist:
-            return self._build_error_response("Kalmar device not found", status=404)
+        except (Kalmar32.DoesNotExist, Phasar32.DoesNotExist):
+            return self._build_error_response("Equipment device not found", status=404)
         except Exception as e:
             logger.exception("Report creation failed")
             return self._build_error_response(str(e), status=500)
@@ -78,12 +85,15 @@ class ReportCreateView(View):
             msg = f"Invalid encoding: {e}"
             raise ValidationError(msg) from e
 
+    def _raise_validation_error(self) -> None:
+        msg = "Metadata is required"
+        raise ValidationError(msg)
+
     def _parse_metadata(self, data: dict[str, Any]) -> dict[str, Any]:
         """Extract metadata from request data."""
         metadata = data.get("metadata", {})
         if not metadata:
-            msg = "Metadata is required"
-            raise ValidationError(msg)
+            self._raise_validation_error()
         return metadata
 
     def _validate_metadata(self, metadata: dict[str, Any]) -> None:
@@ -95,9 +105,22 @@ class ReportCreateView(View):
             msg = f"Missing required fields: {', '.join(missing_fields)}"
             raise ValidationError(msg)
 
-    def _get_kalmar_device(self, serial_number: str) -> Kalmar32:
-        """Get Kalmar32 device by serial number (unique key)."""
-        return Kalmar32.objects.get(serial_number=serial_number)
+        # Validate equipment_type
+        equipment_type = metadata.get("equipment_type")
+        if equipment_type not in ["kalmar32", "phasar32"]:
+            msg = "Invalid equipment_type. Must be 'kalmar' or 'phasar'"
+            raise ValidationError(msg)
+
+    def _get_equipment_device(
+        self, equipment_type: str, serial_number: str
+    ) -> Kalmar32 | Phasar32:
+        """Get equipment device by serial number."""
+        if equipment_type == "kalmar32":
+            return Kalmar32.objects.get(serial_number=serial_number)
+        if equipment_type == "phasar32":
+            return Phasar32.objects.get(serial_number=serial_number)
+        msg = f"Unknown equipment type: {equipment_type}"
+        raise ValidationError(msg)
 
     def _parse_report_date(self, date_str: str) -> date:
         """Parse and validate report date."""
@@ -109,12 +132,20 @@ class ReportCreateView(View):
 
     @transaction.atomic
     def _create_report(
-        self, kalmar: Kalmar32, report_date: date, number_to: str
+        self,
+        equipment: Kalmar32 | Phasar32,
+        equipment_type: str,
+        report_date: date,
+        number_to: str,
     ) -> Report:
         """Create Report instance from validated data."""
         try:
+            if equipment_type == "kalmar32":
+                return Report.objects.update_or_create(
+                    kalmar=equipment, report_date=report_date, number_to=number_to
+                )[0]
             return Report.objects.update_or_create(
-                kalmar=kalmar, report_date=report_date, number_to=number_to
+                phasar=equipment, report_date=report_date, number_to=number_to
             )[0]
         except Exception as e:
             msg = f"Failed to create report: {e}"
@@ -122,16 +153,22 @@ class ReportCreateView(View):
 
     def _build_success_response(self, report: Report) -> JsonResponse:
         """Build success response with created report data."""
-        return JsonResponse(
-            {
-                "id": report.id,
-                "kalmar_serial": report.kalmar.serial_number,
-                "report_date": report.report_date.isoformat(),
-                "number_to": report.number_to,
-                "status": "created",
-            },
-            status=201,
-        )
+        response_data = {
+            "id": report.id,
+            "report_date": report.report_date.isoformat(),
+            "number_to": report.number_to,
+            "status": "created",
+        }
+
+        # Add equipment-specific information
+        if report.kalmar:
+            response_data["equipment_type"] = "kalmar32"
+            response_data["equipment_serial"] = report.kalmar.serial_number
+        elif report.phasar:
+            response_data["equipment_type"] = "phasar32"
+            response_data["equipment_serial"] = report.phasar.serial_number
+
+        return JsonResponse(response_data, status=201)
 
     def _build_error_response(
         self, message: str, status: int = 400, detail: str = ""
@@ -179,8 +216,19 @@ class ReportFileUploadView(View):
             self._validate_file_type(file_type)
             number_to = request.GET.get("number_to")
             report_date_str = request.GET.get("upload_time")
+            equipment_type = request.GET.get("equipment_type")
+
+            if not all([number_to, report_date_str, equipment_type]):
+                msg = (
+                    "For lookup by serial number, number_to, "
+                    "upload_time and equipment_type are required"
+                )
+                raise ValidationError(msg)  # noqa: TRY301
+
             report_date = date.fromisoformat(report_date_str)
-            report = self._get_report(report_identifier, number_to, report_date)
+            report = self._get_report(
+                report_identifier, number_to, report_date, equipment_type
+            )
             file_obj = self._get_uploaded_file(request, file_type)
             self._validate_file_size(file_obj)
 
@@ -207,38 +255,45 @@ class ReportFileUploadView(View):
         identifier: str,
         number_to: str | None = None,
         report_date: date | None = None,
+        equipment_type: str | None = None,
     ) -> Report:
-        """Get report by primary key or kalmar serial_number."""
+        """Get report by primary key or equipment serial_number."""
         try:
             return Report.objects.get(pk=identifier)
         except (ValueError, Report.DoesNotExist) as exc:
-            if not all([number_to, report_date]):
-                msg = "For lookup by serial number, \
-                    both number_to and report_date are required"
+            if not all([number_to, report_date, equipment_type]):
+                msg = (
+                    "For lookup by serial number, number_to, report_date and "
+                    "equipment_type are required"
+                )
                 raise ValidationError(msg) from exc
-            return Report.objects.get(
-                kalmar__serial_number=identifier,
-                number_to=number_to,
-                report_date=report_date,
-            )
+
+            if equipment_type == "kalmar32":
+                return Report.objects.get(
+                    kalmar__serial_number=identifier,
+                    number_to=number_to,
+                    report_date=report_date,
+                )
+            if equipment_type == "phasar32":
+                return Report.objects.get(
+                    phasar__serial_number=identifier,
+                    number_to=number_to,
+                    report_date=report_date,
+                )
+            msg = f"Unknown equipment type: {equipment_type}"
+            raise ValidationError(msg) from exc
 
     def _get_uploaded_file(
         self,
         request: HttpRequest,
         file_type: str,  # noqa: ARG002
     ) -> UploadedFile | ContentFile:
-        """Get uploaded file from request.
-
-        Prefer 'file' field (common for QHttpMultiPart).
-        Keep strict error if nothing found.
-        """
+        """Get uploaded file from request."""
         if request.FILES:
             if "file" in request.FILES:
                 return request.FILES["file"]
             return next(iter(request.FILES.values()))
-
-        msg = "No file uploaded"
-        raise ValidationError(msg)
+        return self._raise_no_file()
 
     def _validate_file_size(self, file_obj: UploadedFile | ContentFile) -> None:
         """Validate file size limit."""
@@ -270,17 +325,23 @@ class ReportFileUploadView(View):
 
     def _build_success_response(self, report: Report, file_type: str) -> JsonResponse:
         """Build success response after file upload."""
-        return JsonResponse(
-            {
-                "id": report.id,
-                "kalmar_serial": report.kalmar.serial_number,
-                "report_date": report.report_date.isoformat(),
-                "number_to": report.number_to,
-                "file_type": file_type,
-                "status": "file_uploaded",
-            },
-            status=200,
-        )
+        response_data = {
+            "id": report.id,
+            "report_date": report.report_date.isoformat(),
+            "number_to": report.number_to,
+            "file_type": file_type,
+            "status": "file_uploaded",
+        }
+
+        # Add equipment-specific information
+        if report.kalmar:
+            response_data["equipment_type"] = "kalmar32"
+            response_data["equipment_serial"] = report.kalmar.serial_number
+        elif report.phasar:
+            response_data["equipment_type"] = "phasar32"
+            response_data["equipment_serial"] = report.phasar.serial_number
+
+        return JsonResponse(response_data, status=200)
 
     def _build_error_response(
         self, message: str, status: int = 400, detail: str = ""
