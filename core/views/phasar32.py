@@ -48,6 +48,9 @@ def build_phasar32_response_data(
         "calibration_block_so_3r": phasar32.calibration_block_so_3r,
         "has_repair_tool_bag": phasar32.has_repair_tool_bag,
         "has_installed_nameplate": phasar32.has_installed_nameplate,
+        # network settings
+        "wifi_router_address": phasar32.wifi_router_address,
+        "windows_password": phasar32.windows_password,
         # Additional fields
         "notes": phasar32.notes,
         "status": status_message,

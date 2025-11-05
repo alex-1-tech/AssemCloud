@@ -94,6 +94,15 @@ class Kalmar32Admin(admin.ModelAdmin):
             },
         ),
         (
+            _("Сетевые настройки"),
+            {
+                "fields": (
+                    "wifi_router_address",
+                    "windows_password",
+                ),
+            },
+        ),
+        (
             _("Дополнительная информация"),
             {
                 "fields": ("notes",),
@@ -178,6 +187,15 @@ class Phasar32Admin(admin.ModelAdmin):
                     "calibration_block_so_3r",
                     "has_repair_tool_bag",
                     "has_installed_nameplate",
+                ),
+            },
+        ),
+        (
+            _("Сетевые настройки"),
+            {
+                "fields": (
+                    "wifi_router_address",
+                    "windows_password",
                 ),
             },
         ),

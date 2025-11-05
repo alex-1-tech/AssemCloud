@@ -153,6 +153,23 @@ class Phasar32(models.Model):
         help_text=_("Installed nameplate with serial number"),
     )
 
+    # network settings
+    wifi_router_address = models.CharField(
+        _("Адресс вай-фай роутера"),
+        max_length=100,
+        blank=True,
+        validators=[MaxLengthValidator(100)],
+        help_text=_("WiFi router address"),
+    )
+
+    windows_password = models.CharField(
+        _("Адресс вай-фай роутера"),
+        max_length=100,
+        blank=True,
+        validators=[MaxLengthValidator(100)],
+        help_text=_("WiFi router address"),
+    )
+
     # Дополнительные поля
     notes = models.TextField(
         _("Примечания"),

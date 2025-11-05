@@ -47,6 +47,9 @@ def build_kalmar32_response_data(
         "calibration_block_so_3r": kalmar32.calibration_block_so_3r,
         "has_repair_tool_bag": kalmar32.has_repair_tool_bag,
         "has_installed_nameplate": kalmar32.has_installed_nameplate,
+        # network settings
+        "wifi_router_address": kalmar32.wifi_router_address,
+        "windows_password": kalmar32.windows_password,
         # Additional fields
         "notes": kalmar32.notes,
         "status": status_message,
