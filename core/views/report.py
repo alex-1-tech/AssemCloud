@@ -193,7 +193,7 @@ class ReportFileUploadView(View):
     """
 
     http_method_names: ClassVar[list[str]] = ["put", "post"]
-    MAX_FILE_SIZE: ClassVar[int] = 50 * 1024 * 1024  # 50MB
+    MAX_FILE_SIZE: ClassVar[int] = 500 * 1024 * 1024  # 50MB
     FILE_TYPES: ClassVar[tuple[str, ...]] = ("pdf", "before", "after", "json")
 
     def post(
