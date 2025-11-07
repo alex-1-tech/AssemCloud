@@ -49,5 +49,19 @@ urlpatterns = [
     ),
 ]
 
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+urlpatterns += [
+    # App file management
+    path("api/apps/upload/", views.AppFileUploadView.as_view(), name="app-upload"),
+    path(
+        "api/apps/download/<str:app_type>/",
+        views.AppFileDownloadView.as_view(),
+        name="app-download",
+    ),
+    path(
+        "api/apps/versions/<str:app_type>/",
+        views.AppFileListVersionsView.as_view(),
+        name="app-versions",
+    ),
+]
+
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

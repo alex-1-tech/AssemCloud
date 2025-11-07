@@ -1,5 +1,10 @@
 """Views package exports for core application."""
 
+from core.views.appfile import (
+    AppFileDownloadView,
+    AppFileListVersionsView,
+    AppFileUploadView,
+)
 from core.views.kalmar32 import (
     Kalmar32CreateView,
     Kalmar32GetReportsView,
@@ -13,6 +18,9 @@ from core.views.phasar32 import (
 from core.views.report import ReportCreateView, ReportFileUploadView
 
 __all__ = [
+    "AppFileDownloadView",
+    "AppFileListVersionsView",
+    "AppFileUploadView",
     "Kalmar32CreateView",
     "Kalmar32GetReportsView",
     "Kalmar32RetrieveView",
