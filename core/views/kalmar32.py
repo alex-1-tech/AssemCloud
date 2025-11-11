@@ -37,9 +37,13 @@ def build_kalmar32_response_data(
         # Ultrasonic phased array PULSAR OEM 16/64
         "ultrasonic_phased_array_pulsar": kalmar32.ultrasonic_phased_array_pulsar,
         "left_probs": kalmar32.left_probs,
+        "left_probs_date": kalmar32.left_probs_date,
         "right_probs": kalmar32.right_probs,
+        "right_probs_date": kalmar32.right_probs_date,
         "manual_probs": kalmar32.manual_probs,
+        "manual_probs_date": kalmar32.manual_probs_date,
         "straight_probs": kalmar32.straight_probs,
+        "straight_probs_date": kalmar32.straight_probs_date,
         "has_dc_cable_battery": kalmar32.has_dc_cable_battery,
         "has_ethernet_cables": kalmar32.has_ethernet_cables,
         # DC Battery box
