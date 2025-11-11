@@ -34,8 +34,6 @@ class Kalmar32Admin(admin.ModelAdmin):
         "serial_number",
         "pc_tablet_dell_7230",
         "ultrasonic_phased_array_pulsar",
-        "manual_probs_36",
-        "straight_probs_0",
         "dc_battery_box",
         "calibration_block_so_3r",
     )
@@ -67,8 +65,10 @@ class Kalmar32Admin(admin.ModelAdmin):
             {
                 "fields": (
                     "ultrasonic_phased_array_pulsar",
-                    "manual_probs_36",
-                    "straight_probs_0",
+                    "left_probs",
+                    "right_probs",
+                    "manual_probs",
+                    "straight_probs",
                     "has_dc_cable_battery",
                     "has_ethernet_cables",
                 ),

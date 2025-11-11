@@ -79,20 +79,36 @@ class Kalmar32(models.Model):
         help_text=_("Ultrasonic phased array PULSAR OEM 16/64 established"),
     )
 
-    manual_probs_36 = models.CharField(
-        _("Ручной преобразователь 36°"),
+    left_probs = models.CharField(
+        _("Левый преобразователь"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
-        help_text=_("Manual probs 36° RA2.25L16 0.9x10-17"),
+        help_text=_("Left probs PA2.25L16 1.1x10-17"),
     )
 
-    straight_probs_0 = models.CharField(
-        _("Прямой преобразователь 0°"),
+    right_probs = models.CharField(
+        _("Правый преобразователь"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
-        help_text=_("Straight probs 0° RA5.0L16 0.6x10-17"),
+        help_text=_("Right probs PA2.25L16 1.1x10-17"),
+    )
+
+    manual_probs = models.CharField(
+        _("Ручной преобразователь"),
+        max_length=100,
+        blank=True,
+        validators=[MaxLengthValidator(100)],
+        help_text=_("Manual probs PA2.25L16 0.9x10-17"),
+    )
+
+    straight_probs = models.CharField(
+        _("Прямой преобразователь"),
+        max_length=100,
+        blank=True,
+        validators=[MaxLengthValidator(100)],
+        help_text=_("Straight probs PA5.0L16 0.6x10-12"),
     )
 
     has_dc_cable_battery = models.BooleanField(
