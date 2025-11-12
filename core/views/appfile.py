@@ -10,15 +10,46 @@ from datetime import date
 from pathlib import Path
 from typing import Any, ClassVar
 
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import redirect_to_login
 from django.core.exceptions import ValidationError
 from django.core.files.storage import default_storage
 from django.http import FileResponse, HttpRequest, JsonResponse
+from django.shortcuts import render
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
 logger = logging.getLogger(__name__)
+
+
+@method_decorator(login_required, name="dispatch")
+class AppUploadPageView(View):
+    """View for displaying the file upload page."""
+
+    def get(self, request: HttpRequest) -> render:
+        """Render upload page."""
+        if not request.user.is_authenticated:
+            return redirect_to_login(request.get_full_path())
+
+        return render(request, "app_upload.html", {"user": request.user})
+
+
+class AuthCheckView(View):
+    """Check if user is authenticated."""
+
+    def get(self, request: HttpRequest) -> JsonResponse:
+        """Check authentication status."""
+        return JsonResponse(
+            {
+                "is_authenticated": request.user.is_authenticated,
+                "is_staff": request.user.is_staff,
+                "username": request.user.username
+                if request.user.is_authenticated
+                else None,
+            }
+        )
 
 
 @method_decorator(csrf_exempt, name="dispatch")

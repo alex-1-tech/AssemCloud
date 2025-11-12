@@ -4,6 +4,7 @@ from core.views.appfile import (
     AppFileDownloadView,
     AppFileListVersionsView,
     AppFileUploadView,
+    AppUploadPageView,
 )
 from core.views.kalmar32 import (
     Kalmar32CreateView,
@@ -21,6 +22,7 @@ __all__ = [
     "AppFileDownloadView",
     "AppFileListVersionsView",
     "AppFileUploadView",
+    "AppUploadPageView",
     "Kalmar32CreateView",
     "Kalmar32GetReportsView",
     "Kalmar32RetrieveView",
