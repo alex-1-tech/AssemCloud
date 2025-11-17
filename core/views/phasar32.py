@@ -37,7 +37,20 @@ def build_phasar32_response_data(
         "dc_charger_adapter_battery": phasar32.dc_charger_adapter_battery,
         # Ultrasonic phased array PULSAR OEM 16/128
         "ultrasonic_phased_array_pulsar": phasar32.ultrasonic_phased_array_pulsar,
-        "manual_probs_36": phasar32.manual_probs_36,
+        "dcn": phasar32.dcn,
+        "dcn_date": phasar32.dcn_date,
+        "ab_back": phasar32.ab_back,
+        "ab_back_date": phasar32.ab_back_date,
+        "gf_combo": phasar32.gf_combo,
+        "gf_combo_date": phasar32.gf_combo_date,
+        "ff_combo": phasar32.ff_combo,
+        "ff_combo_date": phasar32.ff_combo_date,
+        "ab_front": phasar32.ab_front,
+        "ab_front_date": phasar32.ab_front_date,
+        "flange_50": phasar32.flange_50,
+        "flange_50_date": phasar32.flange_50_date,
+        "manual_probs": phasar32.manual_probs,
+        "manual_probs_date": phasar32.manual_probs_date,
         "has_dc_cable_battery": phasar32.has_dc_cable_battery,
         "has_ethernet_cables": phasar32.has_ethernet_cables,
         "water_tank_with_tap": phasar32.water_tank_with_tap,
@@ -241,7 +254,6 @@ class Phasar32GetReportsView(View):
                 "Data processing error", status=500, detail=str(e)
             )
 
-
     def _get_reports_for_equipment(self, phasar32: Phasar32) -> list[dict]:
         """Retrieve reports for specific Phasar32 equipment."""
         try:
@@ -255,7 +267,6 @@ class Phasar32GetReportsView(View):
             msg = f"Error fetching reports: {e}"
             logger.exception(msg)
             return []
-
 
     def _group_reports_with_status(self, reports: list[dict]) -> dict[str, list[dict]]:
         """Group reports by TO type with file existence status."""

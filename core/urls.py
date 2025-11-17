@@ -10,7 +10,7 @@ from core import views
 urlpatterns = [
     path(
         "api/kalmar32/",
-        views.Kalmar32CreateView.as_view(),
+        views.EquipmentCreateView.as_view(),
         name="kalmar32-create",
     ),
     path(
@@ -25,7 +25,7 @@ urlpatterns = [
     ),
     path(
         "api/phasar32/",
-        views.Phasar32CreateView.as_view(),
+        views.EquipmentCreateView.as_view(),
         name="phasar32-create",
     ),
     path(

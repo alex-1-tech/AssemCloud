@@ -6,13 +6,12 @@ from core.views.appfile import (
     AppFileUploadView,
     AppUploadPageView,
 )
+from core.views.create_model import EquipmentCreateView
 from core.views.kalmar32 import (
-    Kalmar32CreateView,
     Kalmar32GetReportsView,
     Kalmar32RetrieveView,
 )
 from core.views.phasar32 import (
-    Phasar32CreateView,
     Phasar32GetReportsView,
     Phasar32RetrieveView,
 )
@@ -23,10 +22,9 @@ __all__ = [
     "AppFileListVersionsView",
     "AppFileUploadView",
     "AppUploadPageView",
-    "Kalmar32CreateView",
+    "EquipmentCreateView",
     "Kalmar32GetReportsView",
     "Kalmar32RetrieveView",
-    "Phasar32CreateView",
     "Phasar32GetReportsView",
     "Phasar32RetrieveView",
     "ReportCreateView",

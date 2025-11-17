@@ -87,18 +87,128 @@ class Phasar32(models.Model):
         help_text=_("Ultrasonic phased array PULSAR OEM 16/128 established"),
     )
 
-    manual_probs_36 = models.CharField(
-        _("Ручной преобразователь 36°"),
+    dcn = models.CharField(
+        _("Блок 0° ФР"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
-        help_text=_("Manual probs 36° RA2.25L16 0.9x10-17"),
+        help_text=_("DCN P112-2,5-F"),
+    )
+
+    dcn_date = models.CharField(
+        _("Дата производства блока 0° ФР"),
+        max_length=100,
+        blank=True,
+        validators=[MaxLengthValidator(100)],
+        help_text=_("Production date DCN P112-2,5-F"),
+    )
+
+    ab_back = models.CharField(
+        _("Отъезжающий  блок ФР ( преобразователь одинарный)"),
+        max_length=100,
+        blank=True,
+        validators=[MaxLengthValidator(100)],
+        help_text=_("AB-back PA2,5L16 1,1x10-17-F"),
+    )
+
+    ab_back_date = models.CharField(
+        _("Дата производства отъезжающего блока ФР"),
+        max_length=100,
+        blank=True,
+        validators=[MaxLengthValidator(100)],
+        help_text=_("Production date AB-back PA2,5L16 1,1x10-17-F"),
+    )
+
+    gf_combo = models.CharField(
+        _(
+            "блок ФР контроля рабочей грани головки рельса "
+            "( преобразовать комбинированный )"
+        ),
+        max_length=100,
+        blank=True,
+        validators=[MaxLengthValidator(100)],
+        help_text=_("GF combo 2PA2,5L16 0,6x10-10-F"),
+    )
+
+    gf_combo_date = models.CharField(
+        _("Дата производства блока ФР контроля рабочей грани головки рельса"),
+        max_length=100,
+        blank=True,
+        validators=[MaxLengthValidator(100)],
+        help_text=_("Production date GF combo 2PA2,5L16 0,6x10-10-F"),
+    )
+
+    ff_combo = models.CharField(
+        _(
+            "блок ФР контроля нерабочей грани головки рельса "
+            "( преобразовать комбинированный )"
+        ),
+        max_length=100,
+        blank=True,
+        validators=[MaxLengthValidator(100)],
+        help_text=_("FF combo 2PA2,5L16 0,6x10-10-F"),
+    )
+
+    ff_combo_date = models.CharField(
+        _("Дата производства блока ФР контроля нерабочей грани головки рельса"),
+        max_length=100,
+        blank=True,
+        validators=[MaxLengthValidator(100)],
+        help_text=_("Production date FF combo 2PA2,5L16 0,6x10-10-F"),
+    )
+
+    ab_front = models.CharField(
+        _("Наезжающий  блок ФР ( преобразователь одинарный)"),
+        max_length=100,
+        blank=True,
+        validators=[MaxLengthValidator(100)],
+        help_text=_("AB-front PA2,5L16 1,1x10-17-F"),
+    )
+
+    ab_front_date = models.CharField(
+        _("Дата производства наезжающего блока ФР"),
+        max_length=100,
+        blank=True,
+        validators=[MaxLengthValidator(100)],
+        help_text=_("Production date AB-front PA2,5L16 1,1x10-17-F"),
+    )
+
+    flange_50 = models.CharField(
+        _("низкочастотный блок контроля перьев подошвы рельса"),
+        max_length=100,
+        blank=True,
+        validators=[MaxLengthValidator(100)],
+        help_text=_("Flange 50 P112-0,6-50-F"),
+    )
+
+    flange_50_date = models.CharField(
+        _("Дата производства низкочастотного блока контроля перьев подошвы рельса"),
+        max_length=100,
+        blank=True,
+        validators=[MaxLengthValidator(100)],
+        help_text=_("Production date Flange 50 P112-0,6-50-F"),
+    )
+
+    manual_probs = models.CharField(
+        _("Ручной наклонный ( отдельный преобразователь )"),
+        max_length=100,
+        blank=True,
+        validators=[MaxLengthValidator(100)],
+        help_text=_("Manual probs PA2.25L16 0.9x10-17"),
+    )
+
+    manual_probs_date = models.CharField(
+        _("Дата производства ручного преобразователя"),
+        max_length=100,
+        blank=True,
+        validators=[MaxLengthValidator(100)],
+        help_text=_("Production date manual probs PA2.25L16 0.9x10-17"),
     )
 
     has_dc_cable_battery = models.BooleanField(
-        _("DC кабель от батарейного блока"),
+        _("Dc cable кабель"),
         default=False,
-        help_text=_("DC Cable from battery box"),
+        help_text=_("Dc cable battery"),
     )
 
     has_ethernet_cables = models.BooleanField(

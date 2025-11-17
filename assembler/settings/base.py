@@ -9,6 +9,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 from decouple import config
@@ -134,3 +135,8 @@ CACHES = {
     },
 }
 SELECT2_CACHE_BACKEND = "default"
+
+# Webhook settings
+WEBHOOK_URLS = os.getenv("WEBHOOK_URLS", "").split(",")
+WEBHOOK_TIMEOUT = int(os.getenv("WEBHOOK_TIMEOUT", "10"))
+WEBHOOK_RETRY_ATTEMPTS = int(os.getenv("WEBHOOK_RETRY_ATTEMPTS", "3"))
