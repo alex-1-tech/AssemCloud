@@ -4,13 +4,10 @@ This module provides direct JSON processing
 for Phasar32 model without using DRF serializers.
 """
 
-import json
 import logging
 from datetime import date
 from typing import Any, ClassVar
 
-from django.core.exceptions import ValidationError
-from django.db import transaction
 from django.http import HttpRequest, JsonResponse
 from django.utils.decorators import method_decorator
 from django.views import View
@@ -68,159 +65,6 @@ def build_phasar32_response_data(
         "notes": phasar32.notes,
         "status": status_message,
     }
-
-
-@method_decorator(csrf_exempt, name="dispatch")
-class Phasar32CreateView(View):
-    """View for creating Phasar32 equipment records via JSON API.
-
-    Handles POST requests with JSON payload containing equipment data.
-    Performs validation and creates new Phasar32 instances.
-
-    Attributes:
-        http_method_names: List of allowed HTTP methods (POST only).
-
-    """
-
-    http_method_names: ClassVar[list[str]] = ["post"]
-
-    REQUIRED_FIELDS: ClassVar[tuple[str]] = {"serial_number", "shipment_date"}
-    DATE_FIELDS: ClassVar[tuple[str]] = {
-        "shipment_date",
-    }
-    BOOLEAN_FIELDS: ClassVar[tuple[str]] = {
-        "has_dc_cable_battery",
-        "has_ethernet_cables",
-        "has_repair_tool_bag",
-        "has_installed_nameplate",
-    }
-
-    def post(
-        self,
-        request: HttpRequest,
-        *args: object,  # noqa: ARG002
-    ) -> JsonResponse:
-        """Create a new Phasar32 equipment record from JSON data.
-
-        Args:
-            request: HTTP request object containing JSON payload.
-            args: Additional positional arguments.
-
-        Returns:
-            JsonResponse: Response with created data or validation errors.
-
-        Example:
-            POST /api/phasar32/
-            {
-                "serial_number": "PHASAR-123",
-                "shipment_date": "2023-01-01",
-                "pc_tablet_dell_7230": "Dell-7230-001"
-            }
-
-        """
-        try:
-            data = self._extract_request_data(request)
-            self._validate_required_fields(data)
-            processed_data = self._process_input_data(data)
-            phasar32 = self._create_phasar32(processed_data)
-            return self._build_success_response(phasar32)
-        except json.JSONDecodeError:
-            return self._build_error_response("Invalid JSON", status=400)
-        except ValidationError as e:
-            return self._build_error_response(str(e), status=400)
-        except ValueError as e:
-            return self._build_error_response(
-                "Invalid input", status=400, detail=str(e)
-            )
-
-    def _extract_request_data(self, request: HttpRequest) -> dict[str, Any]:
-        """Extract and parse JSON data from request body."""
-        try:
-            return json.loads(request.body.decode("utf-8"))
-        except json.JSONDecodeError as e:
-            msg = f"Invalid JSON format: {e}"
-            raise ValidationError(msg) from e
-        except UnicodeDecodeError as e:
-            msg = f"Invalid encoding: {e}"
-            raise ValidationError(msg) from e
-
-    def _validate_required_fields(self, data: dict[str, Any]) -> None:
-        """Validate presence of required fields.
-
-        Args:
-            data: Input data dictionary.
-
-        Raises:
-            ValidationError: If required fields are missing.
-
-        """
-        missing_fields = [field for field in self.REQUIRED_FIELDS if field not in data]
-        if missing_fields:
-            msg = f"Missing required fields: {', '.join(missing_fields)}"
-            raise ValidationError(msg)
-
-    def _process_input_data(self, data: dict[str, Any]) -> dict[str, Any]:
-        """Convert and validate all field types."""
-        processed = data.copy()
-        processed = self._process_date_fields(processed)
-        return self._process_boolean_fields(processed)
-
-    def _process_date_fields(self, data: dict[str, Any]) -> dict[str, Any]:
-        for field in self.DATE_FIELDS:
-            if data.get(field):
-                try:
-                    data[field] = date.fromisoformat(data[field])
-                except ValueError as e:
-                    msg = f"Invalid date format for {field}: {e}"
-                    raise ValidationError(msg) from e
-        return data
-
-    def _process_boolean_fields(self, data: dict[str, Any]) -> dict[str, Any]:
-        for field in self.BOOLEAN_FIELDS:
-            if field in data:
-                if isinstance(data[field], str):
-                    data[field] = data[field].lower() in ("true", "1", "yes")
-                elif not isinstance(data[field], bool):
-                    data[field] = bool(data[field])
-        return data
-
-    @transaction.atomic
-    def _create_phasar32(self, data: dict[str, Any]) -> Phasar32:
-        """Create Phasar32 instance from validated data."""
-        try:
-            return Phasar32.objects.update_or_create(
-                serial_number=data["serial_number"], defaults=data
-            )[0]
-        except Exception as e:
-            raise ValidationError(str(e)) from e
-
-    def _build_success_response(self, phasar32: Phasar32) -> JsonResponse:
-        """Build success response with created equipment data."""
-        response_data = build_phasar32_response_data(phasar32, "created")
-        return JsonResponse(response_data, status=201)
-
-    def _build_error_response(
-        self, message: str, status: int = 400, detail: str = ""
-    ) -> JsonResponse:
-        """Build error response.
-
-        Args:
-            message: Primary error message.
-            status: HTTP status code.
-            detail: Additional error details.
-
-        Returns:
-            JsonResponse: Error response in JSON format.
-
-        """
-        response_data = {
-            "error": message,
-            "status": "error",
-            "detail": detail,
-        }
-        msg = f"Validation error: {message!s}"
-        logger.exception(msg)
-        return JsonResponse(response_data, status=status)
 
 
 @method_decorator(csrf_exempt, name="dispatch")

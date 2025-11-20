@@ -6,7 +6,6 @@ with automatic model selection based on equipment_type field.
 
 import json
 import logging
-from datetime import date
 from typing import Any, ClassVar
 
 from django.core.exceptions import ValidationError
@@ -120,7 +119,9 @@ class EquipmentCreateView(View):
             raise ValidationError(msg)
 
     def _process_input_data(
-        self, data: dict[str, Any], model_config: dict
+        self,
+        data: dict[str, Any],
+        model_config: dict,  # noqa: ARG002
     ) -> dict[str, Any]:
         """Convert and validate all field types for specific model."""
         processed = data.copy()
@@ -139,7 +140,7 @@ class EquipmentCreateView(View):
     @transaction.atomic
     def _create_equipment(
         self, equipment_type: str, model_config: dict, data: dict[str, Any]
-    ):
+    ) -> object:
         """Create equipment instance from validated data."""
         try:
             model_class = model_config["model"]
@@ -150,7 +151,9 @@ class EquipmentCreateView(View):
             msg = f"Error creating {equipment_type}: {e!s}"
             raise ValidationError(msg) from e
 
-    def _build_success_response(self, equipment, response_builder) -> JsonResponse:
+    def _build_success_response(
+        self, equipment: object, response_builder: object
+    ) -> JsonResponse:
         """Build success response with created equipment data."""
         response_data = response_builder(equipment, "created")
         return JsonResponse(response_data, status=201)

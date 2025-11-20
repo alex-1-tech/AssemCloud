@@ -64,6 +64,11 @@ urlpatterns += [
         views.AppFileListVersionsView.as_view(),
         name="app-versions",
     ),
+    path(
+        "api/apps/webhook/download/",
+        views.AppWebhookDownloadView.as_view(),
+        name="app-webhook-download",
+    ),
     # auth
     path(
         "accounts/login/",

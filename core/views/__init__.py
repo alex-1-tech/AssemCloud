@@ -16,12 +16,14 @@ from core.views.phasar32 import (
     Phasar32RetrieveView,
 )
 from core.views.report import ReportCreateView, ReportFileUploadView
+from core.views.webhook import AppWebhookDownloadView
 
 __all__ = [
     "AppFileDownloadView",
     "AppFileListVersionsView",
     "AppFileUploadView",
     "AppUploadPageView",
+    "AppWebhookDownloadView",
     "EquipmentCreateView",
     "Kalmar32GetReportsView",
     "Kalmar32RetrieveView",
