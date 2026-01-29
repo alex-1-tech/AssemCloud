@@ -69,6 +69,12 @@ urlpatterns += [
         views.AppWebhookDownloadView.as_view(),
         name="app-webhook-download",
     ),
+    # license
+    path(
+        "api/activate/<str:serial_number>/",
+        views.ActivateView.as_view(),
+        name="activate-license",
+    ),
     # auth
     path(
         "accounts/login/",

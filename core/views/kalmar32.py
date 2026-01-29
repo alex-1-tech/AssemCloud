@@ -26,7 +26,8 @@ def build_kalmar32_response_data(
         "id": kalmar32.id,
         "serial_number": kalmar32.serial_number,
         "shipment_date": kalmar32.shipment_date.isoformat(),
-        "case_number": kalmar32.case_number,
+        "incoice": kalmar32.invoice,
+        "packet_list": kalmar32.packet_list,
         # PC tablet Latitude Dell 7230
         "pc_tablet_dell_7230": kalmar32.pc_tablet_dell_7230,
         "ac_dc_power_adapter_dell": kalmar32.ac_dc_power_adapter_dell,
@@ -34,18 +35,14 @@ def build_kalmar32_response_data(
         # Ultrasonic phased array PULSAR OEM 16/64
         "ultrasonic_phased_array_pulsar": kalmar32.ultrasonic_phased_array_pulsar,
         "left_probs": kalmar32.left_probs,
-        "left_probs_date": kalmar32.left_probs_date,
         "right_probs": kalmar32.right_probs,
-        "right_probs_date": kalmar32.right_probs_date,
         "manual_probs": kalmar32.manual_probs,
-        "manual_probs_date": kalmar32.manual_probs_date,
         "straight_probs": kalmar32.straight_probs,
-        "straight_probs_date": kalmar32.straight_probs_date,
         "has_dc_cable_battery": kalmar32.has_dc_cable_battery,
         "has_ethernet_cables": kalmar32.has_ethernet_cables,
         # DC Battery box
         "dc_battery_box": kalmar32.dc_battery_box,
-        "ac_dc_charger_adapter_battery": kalmar32.ac_dc_charger_adapter_battery,
+        "has_ac_dc_charger_adapter_battery": kalmar32.has_ac_dc_charger_adapter_battery,
         # Calibration and tools
         "calibration_block_so_3r": kalmar32.calibration_block_so_3r,
         "has_repair_tool_bag": kalmar32.has_repair_tool_bag,
