@@ -102,7 +102,7 @@ class License(models.Model):
 
     def __str__(self) -> str:
         """Return string representation of the object."""
-        return f"Лицензия для {self.kalmar.serial_number}"
+        return "Лицензия"
 
     def get_license_payload(self) -> dict:
         """Получить payload лицензии в виде словаря."""

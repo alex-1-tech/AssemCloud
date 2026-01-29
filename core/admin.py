@@ -1,4 +1,5 @@
-"""Admin configuration for Kalmar32 and Phasar32 equipment."""
+"""Admin configuration for Kalmar32, Phasar32, Report, and License models."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -7,7 +8,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 
-from .models import Kalmar32, Phasar32, Report
+from .models import Kalmar32, License, Phasar32, Report
 
 if TYPE_CHECKING:
     from django.db import models
@@ -23,6 +24,7 @@ class Kalmar32Admin(admin.ModelAdmin):
         "serial_number",
         "shipment_date",
         "invoice",
+        "license",
     )
     list_filter = (
         "shipment_date",
@@ -36,7 +38,7 @@ class Kalmar32Admin(admin.ModelAdmin):
         "serial_number",
         "invoice",
         "packet_list",
-        "HWID",
+        "license__license_key",
         "pc_tablet_dell_7230",
         "ultrasonic_phased_array_pulsar",
         "dc_battery_box",
@@ -53,7 +55,7 @@ class Kalmar32Admin(admin.ModelAdmin):
                     "shipment_date",
                     "invoice",
                     "packet_list",
-                    "HWID",
+                    "license",
                 ),
             },
         ),
@@ -126,6 +128,7 @@ class Phasar32Admin(admin.ModelAdmin):
         "serial_number",
         "shipment_date",
         "invoice",
+        "license",
     )
     list_filter = (
         "shipment_date",
@@ -139,7 +142,7 @@ class Phasar32Admin(admin.ModelAdmin):
         "serial_number",
         "invoice",
         "packet_list",
-        "HWID",
+        "license__license_key",
         "pc_tablet_dell_7230",
         "ultrasonic_phased_array_pulsar",
         "water_tank_with_tap",
@@ -157,7 +160,7 @@ class Phasar32Admin(admin.ModelAdmin):
                     "shipment_date",
                     "invoice",
                     "packet_list",
-                    "HWID",
+                    "license",
                 ),
             },
         ),
@@ -195,7 +198,7 @@ class Phasar32Admin(admin.ModelAdmin):
                 "fields": (
                     "water_tank_with_tap",
                     "dc_battery_box",
-                    "ac_dc_charger_adapter_battery",
+                    "has_ac_dc_charger_adapter_battery",
                 ),
             },
         ),
@@ -225,6 +228,128 @@ class Phasar32Admin(admin.ModelAdmin):
             },
         ),
     )
+
+
+@admin.register(License)
+class LicenseAdmin(admin.ModelAdmin):
+    """Admin configuration for managing Licenses."""
+
+    list_display = (
+        "product",
+        "license_short_key",
+        "host_hwid",
+        "device_hwid",
+        "exp",
+        "linked_equipment",
+        "created_at",
+    )
+    list_filter = (
+        "product",
+        "exp",
+        "created_at",
+    )
+    search_fields = (
+        "license_key",
+        "host_hwid",
+        "device_hwid",
+        "product",
+        "company_name",
+    )
+    date_hierarchy = "created_at"
+    ordering = ("-created_at",)
+
+    fieldsets = (
+        (
+            _("Основная информация"),
+            {
+                "fields": (
+                    "product",
+                    "ver",
+                    "company_name",
+                    "exp",
+                ),
+            },
+        ),
+        (
+            _("Аппаратные идентификаторы"),
+            {
+                "fields": (
+                    "host_hwid",
+                    "device_hwid",
+                ),
+            },
+        ),
+        (
+            _("Функциональность"),
+            {
+                "fields": ("features",),
+            },
+        ),
+        (
+            _("Технические данные"),
+            {
+                "fields": (
+                    "signature",
+                    "license_key",
+                ),
+            },
+        ),
+        (
+            _("Даты"),
+            {
+                "fields": (
+                    "created_at",
+                    "updated_at",
+                ),
+            },
+        ),
+    )
+
+    readonly_fields = (
+        "created_at",
+        "updated_at",
+        "license_key",
+        "signature",
+    )
+
+    @admin.display(description=_("Ключ лицензии"))
+    def license_short_key(self, obj: License) -> str:
+        """Отображение короткой версии ключа лицензии."""
+        if obj.license_key:
+            key = obj.license_key
+            if len(key) > 30:
+                return f"{key[:20]}...{key[-10:]}"
+            return key
+        return "-"
+
+    @admin.display(description=_("Привязанное оборудование"))
+    def linked_equipment(self, obj: License) -> str:
+        """Отображение привязанного оборудования."""
+        if hasattr(obj, "kalmar32_license") and obj.kalmar32_license:
+            return format_html(
+                '<a href="/admin/core/kalmar32/{}/change/">Kalmar32: {}</a>',
+                obj.kalmar32_license.id,
+                obj.kalmar32_license.serial_number,
+            )
+        elif hasattr(obj, "phasar32_license") and obj.phasar32_license:
+            return format_html(
+                '<a href="/admin/core/phasar32/{}/change/">Phasar32: {}</a>',
+                obj.phasar32_license.id,
+                obj.phasar32_license.serial_number,
+            )
+        return "Не привязано"
+
+    def has_add_permission(self, request):
+        """Запрещаем добавление лицензий через админку (только через API)."""
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        """Разрешаем только просмотр, но не изменение."""
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        """Запрещаем удаление лицензий через админку."""
+        return False
 
 
 @admin.register(Report)
