@@ -96,14 +96,14 @@ class AppWebhookDownloadView(View):
         if len(content) < 64:
             msg = "File is too small to be a valid executable"
             raise ValidationError(msg)
-        
+
         # Check for PE header (DOS header magic)
-        if not content.startswith(b'MZ'):
+        if not content.startswith(b"MZ"):
             msg = "File does not appear to be a valid Windows executable (missing MZ header)"
             raise ValidationError(msg)
-        
+
         # Check file extension
-        if not file_name.lower().endswith('.exe'):
+        if not file_name.lower().endswith(".exe"):
             msg = "File must have .exe extension"
             raise ValidationError(msg)
     def _download_file(self, url: str, app_type: str) -> tuple[bytes, str]:
@@ -201,7 +201,7 @@ class AppWebhookDownloadView(View):
         logger.info("File saved successfully: %s", saved_path)
 
         return saved_path
-    
+
     def _build_success_response(
         self, file_path: str, app_type: str, download_url: str
     ) -> JsonResponse:
