@@ -11,6 +11,7 @@ from core.views.kalmar32 import (
     Kalmar32GetReportsView,
     Kalmar32RetrieveView,
 )
+from core.views.license import ActivateView
 from core.views.phasar32 import (
     Phasar32GetReportsView,
     Phasar32RetrieveView,
@@ -19,6 +20,7 @@ from core.views.report import ReportCreateView, ReportFileUploadView
 from core.views.webhook import AppWebhookDownloadView
 
 __all__ = [
+    "ActivateView",
     "AppFileDownloadView",
     "AppFileListVersionsView",
     "AppFileUploadView",
