@@ -19,7 +19,6 @@ from core.validators import validate_serial_number_format
 class Kalmar32(models.Model):
     """Kalmar32 model with equipment specification."""
 
-    # Регистрационные данные
     serial_number = models.CharField(
         _("Серийный номер"),
         max_length=50,
@@ -31,18 +30,35 @@ class Kalmar32(models.Model):
         ],
         help_text=_("Уникальный серийный номер оборудования"),
     )
+
+    license = models.OneToOneField(
+        "License",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="kalmar32_license",
+        verbose_name=_("Лицензия"),
+        help_text=_("Лицензия для этого оборудования"),
+    )
+
     shipment_date = models.DateField(
         _("Дата отгрузки"),
         default=date.today,
         help_text=_("Дата отгрузки оборудования со склада"),
     )
 
-    case_number = models.CharField(
-        _("Номер кейса"),
-        max_length=150,
+    invoice = models.CharField(
+        _("Invoice"),
+        max_length=100,
         blank=True,
-        validators=[MaxLengthValidator(150)],
-        help_text=_("Номер кейса для хранения оборудования"),
+        help_text=_("Invoice number"),
+    )
+
+    packet_list = models.CharField(
+        _("Packet list"),
+        max_length=100,
+        blank=True,
+        help_text=_("Document number"),
     )
 
     # PC tablet Latitude Dell 7230
@@ -87,28 +103,12 @@ class Kalmar32(models.Model):
         help_text=_("Left probs PA2.25L16 1.1x10-17"),
     )
 
-    left_probs_date = models.CharField(
-        _("Дата производства левого преобразователя"),
-        max_length=100,
-        blank=True,
-        validators=[MaxLengthValidator(100)],
-        help_text=_("Production date left probs PA2.25L16 1.1x10-17"),
-    )
-
     right_probs = models.CharField(
         _("Правый преобразователь"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
         help_text=_("Right probs PA2.25L16 1.1x10-17"),
-    )
-
-    right_probs_date = models.CharField(
-        _("Дата производства правого преобразователя"),
-        max_length=100,
-        blank=True,
-        validators=[MaxLengthValidator(100)],
-        help_text=_("Production date right probs PA2.25L16 1.1x10-17"),
     )
 
     manual_probs = models.CharField(
@@ -119,28 +119,12 @@ class Kalmar32(models.Model):
         help_text=_("Manual probs PA2.25L16 0.9x10-17"),
     )
 
-    manual_probs_date = models.CharField(
-        _("Дата производства ручного преобразователя"),
-        max_length=100,
-        blank=True,
-        validators=[MaxLengthValidator(100)],
-        help_text=_("Production date manual probs PA2.25L16 0.9x10-17"),
-    )
-
     straight_probs = models.CharField(
         _("Прямой преобразователь"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
         help_text=_("Straight probs PA5.0L16 0.6x10-12"),
-    )
-
-    straight_probs_date = models.CharField(
-        _("Дата производства прямого преобразователя"),
-        max_length=100,
-        blank=True,
-        validators=[MaxLengthValidator(100)],
-        help_text=_("Production date straight probs PA5.0L16 0.6x10-12"),
     )
 
     has_dc_cable_battery = models.BooleanField(
@@ -164,11 +148,9 @@ class Kalmar32(models.Model):
         help_text=_("DC Battery box established"),
     )
 
-    ac_dc_charger_adapter_battery = models.CharField(
+    has_ac_dc_charger_adapter_battery = models.BooleanField(
         _("AC/DC адаптер зарядки для батареи"),
-        max_length=100,
-        blank=True,
-        validators=[MaxLengthValidator(100)],
+        default=False,
         help_text=_("AC/DC Charger adapter for battery"),
     )
 
@@ -203,11 +185,11 @@ class Kalmar32(models.Model):
     )
 
     windows_password = models.CharField(
-        _("Адресс вай-фай роутера"),
+        _("Пароль Windows"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
-        help_text=_("WiFi router address"),
+        help_text=_("Пароль учетной записи Windows"),
     )
 
     # Дополнительные поля

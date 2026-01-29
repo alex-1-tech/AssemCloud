@@ -31,18 +31,35 @@ class Phasar32(models.Model):
         ],
         help_text=_("Уникальный серийный номер оборудования"),
     )
+
+    license = models.OneToOneField(
+        "License",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="phasar32_license",
+        verbose_name=_("Лицензия"),
+        help_text=_("Лицензия для этого оборудования"),
+    )
+
     shipment_date = models.DateField(
         _("Дата отгрузки"),
         default=date.today,
         help_text=_("Дата отгрузки оборудования со склада"),
     )
 
-    case_number = models.CharField(
-        _("Номер кейса"),
-        max_length=150,
+    invoice = models.CharField(
+        _("Invoice"),
+        max_length=100,
         blank=True,
-        validators=[MaxLengthValidator(150)],
-        help_text=_("Номер кейса для хранения оборудования"),
+        help_text=_("Invoice number"),
+    )
+
+    packet_list = models.CharField(
+        _("Packet list"),
+        max_length=100,
+        blank=True,
+        help_text=_("Document number"),
     )
 
     # PC tablet Latitude Dell 7230
@@ -95,28 +112,12 @@ class Phasar32(models.Model):
         help_text=_("DCN P112-2,5-F"),
     )
 
-    dcn_date = models.CharField(
-        _("Дата производства блока 0° ФР"),
-        max_length=100,
-        blank=True,
-        validators=[MaxLengthValidator(100)],
-        help_text=_("Production date DCN P112-2,5-F"),
-    )
-
     ab_back = models.CharField(
         _("Отъезжающий  блок ФР ( преобразователь одинарный)"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
         help_text=_("AB-back PA2,5L16 1,1x10-17-F"),
-    )
-
-    ab_back_date = models.CharField(
-        _("Дата производства отъезжающего блока ФР"),
-        max_length=100,
-        blank=True,
-        validators=[MaxLengthValidator(100)],
-        help_text=_("Production date AB-back PA2,5L16 1,1x10-17-F"),
     )
 
     gf_combo = models.CharField(
@@ -130,14 +131,6 @@ class Phasar32(models.Model):
         help_text=_("GF combo 2PA2,5L16 0,6x10-10-F"),
     )
 
-    gf_combo_date = models.CharField(
-        _("Дата производства блока ФР контроля рабочей грани головки рельса"),
-        max_length=100,
-        blank=True,
-        validators=[MaxLengthValidator(100)],
-        help_text=_("Production date GF combo 2PA2,5L16 0,6x10-10-F"),
-    )
-
     ff_combo = models.CharField(
         _(
             "блок ФР контроля нерабочей грани головки рельса "
@@ -149,28 +142,12 @@ class Phasar32(models.Model):
         help_text=_("FF combo 2PA2,5L16 0,6x10-10-F"),
     )
 
-    ff_combo_date = models.CharField(
-        _("Дата производства блока ФР контроля нерабочей грани головки рельса"),
-        max_length=100,
-        blank=True,
-        validators=[MaxLengthValidator(100)],
-        help_text=_("Production date FF combo 2PA2,5L16 0,6x10-10-F"),
-    )
-
     ab_front = models.CharField(
         _("Наезжающий  блок ФР ( преобразователь одинарный)"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
         help_text=_("AB-front PA2,5L16 1,1x10-17-F"),
-    )
-
-    ab_front_date = models.CharField(
-        _("Дата производства наезжающего блока ФР"),
-        max_length=100,
-        blank=True,
-        validators=[MaxLengthValidator(100)],
-        help_text=_("Production date AB-front PA2,5L16 1,1x10-17-F"),
     )
 
     flange_50 = models.CharField(
@@ -181,28 +158,12 @@ class Phasar32(models.Model):
         help_text=_("Flange 50 P112-0,6-50-F"),
     )
 
-    flange_50_date = models.CharField(
-        _("Дата производства низкочастотного блока контроля перьев подошвы рельса"),
-        max_length=100,
-        blank=True,
-        validators=[MaxLengthValidator(100)],
-        help_text=_("Production date Flange 50 P112-0,6-50-F"),
-    )
-
     manual_probs = models.CharField(
         _("Ручной наклонный ( отдельный преобразователь )"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
         help_text=_("Manual probs PA2.25L16 0.9x10-17"),
-    )
-
-    manual_probs_date = models.CharField(
-        _("Дата производства ручного преобразователя"),
-        max_length=100,
-        blank=True,
-        validators=[MaxLengthValidator(100)],
-        help_text=_("Production date manual probs PA2.25L16 0.9x10-17"),
     )
 
     has_dc_cable_battery = models.BooleanField(
@@ -234,11 +195,9 @@ class Phasar32(models.Model):
         help_text=_("DC Battery box established"),
     )
 
-    ac_dc_charger_adapter_battery = models.CharField(
+    has_ac_dc_charger_adapter_battery = models.BooleanField(
         _("AC/DC адаптер зарядки для батареи"),
-        max_length=100,
-        blank=True,
-        validators=[MaxLengthValidator(100)],
+        default=False,
         help_text=_("AC/DC Charger adapter for battery"),
     )
 
