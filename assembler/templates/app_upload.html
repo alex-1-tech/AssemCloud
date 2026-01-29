@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 <html lang="ru">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Загрузка приложений</title>
-    <style>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Загрузка приложений</title>
+        <style>
         body {
             font-family: Arial, sans-serif;
             max-width: 600px;
@@ -132,53 +131,51 @@
         .logout-link:hover {
             text-decoration: underline;
         }
-    </style>
-</head>
-
-<body>
-    <div class="container">
-        <h1>Загрузка приложений</h1>
-
-        <div class="user-info">
-            Вы вошли как: <strong>{{ user.username }}</strong>
-            <form id="logoutForm" action="/accounts/logout/" method="post" style="display: inline;">
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Загрузка приложений</h1>
+            <div class="user-info">
+                Вы вошли как: <strong>{{ user.username }}</strong>
+                <form id="logoutForm"
+                      action="/accounts/logout/"
+                      method="post"
+                      style="display: inline">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="logout-link"
+                            style="background: none;
+                                   border: none;
+                                   color: #d32f2f;
+                                   cursor: pointer;
+                                   text-decoration: underline;
+                                   margin-left: 10px">Выйти</button>
+                </form>
+            </div>
+            <form id="uploadForm" enctype="multipart/form-data">
                 {% csrf_token %}
-                <button type="submit" class="logout-link"
-                    style="background: none; border: none; color: #d32f2f; cursor: pointer; text-decoration: underline; margin-left: 10px;">
-                    Выйти
-                </button>
+                <div class="form-group">
+                    <label for="appType">Тип приложения:</label>
+                    <select id="appType" name="type" required>
+                        <option value="">Выберите тип приложения</option>
+                        <option value="kalmar32">Kalmar32</option>
+                        <option value="phasar32">Phasar32</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="appFile">Файл приложения (.exe):</label>
+                    <input type="file" id="appFile" name="file" accept=".exe" required>
+                    <small>Максимальный размер: 500MB.</small>
+                </div>
+                <button type="submit" class="btn" id="submitBtn">Загрузить файл</button>
             </form>
-        </div>
-
-        <form id="uploadForm" enctype="multipart/form-data">
-            {% csrf_token %}
-
-            <div class="form-group">
-                <label for="appType">Тип приложения:</label>
-                <select id="appType" name="type" required>
-                    <option value="">Выберите тип приложения</option>
-                    <option value="kalmar32">Kalmar32</option>
-                    <option value="phasar32">Phasar32</option>
-                </select>
+            <div class="progress" id="progressContainer">
+                <div class="progress-bar" id="progressBar"></div>
             </div>
-
-            <div class="form-group">
-                <label for="appFile">Файл приложения (.exe):</label>
-                <input type="file" id="appFile" name="file" accept=".exe" required>
-                <small>Максимальный размер: 500MB.</small>
-            </div>
-
-            <button type="submit" class="btn" id="submitBtn">Загрузить файл</button>
-        </form>
-
-        <div class="progress" id="progressContainer">
-            <div class="progress-bar" id="progressBar"></div>
+            <div id="message" class="message" style="display: none;"></div>
         </div>
-
-        <div id="message" class="message" style="display: none;"></div>
-    </div>
-
-    <script>
+        <script>
         // Обработка отправки формы
         document.getElementById('uploadForm').addEventListener('submit', function (e) {
             e.preventDefault();
@@ -274,7 +271,6 @@
                 }, 5000);
             }
         }
-    </script>
-</body>
-
+        </script>
+    </body>
 </html>
