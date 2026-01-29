@@ -22,6 +22,7 @@ class Kalmar32Admin(admin.ModelAdmin):
     list_display = (
         "serial_number",
         "shipment_date",
+        "invoice",
     )
     list_filter = (
         "shipment_date",
@@ -29,9 +30,13 @@ class Kalmar32Admin(admin.ModelAdmin):
         "has_ethernet_cables",
         "has_repair_tool_bag",
         "has_installed_nameplate",
+        "has_ac_dc_charger_adapter_battery",
     )
     search_fields = (
         "serial_number",
+        "invoice",
+        "packet_list",
+        "HWID",
         "pc_tablet_dell_7230",
         "ultrasonic_phased_array_pulsar",
         "dc_battery_box",
@@ -46,7 +51,9 @@ class Kalmar32Admin(admin.ModelAdmin):
                 "fields": (
                     "serial_number",
                     "shipment_date",
-                    "case_number",
+                    "invoice",
+                    "packet_list",
+                    "HWID",
                 ),
             },
         ),
@@ -79,7 +86,7 @@ class Kalmar32Admin(admin.ModelAdmin):
             {
                 "fields": (
                     "dc_battery_box",
-                    "ac_dc_charger_adapter_battery",
+                    "has_ac_dc_charger_adapter_battery",
                 ),
             },
         ),
@@ -118,6 +125,7 @@ class Phasar32Admin(admin.ModelAdmin):
     list_display = (
         "serial_number",
         "shipment_date",
+        "invoice",
     )
     list_filter = (
         "shipment_date",
@@ -125,9 +133,13 @@ class Phasar32Admin(admin.ModelAdmin):
         "has_ethernet_cables",
         "has_repair_tool_bag",
         "has_installed_nameplate",
+        "has_ac_dc_charger_adapter_battery",
     )
     search_fields = (
         "serial_number",
+        "invoice",
+        "packet_list",
+        "HWID",
         "pc_tablet_dell_7230",
         "ultrasonic_phased_array_pulsar",
         "water_tank_with_tap",
@@ -143,7 +155,9 @@ class Phasar32Admin(admin.ModelAdmin):
                 "fields": (
                     "serial_number",
                     "shipment_date",
-                    "case_number",
+                    "invoice",
+                    "packet_list",
+                    "HWID",
                 ),
             },
         ),
@@ -164,29 +178,22 @@ class Phasar32Admin(admin.ModelAdmin):
                 "fields": (
                     "ultrasonic_phased_array_pulsar",
                     "dcn",
-                    "dcn_date",
                     "ab_back",
-                    "ab_back_date",
                     "gf_combo",
-                    "gf_combo_date",
                     "ff_combo",
-                    "ff_combo_date",
                     "ab_front",
-                    "ab_front_date",
                     "flange_50",
-                    "flange_50_date",
                     "manual_probs",
-                    "manual_probs_date",
                     "has_dc_cable_battery",
                     "has_ethernet_cables",
-                    "water_tank_with_tap",
                 ),
             },
         ),
         (
-            _("Батарейный блок"),
+            _("Дополнительное оборудование"),
             {
                 "fields": (
+                    "water_tank_with_tap",
                     "dc_battery_box",
                     "ac_dc_charger_adapter_battery",
                 ),
@@ -237,9 +244,9 @@ class ReportAdmin(admin.ModelAdmin):
     )
     search_fields = (
         "kalmar__serial_number",
-        "kalmar__case_number",
+        "kalmar__invoice",
         "phasar__serial_number",
-        "phasar__case_number",
+        "phasar__invoice",
     )
     date_hierarchy = "report_date"
     ordering = ("-report_date",)
