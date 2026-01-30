@@ -19,11 +19,17 @@ class ActivateView(View):
         try:
             data = json.loads(request.body)
 
-            host_hwid = data["host_hwid"]
+            host_hwid = data.get("host_hwid", "")
+            device_hwid = data.get("device_hwid", "")
+            if not host_hwid and not device_hwid:
+                return JsonResponse(
+                    {"status": "error", "error": "At least one HWID must be provided"},
+                    status=400,
+                )
+
             ver = data.get("ver", "")
             product = data["product"]
             company_name = data.get("company_name", "")
-            device_hwid = data.get("device_hwid", "")
             exp = data.get("exp", "2100-01-01")
             features = data.get("features", {})
 
@@ -36,18 +42,18 @@ class ActivateView(View):
                 "exp": exp,
                 "features": features,
             }
+
             model = None
             if product == "kalmar32":
                 model = Kalmar32.objects.get(serial_number=serial_number)
             elif product == "phasar32":
-                model = Phasar32.object.get(serial_number=serial_number)
+                model = Phasar32.objects.get(serial_number=serial_number)
             license_data = sign_license(license_payload)
 
             try:
                 exp_date = datetime.strptime(exp, "%Y-%m-%d").date()
             except (ValueError, TypeError):
                 exp_date = datetime(2100, 1, 1).date()
-
             license_obj = License.objects.create(
                 ver=ver,
                 product=product,
@@ -59,6 +65,7 @@ class ActivateView(View):
                 signature=license_data.get("signature", ""),
                 license_key=license_data.get("license_key", ""),
             )
+
             model.license = license_obj
             model.save(update_fields=["license"])
 
@@ -72,7 +79,14 @@ class ActivateView(View):
                     },
                 }
             )
-
+        except Phasar32.DoesNotExist:
+            return JsonResponse(
+                {
+                    "status": "error",
+                    "error": f"Phasar32 with serial number {serial_number} not found",
+                },
+                status=404,
+            )
         except Kalmar32.DoesNotExist:
             return JsonResponse(
                 {

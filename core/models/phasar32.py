@@ -232,11 +232,11 @@ class Phasar32(models.Model):
     )
 
     windows_password = models.CharField(
-        _("Адресс вай-фай роутера"),
+        _("Пароль для виндоус"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
-        help_text=_("WiFi router address"),
+        help_text=_("Windows password"),
     )
 
     # Дополнительные поля
