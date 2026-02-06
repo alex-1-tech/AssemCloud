@@ -92,12 +92,6 @@ class License(models.Model):
         verbose_name = _("Лицензия")
         verbose_name_plural = _("Лицензии")
         ordering: ClassVar[list[str]] = ["-created_at"]
-        constraints: ClassVar[list] = [
-            models.UniqueConstraint(
-                fields=["license_key"],
-                name="unique_license_key",
-            ),
-        ]
 
     def __str__(self) -> str:
         """Return string representation of the object."""
