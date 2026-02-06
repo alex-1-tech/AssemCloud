@@ -103,5 +103,5 @@ class ActivateView(View):
         except Exception as e:
             return JsonResponse(
                 {"status": "error", "error": str(e)},
-                status=400,
+                status=500,
             )

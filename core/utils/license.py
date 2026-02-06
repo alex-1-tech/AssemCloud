@@ -49,13 +49,13 @@ def generate_license_view(
     try:
         data = json.loads(request.body)
 
-        required_fields = ["product", "company_name", "host_hwid", "exp"]
-        for field in required_fields:
-            if field not in data:
-                return JsonResponse(
-                    {"status": "error", "error": f"Missing required field: {field}"},
-                    status=400,
-                )
+        # required_fields = ["product", "company_name", "host_hwid", "exp"]
+        # for field in required_fields:
+        #     if field not in data:
+        #         return JsonResponse(
+        #             {"status": "error", "error": f"Missing required field: {field}"},
+        #             status=400,
+        #         )
 
         license_payload = {
             "ver": data.get("ver", "1.0.0"),
