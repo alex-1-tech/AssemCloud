@@ -31,8 +31,8 @@ def sign_license(payload: dict) -> dict:
     else:
         signature = private_key.sign(canonical, hashes.SHA256())
 
-    canonical_b64 = base64.urlsafe_b64encode(canonical).rstrip(b"=").decode("utf-8")
-    signature_b64 = base64.urlsafe_b64encode(signature).rstrip(b"=").decode("utf-8")
+    canonical_b64 = base64.urlsafe_b64encode(canonical).decode("utf-8")
+    signature_b64 = base64.urlsafe_b64encode(signature).decode("utf-8")
 
     license_key = f"{canonical_b64}.{signature_b64}"
 
@@ -61,7 +61,7 @@ def generate_license_view(
             "ver": data.get("ver", "1.0.0"),
             "product": data["product"],
             "company_name": data["company_name"],
-            "host_hwid": data["host_hwid"],
+            "host_hwid": data.get("host_hwid", ""),
             "device_hwid": data.get("device_hwid", ""),
             "exp": data["exp"],
             "features": data.get("features", {}),
