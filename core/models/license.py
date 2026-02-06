@@ -68,7 +68,6 @@ class License(models.Model):
 
     license_key = models.TextField(
         _("Лицензионный ключ"),
-        unique=True,
         help_text=_(
             "Сгенерированный лицензионный ключ\
                  в формате base64url(payload).base64url(signature)"
