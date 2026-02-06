@@ -45,7 +45,7 @@ class ActivateView(View):
 
             model = None
             if product == "Kalmar":
-                model = Kalmar32.objects.getЫ(serial_number=serial_number)
+                model = Kalmar32.objects.get(serial_number=serial_number)
             elif product == "Phasar":
                 model = Phasar32.objects.get(serial_number=serial_number)
             license_data = sign_license(license_payload)
