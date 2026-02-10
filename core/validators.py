@@ -7,14 +7,6 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
 
-def validate_serial_number_format(value: str) -> None:
-    """Validate of the serial number format."""
-    if not value.isdigit():
-        raise ValidationError(
-            _("После префикса серийный номер должен содержать цифры"),
-        )
-
-
 def validate_weight_positive(value: float) -> None:
     """Validate of a positive weight."""
     if value < 0:

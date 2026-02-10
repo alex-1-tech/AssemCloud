@@ -23,7 +23,7 @@ class Migration(migrations.Migration):
             name='Phasar32',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('serial_number', models.CharField(help_text='Уникальный серийный номер оборудования', max_length=50, unique=True, validators=[django.core.validators.MinLengthValidator(1), django.core.validators.MaxLengthValidator(50), core.validators.validate_serial_number_format], verbose_name='Серийный номер')),
+                ('serial_number', models.CharField(help_text='Уникальный серийный номер оборудования', max_length=50, unique=True, validators=[django.core.validators.MinLengthValidator(1), django.core.validators.MaxLengthValidator(50)], verbose_name='Серийный номер')),
                 ('shipment_date', models.DateField(default=datetime.date.today, help_text='Дата отгрузки оборудования со склада', verbose_name='Дата отгрузки')),
                 ('case_number', models.CharField(blank=True, help_text='Номер кейса для хранения оборудования', max_length=150, validators=[django.core.validators.MaxLengthValidator(150)], verbose_name='Номер кейса')),
                 ('pc_tablet_dell_7230', models.CharField(blank=True, help_text='PC tablet Latitude Dell 7230', max_length=100, validators=[django.core.validators.MaxLengthValidator(100)], verbose_name='Планшет Dell 7230')),

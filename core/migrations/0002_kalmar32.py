@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
             name='Kalmar32',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('serial_number', models.CharField(help_text='Уникальный серийный номер оборудования', max_length=50, unique=True, validators=[django.core.validators.MinLengthValidator(1), django.core.validators.MaxLengthValidator(50), core.validators.validate_serial_number_format], verbose_name='Серийный номер')),
+                ('serial_number', models.CharField(help_text='Уникальный серийный номер оборудования', max_length=50, unique=True, validators=[django.core.validators.MinLengthValidator(1), django.core.validators.MaxLengthValidator(50)], verbose_name='Серийный номер')),
                 ('shipment_date', models.DateField(default=datetime.date.today, help_text='Дата отгрузки оборудования со склада', verbose_name='Дата отгрузки')),
                 ('case_number', models.CharField(blank=True, help_text='Номер кейса для хранения оборудования', max_length=50, validators=[django.core.validators.MaxLengthValidator(50)], verbose_name='Номер кейса')),
                 ('first_phased_array_converters', models.CharField(blank=True, help_text='S/n первого преобразователя на фазированной решетке', max_length=50, validators=[django.core.validators.MaxLengthValidator(50)], verbose_name='Преобразователи РА2.25L16 1.1х10-17')),

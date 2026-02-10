@@ -13,8 +13,6 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from core.validators import validate_serial_number_format
-
 
 class Phasar32(models.Model):
     """Phasar32 model with equipment specification."""
@@ -27,7 +25,6 @@ class Phasar32(models.Model):
         validators=[
             MinLengthValidator(1),
             MaxLengthValidator(50),
-            validate_serial_number_format,
         ],
         help_text=_("Уникальный серийный номер оборудования"),
     )
