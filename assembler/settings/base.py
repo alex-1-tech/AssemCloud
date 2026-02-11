@@ -34,6 +34,8 @@ ALLOWED_HOSTS = [
     ".votum.asuscomm.com",
     "votum.asuscomm.com:32222",
     "37.203.240.41:32222",
+    "94.131.111.22",
+    "94.131.111.22:80",
 ]
 
 CSRF_TRUSTED_ORIGINS = []  # ["https://2965-178-236-244-154.ngrok-free.app"]

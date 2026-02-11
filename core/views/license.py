@@ -10,6 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 from core.models import Kalmar32, License, Phasar32
 from core.utils.license import sign_license
 
+
 @method_decorator(csrf_exempt, name="dispatch")
 class ActivateView(View):
     http_method_names: ClassVar[list[str]] = ["post"]
@@ -19,7 +20,7 @@ class ActivateView(View):
             try:
                 raw_body = request.body
                 data = json.loads(raw_body)
-            except json.JSONDecodeError as e:
+            except json.JSONDecodeError:
                 return JsonResponse(
                     {"status": "error", "error": "Invalid JSON", "raw_body": raw_body.decode(errors="replace")},
                     status=400,
@@ -85,17 +86,17 @@ class ActivateView(View):
                 license_data = sign_license(license_payload)
             except FileNotFoundError:
                 return JsonResponse(
-                    {"status": "error", "error": f"Private key not found"},
+                    {"status": "error", "error": "Private key not found"},
                     status=500,
                 )
             except PermissionError:
                 return JsonResponse(
-                    {"status": "error", "error": f"No permission to read private key"},
+                    {"status": "error", "error": "No permission to read private key"},
                     status=500,
                 )
             except Exception as e:
                 return JsonResponse(
-                    {"status": "error", "error": f"Failed to sign license: {str(e)}"},
+                    {"status": "error", "error": f"Failed to sign license: {e!s}"},
                     status=500,
                 )
 
