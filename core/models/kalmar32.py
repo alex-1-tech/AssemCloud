@@ -6,6 +6,7 @@ Includes registration, components, and validation logic.
 from datetime import date
 from typing import ClassVar
 
+from decouple import config
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxLengthValidator, MinLengthValidator
 from django.db import models
@@ -36,6 +37,13 @@ class Kalmar32(models.Model):
         related_name="kalmar32_license",
         verbose_name=_("Лицензия"),
         help_text=_("Лицензия для этого оборудования"),
+    )
+
+    license_password = models.CharField(
+        _("License password"),
+        max_length=100,
+        default=config("LICENSE_DEFAULT_PASSWORD", cast=str),
+        help_text=_("Пароль для активации лицензии"),
     )
 
     shipment_date = models.DateField(

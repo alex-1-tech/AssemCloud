@@ -40,6 +40,7 @@ class ActivateView(View):
                 company_name = data.get("company_name", "")
                 exp = data.get("exp", "2100-01-01")
                 features = data.get("features", {})
+                license_password = data["license_password"]
             except KeyError as e:
                 return JsonResponse(
                     {"status": "error", "error": f"Missing field: {e}"},
@@ -81,7 +82,17 @@ class ActivateView(View):
                     {"status": "error", "error": f"Database error: {str(e)}"},
                     status=500,
                 )
-
+            try:
+                if model.license_password != license_password:
+                    return JsonResponse(
+                        {"status": "error", "error": "Invalid license password"},
+                        status=403,
+                    )
+            except AttributeError:
+                return JsonResponse(
+                    {"status": "error", "error": "Device model does not have license_password field"},
+                    status=500,
+                )
             try:
                 license_data = sign_license(license_payload)
             except FileNotFoundError:
@@ -154,3 +165,5 @@ class ActivateView(View):
                 {"status": "error", "error": f"Unhandled exception: {str(e)}"},
                 status=500,
             )
+
+
