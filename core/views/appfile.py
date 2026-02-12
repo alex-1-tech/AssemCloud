@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 @method_decorator(login_required, name="dispatch")
+@method_decorator(csrf_exempt, name="dispatch")
 class AppUploadPageView(View):
     """View for displaying the file upload page."""
 
@@ -45,9 +46,7 @@ class AuthCheckView(View):
             {
                 "is_authenticated": request.user.is_authenticated,
                 "is_staff": request.user.is_staff,
-                "username": request.user.username
-                if request.user.is_authenticated
-                else None,
+                "username": request.user.username if request.user.is_authenticated else None,
             }
         )
 
@@ -66,6 +65,12 @@ class AppFileUploadView(View):
 
     def post(self, request: HttpRequest) -> JsonResponse:
         """Upload application .exe file."""
+        if not request.user.is_authenticated:
+            return JsonResponse(
+                {"error": "Authentication required", "status": "error"},
+                status=401
+            )
+
         try:
             file_obj = self._get_uploaded_file(request)
             app_type = self._get_app_type(request)
@@ -122,7 +127,7 @@ class AppFileUploadView(View):
             "phasar32": "Phasar.exe",
             "manual_app": "ManualApp.exe",
         }.get(app_type)
-        
+
         if file_obj.name != expected_name:
             logger.warning(
                 "File name %s doesn't match expected name %s for type %s",
@@ -142,7 +147,7 @@ class AppFileUploadView(View):
             "phasar32": "Phasar.exe",
             "manual_app": "ManualApp.exe",
         }.get(app_type)
-        
+
         file_path = f"apps/{app_type}/{date_str}/{file_name}"
 
         # Ensure directory exists
@@ -159,9 +164,7 @@ class AppFileUploadView(View):
         }
         return JsonResponse(response_data, status=201)
 
-    def _build_error_response(
-        self, message: str, status: int = 400, detail: str = ""
-    ) -> JsonResponse:
+    def _build_error_response(self, message: str, status: int = 400, detail: str = "") -> JsonResponse:
         """Build error response."""
         response_data = {
             "error": message,
@@ -190,9 +193,7 @@ class AppFileDownloadView(View):
             file_info = self._find_latest_file(app_type)
 
             if not file_info:
-                return self._build_error_response(
-                    "No application file found", status=404
-                )
+                return self._build_error_response("No application file found", status=404)
 
             # Get the actual file path in the filesystem
             file_path = file_info["file_path"]
@@ -305,9 +306,7 @@ class AppFileDownloadView(View):
         }
         return JsonResponse(response_data, status=200)
 
-    def _build_error_response(
-        self, message: str, status: int = 400, detail: str = ""
-    ) -> JsonResponse:
+    def _build_error_response(self, message: str, status: int = 400, detail: str = "") -> JsonResponse:
         """Build error response."""
         response_data = {
             "error": message,
@@ -412,9 +411,7 @@ class AppFileListVersionsView(View):
         else:
             return f"{year}-{month}-{day}"
 
-    def _build_error_response(
-        self, message: str, status: int = 400, detail: str = ""
-    ) -> JsonResponse:
+    def _build_error_response(self, message: str, status: int = 400, detail: str = "") -> JsonResponse:
         """Build error response."""
         response_data = {
             "error": message,
