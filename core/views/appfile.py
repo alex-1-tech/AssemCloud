@@ -1,6 +1,6 @@
 """API views for application file management.
 
-This module provides file processing for Kalmar32 and Phasar32 application files.
+This module provides file processing for Kalmar32, Phasar32, and ManualApp application files.
 """
 
 from __future__ import annotations
@@ -56,12 +56,12 @@ class AuthCheckView(View):
 class AppFileUploadView(View):
     """View for uploading application .exe files.
 
-    Handles POST requests with file upload for Kalmar32/Phasar32 applications.
+    Handles POST requests with file upload for Kalmar32/Phasar32/ManualApp applications.
     Files are saved to media/apps/<type>/<yyyy_mm_dd>/<AppName>.exe
     """
 
     http_method_names: ClassVar[list[str]] = ["post"]
-    ALLOWED_TYPES: ClassVar[tuple[str, ...]] = ("kalmar32", "phasar32")
+    ALLOWED_TYPES: ClassVar[tuple[str, ...]] = ("kalmar32", "phasar32", "manual_app")
     MAX_FILE_SIZE: ClassVar[int] = 500 * 1024 * 1024  # 500MB
 
     def post(self, request: HttpRequest) -> JsonResponse:
@@ -117,7 +117,12 @@ class AppFileUploadView(View):
             raise ValidationError(msg)
 
         # Validate file name based on type
-        expected_name = "Kalmar.exe" if app_type == "kalmar32" else "Phasar.exe"
+        expected_name = {
+            "kalmar32": "Kalmar.exe",
+            "phasar32": "Phasar.exe",
+            "manual_app": "ManualApp.exe",
+        }.get(app_type)
+        
         if file_obj.name != expected_name:
             logger.warning(
                 "File name %s doesn't match expected name %s for type %s",
@@ -132,7 +137,12 @@ class AppFileUploadView(View):
         date_str = today.strftime("%Y_%m_%d")
 
         # Build file path: apps/<type>/<yyyy_mm_dd>/<AppName>.exe
-        file_name = "Kalmar.exe" if app_type == "kalmar32" else "Phasar.exe"
+        file_name = {
+            "kalmar32": "Kalmar.exe",
+            "phasar32": "Phasar.exe",
+            "manual_app": "ManualApp.exe",
+        }.get(app_type)
+        
         file_path = f"apps/{app_type}/{date_str}/{file_name}"
 
         # Ensure directory exists
@@ -169,7 +179,7 @@ class AppFileDownloadView(View):
     """
 
     http_method_names: ClassVar[list[str]] = ["get"]
-    ALLOWED_TYPES: ClassVar[tuple[str, ...]] = ("kalmar32", "phasar32")
+    ALLOWED_TYPES: ClassVar[tuple[str, ...]] = ("kalmar32", "phasar32", "manual_app")
     YEAR_LENGTH = 4
     MONTH_DAY_LENGTH = 2
 
@@ -221,9 +231,12 @@ class AppFileDownloadView(View):
     def _find_latest_file(self, app_type: str) -> dict[str, Any] | None:
         """Find the most recent application file."""
         base_path = Path("apps") / app_type
-        app_name = "Kalmar.exe" if app_type == "kalmar32" else "Phasar.exe"
+        app_name = {
+            "kalmar32": "Kalmar.exe",
+            "phasar32": "Phasar.exe",
+            "manual_app": "ManualApp.exe",
+        }.get(app_type)
 
-        # Get all date directories
         date_dirs = []
         try:
             if default_storage.exists(str(base_path)):
@@ -236,10 +249,8 @@ class AppFileDownloadView(View):
         if not date_dirs:
             return None
 
-        # Sort by date (newest first)
         date_dirs.sort(reverse=True)
 
-        # Find the most recent file that exists
         for date_dir in date_dirs:
             file_path = base_path / date_dir / app_name
             if default_storage.exists(str(file_path)):
@@ -279,8 +290,6 @@ class AppFileDownloadView(View):
 
     def _get_file_url(self, file_path: str) -> str:
         """Generate file URL for download."""
-        # In production, this would be your CDN/media URL
-        # For development, you might want to use Django's serve view
         return f"/media/{file_path}"
 
     def _build_success_response(self, file_info: dict[str, Any]) -> JsonResponse:
@@ -292,7 +301,7 @@ class AppFileDownloadView(View):
             "app_type": file_info["app_type"],
             "file_name": file_info["file_name"],
             "date": file_info["date"],
-            "download_url": file_info["file_url"],  # For backward compatibility
+            "download_url": file_info["file_url"],
         }
         return JsonResponse(response_data, status=200)
 
@@ -314,7 +323,7 @@ class AppFileListVersionsView(View):
     """View for listing all available versions of an application."""
 
     http_method_names: ClassVar[list[str]] = ["get"]
-    ALLOWED_TYPES: ClassVar[tuple[str, ...]] = ("kalmar32", "phasar32")
+    ALLOWED_TYPES: ClassVar[tuple[str, ...]] = ("kalmar32", "phasar32", "manual_app")
     YEAR_LENGTH = 4
     MONTH_DAY_LENGTH = 2
 
@@ -349,7 +358,11 @@ class AppFileListVersionsView(View):
     def _find_all_versions(self, app_type: str) -> list[dict[str, Any]]:
         """Find all available versions of the application."""
         base_path = Path("apps") / app_type
-        app_name = "Kalmar.exe" if app_type == "kalmar32" else "Phasar.exe"
+        app_name = {
+            "kalmar32": "Kalmar.exe",
+            "phasar32": "Phasar.exe",
+            "manual_app": "ManualApp.exe",
+        }.get(app_type)
 
         versions = []
         try:
