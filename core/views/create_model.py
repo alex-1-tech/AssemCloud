@@ -74,22 +74,16 @@ class EquipmentCreateView(View):
             model_config = self.MODEL_CONFIGS[equipment_type]
 
             processed_data = self._process_input_data(data, model_config)
-            equipment = self._create_equipment(
-                equipment_type, model_config, processed_data
-            )
+            equipment = self._create_equipment(equipment_type, model_config, processed_data)
 
-            return self._build_success_response(
-                equipment, model_config["response_builder"]
-            )
+            return self._build_success_response(equipment, model_config["response_builder"])
 
         except json.JSONDecodeError:
             return self._build_error_response("Invalid JSON", status=400)
         except ValidationError as e:
             return self._build_error_response(str(e), status=400)
         except ValueError as e:
-            return self._build_error_response(
-                "Invalid input", status=400, detail=str(e)
-            )
+            return self._build_error_response("Invalid input", status=400, detail=str(e))
 
     def _extract_request_data(self, request: HttpRequest) -> dict[str, Any]:
         """Extract and parse JSON data from request body."""
@@ -124,7 +118,8 @@ class EquipmentCreateView(View):
     ) -> dict[str, Any]:
         """Convert and validate all field types for specific model."""
         processed = data.copy()
-        return self._process_boolean_fields(processed)
+        processed = self._process_boolean_fields(processed)
+        return self._process_date_fields(processed)
 
     def _process_boolean_fields(self, data: dict[str, Any]) -> dict[str, Any]:
         """Process boolean fields."""
@@ -136,30 +131,29 @@ class EquipmentCreateView(View):
                     data[field] = bool(data[field])
         return data
 
+    def _process_date_fields(self, data: dict[str, Any]) -> dict[str, Any]:
+        """Process date fields - remove empty string values."""
+        for field in self.DATE_FIELDS:
+            if field in data and data[field] == "":
+                del data[field]
+        return data
+
     @transaction.atomic
-    def _create_equipment(
-        self, equipment_type: str, model_config: dict, data: dict[str, Any]
-    ) -> object:
+    def _create_equipment(self, equipment_type: str, model_config: dict, data: dict[str, Any]) -> object:
         """Create equipment instance from validated data."""
         try:
             model_class = model_config["model"]
-            return model_class.objects.update_or_create(
-                serial_number=data["serial_number"], defaults=data
-            )[0]
+            return model_class.objects.update_or_create(serial_number=data["serial_number"], defaults=data)[0]
         except Exception as e:
             msg = f"Error creating {equipment_type}: {e!s}"
             raise ValidationError(msg) from e
 
-    def _build_success_response(
-        self, equipment: object, response_builder: object
-    ) -> JsonResponse:
+    def _build_success_response(self, equipment: object, response_builder: object) -> JsonResponse:
         """Build success response with created equipment data."""
         response_data = response_builder(equipment, "created")
         return JsonResponse(response_data, status=201)
 
-    def _build_error_response(
-        self, message: str, status: int = 400, detail: str = ""
-    ) -> JsonResponse:
+    def _build_error_response(self, message: str, status: int = 400, detail: str = "") -> JsonResponse:
         """Build error response.
 
         Args:
