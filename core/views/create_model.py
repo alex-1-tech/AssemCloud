@@ -34,7 +34,6 @@ class EquipmentCreateView(View):
 
     REQUIRED_FIELDS: ClassVar[tuple[str]] = {
         "serial_number",
-        "shipment_date",
         "equipment_type",
     }
     VALID_EQUIPMENT_TYPES: ClassVar[tuple[str]] = ("kalmar32", "phasar32")
