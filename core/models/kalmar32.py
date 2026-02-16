@@ -7,11 +7,9 @@ from datetime import date
 from typing import ClassVar
 
 from decouple import config
-from django.core.exceptions import ValidationError
 from django.core.validators import MaxLengthValidator, MinLengthValidator
 from django.db import models
 from django.urls import reverse
-from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 
@@ -27,6 +25,18 @@ class Kalmar32(models.Model):
             MaxLengthValidator(50),
         ],
         help_text=_("Уникальный серийный номер оборудования"),
+    )
+
+    rail_type = models.CharField(
+        _("Тип рельс"),
+        max_length=10,
+        choices=[
+            ("P65", "P65"),
+            ("IRS52", "IRS52"),
+            ("UIC60", "UIC60"),
+        ],
+        default="P65",
+        help_text=_("Тип рельсов (P65, IRS52, UIC60)"),
     )
 
     license = models.OneToOneField(
@@ -236,4 +246,3 @@ class Kalmar32(models.Model):
     def clean(self) -> None:
         """Additional model validation."""
         super().clean()
-

@@ -7,11 +7,9 @@ from datetime import date
 from typing import ClassVar
 
 from decouple import config
-from django.core.exceptions import ValidationError
 from django.core.validators import MaxLengthValidator, MinLengthValidator
 from django.db import models
 from django.urls import reverse
-from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 
