@@ -285,9 +285,3 @@ class Phasar32(models.Model):
         super().clean()
         self._validate_shipment_date()
 
-    def _validate_shipment_date(self) -> None:
-        """Validate shipment date is not in future."""
-        if self.shipment_date and self.shipment_date > timezone.now().date():
-            raise ValidationError(
-                _("Дата отгрузки не может быть в будущем"),
-            )
