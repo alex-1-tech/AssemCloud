@@ -283,5 +283,4 @@ class Phasar32(models.Model):
     def clean(self) -> None:
         """Additional model validation."""
         super().clean()
-        self._validate_shipment_date()
 
