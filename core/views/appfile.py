@@ -223,15 +223,15 @@ class AppFileDownloadView(View):
 
             # Get rail_type parameter for Kalmar32
             rail_type = None
-            if app_type == "kalmar32":
-                rail_type = request.GET.get("rail_type", "").upper().strip()
-                if not rail_type:
-                    return self._build_error_response(
-                        "rail_type parameter is required for Kalmar32", status=400
-                    )
-                if rail_type not in self.ALLOWED_RAIL_TYPES:
-                    msg = f"Rail type must be one of: {', '.join(self.ALLOWED_RAIL_TYPES)}"
-                    return self._build_error_response(msg, status=400)
+            # if app_type == "kalmar32":
+            #     rail_type = request.GET.get("rail_type", "").upper().strip()
+            #     if not rail_type:
+            #         return self._build_error_response(
+            #             "rail_type parameter is required for Kalmar32", status=400
+            #         )
+            #     if rail_type not in self.ALLOWED_RAIL_TYPES:
+            #         msg = f"Rail type must be one of: {', '.join(self.ALLOWED_RAIL_TYPES)}"
+            #         return self._build_error_response(msg, status=400)
 
             file_info = self._find_latest_file(app_type, rail_type)
 
