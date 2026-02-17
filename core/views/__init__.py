@@ -2,6 +2,7 @@
 
 from core.views.appfile import (
     AppFileDownloadView,
+    AppFileLatestVersionDateView,
     AppFileListVersionsView,
     AppFileUploadView,
     AppUploadPageView,
@@ -22,6 +23,7 @@ from core.views.webhook import AppWebhookDownloadView
 __all__ = [
     "ActivateView",
     "AppFileDownloadView",
+    "AppFileLatestVersionDateView",
     "AppFileListVersionsView",
     "AppFileUploadView",
     "AppUploadPageView",

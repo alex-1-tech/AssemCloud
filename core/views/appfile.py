@@ -6,6 +6,7 @@ This module provides file processing for Kalmar32, Phasar32, and ManualApp appli
 from __future__ import annotations
 
 import logging
+from abc import ABC, abstractmethod
 from datetime import date
 from pathlib import Path
 from typing import Any, ClassVar
@@ -22,6 +23,180 @@ from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
 logger = logging.getLogger(__name__)
+
+
+class BaseAppVersionView(View, ABC):
+    """Base class for application version management views.
+
+    Provides common functionality for handling application files and versions.
+    """
+
+    ALLOWED_TYPES: ClassVar[tuple[str, ...]] = ("kalmar32", "phasar32", "manual_app")
+    ALLOWED_RAIL_TYPES: ClassVar[tuple[str, ...]] = ("P65", "IRS52", "UIC60")
+    YEAR_LENGTH: ClassVar[int] = 4
+    MONTH_DAY_LENGTH: ClassVar[int] = 2
+
+    @property
+    @abstractmethod
+    def app_name_map(self) -> dict[str, str]:
+        """Map application types to their executable names."""
+        return {
+            "kalmar32": "Kalmar.exe",
+            "phasar32": "Phasar.exe",
+            "manual_app": "ManualApp.exe",
+        }
+
+    def get_app_name(self, app_type: str) -> str:
+        """Get executable name for application type."""
+        return self.app_name_map.get(app_type, "")
+
+    def validate_app_type(self, app_type: str) -> str | None:
+        """Validate application type and return error response if invalid."""
+        if app_type not in self.ALLOWED_TYPES:
+            return JsonResponse(
+                {
+                    "status": "error",
+                    "error": f"Invalid application type: '{app_type}'",
+                    "detail": f"Application type must be one of: {', '.join(self.ALLOWED_TYPES)}",
+                    "provided_type": app_type,
+                    "allowed_types": list(self.ALLOWED_TYPES),
+                },
+                status=400,
+            )
+        return None
+
+    def validate_rail_type(self, rail_type: str | None) -> str | None:
+        """Validate rail type and return error response if invalid."""
+        if rail_type and rail_type not in self.ALLOWED_RAIL_TYPES:
+            return JsonResponse(
+                {
+                    "status": "error",
+                    "error": f"Invalid rail type: '{rail_type}'",
+                    "detail": f"Rail type must be one of: {', '.join(self.ALLOWED_RAIL_TYPES)}",
+                    "provided_value": rail_type,
+                    "allowed_values": list(self.ALLOWED_RAIL_TYPES),
+                },
+                status=400,
+            )
+        return None
+
+    def get_base_path(self, app_type: str, rail_type: str | None = None) -> Path:
+        """Get base path for application type and optional rail type."""
+        path = Path("apps") / app_type
+        if rail_type:
+            path = path / rail_type
+        return path
+
+    def is_valid_date_dir(self, dir_name: str) -> bool:
+        """Check if directory name is in valid date format (yyyy_mm_dd)."""
+        try:
+            parts = dir_name.split("_")
+            if len(parts) != 3:
+                return False
+
+            year, month, day = parts
+            if (
+                len(year) == self.YEAR_LENGTH
+                and len(month) == self.MONTH_DAY_LENGTH
+                and len(day) == self.MONTH_DAY_LENGTH
+            ):
+                # Validate it's a real date
+                date(int(year), int(month), int(day))
+                return True
+        except (ValueError, TypeError):
+            pass
+        return False
+
+    def parse_date_from_dir(self, dir_name: str) -> str:
+        """Parse date from directory name."""
+        try:
+            year, month, day = dir_name.split("_")
+            return f"{year}-{month}-{day}"
+        except (ValueError, TypeError):
+            return dir_name
+
+    def get_file_size(self, file_path: str) -> int | None:
+        """Get file size in bytes."""
+        try:
+            if default_storage.exists(file_path):
+                return default_storage.size(file_path)
+        except Exception:
+            pass
+        return None
+
+    def get_file_url(self, file_path: str) -> str:
+        """Generate file URL for download."""
+        return f"/media/{file_path}"
+
+    def find_versions_for_path(
+        self, base_path: Path, app_type: str, rail_type: str | None = None
+    ) -> list[dict[str, Any]]:
+        """Find versions for a specific path."""
+        versions = []
+        app_name = self.get_app_name(app_type)
+
+        try:
+            if default_storage.exists(str(base_path)):
+                dirs, _ = default_storage.listdir(str(base_path))
+
+                for dir_name in dirs:
+                    if self.is_valid_date_dir(dir_name):
+                        file_path = base_path / dir_name / app_name
+                        if default_storage.exists(str(file_path)):
+                            version_data = {
+                                "date": self.parse_date_from_dir(dir_name),
+                                "date_dir": dir_name,
+                                "file_path": str(file_path),
+                                "file_url": self.get_file_url(str(file_path)),
+                                "file_name": app_name,
+                                "app_type": app_type,
+                                "exists": True,
+                                "size": self.get_file_size(str(file_path)),
+                            }
+                            if rail_type:
+                                version_data["rail_type"] = rail_type
+                            versions.append(version_data)
+        except Exception:
+            logger.exception(f"Error listing versions in {base_path}")
+
+        # Sort by date (newest first)
+        versions.sort(key=lambda x: x["date_dir"], reverse=True)
+        return versions
+
+    def find_latest_file(self, app_type: str, rail_type: str | None = None) -> dict[str, Any] | None:
+        """Find the most recent application file."""
+        try:
+            base_path = self.get_base_path(app_type, rail_type)
+            app_name = self.get_app_name(app_type)
+
+            date_dirs = []
+            if default_storage.exists(str(base_path)):
+                dirs, _ = default_storage.listdir(str(base_path))
+                date_dirs = [d for d in dirs if self.is_valid_date_dir(d)]
+
+            if not date_dirs:
+                return None
+
+            date_dirs.sort(reverse=True)
+
+            for date_dir in date_dirs:
+                file_path = base_path / date_dir / app_name
+                if default_storage.exists(str(file_path)):
+                    return {
+                        "file_path": str(file_path),
+                        "file_url": self.get_file_url(str(file_path)),
+                        "date": self.parse_date_from_dir(date_dir),
+                        "date_dir": date_dir,
+                        "app_type": app_type,
+                        "rail_type": rail_type,
+                        "file_name": app_name,
+                    }
+
+            return None
+
+        except Exception as e:
+            logger.exception(f"Error finding latest file for {app_type}")
+            return None
 
 
 @method_decorator(login_required, name="dispatch")
@@ -70,6 +245,11 @@ class AppFileUploadView(View):
     ALLOWED_TYPES: ClassVar[tuple[str, ...]] = ("kalmar32", "phasar32", "manual_app")
     ALLOWED_RAIL_TYPES: ClassVar[tuple[str, ...]] = ("P65", "IRS52", "UIC60")
     MAX_FILE_SIZE: ClassVar[int] = 500 * 1024 * 1024  # 500MB
+    APP_NAME_MAP: ClassVar[dict[str, str]] = {
+        "kalmar32": "Kalmar.exe",
+        "phasar32": "Phasar.exe",
+        "manual_app": "ManualApp.exe",
+    }
 
     def post(self, request: HttpRequest) -> JsonResponse:
         """Upload application .exe file."""
@@ -196,11 +376,7 @@ class AppFileUploadView(View):
             raise ValidationError(msg)
 
         # Validate file name based on type
-        expected_name = {
-            "kalmar32": "Kalmar.exe",
-            "phasar32": "Phasar.exe",
-            "manual_app": "ManualApp.exe",
-        }.get(app_type)
+        expected_name = self.APP_NAME_MAP.get(app_type)
 
         if file_obj.name != expected_name:
             logger.warning(
@@ -218,11 +394,7 @@ class AppFileUploadView(View):
             date_str = today.strftime("%Y_%m_%d")
 
             # Get file name based on app type
-            file_name = {
-                "kalmar32": "Kalmar.exe",
-                "phasar32": "Phasar.exe",
-                "manual_app": "ManualApp.exe",
-            }.get(app_type)
+            file_name = self.APP_NAME_MAP.get(app_type)
 
             # Build file path based on app type
             if app_type == "kalmar32" and rail_type:
@@ -264,31 +436,29 @@ class AppFileUploadView(View):
         return JsonResponse(response_data, status=201)
 
 
-class AppFileDownloadView(View):
+class AppFileDownloadView(BaseAppVersionView):
     """View for retrieving the latest application .exe file.
 
     Handles GET requests to download the most recent version of the application.
     """
 
     http_method_names: ClassVar[list[str]] = ["get"]
-    ALLOWED_TYPES: ClassVar[tuple[str, ...]] = ("kalmar32", "phasar32", "manual_app")
-    ALLOWED_RAIL_TYPES: ClassVar[tuple[str, ...]] = ("P65", "IRS52", "UIC60")
-    YEAR_LENGTH = 4
-    MONTH_DAY_LENGTH = 2
+
+    @property
+    def app_name_map(self) -> dict[str, str]:
+        return {
+            "kalmar32": "Kalmar.exe",
+            "phasar32": "Phasar.exe",
+            "manual_app": "ManualApp.exe",
+        }
 
     def get(self, request: HttpRequest, app_type: str) -> FileResponse | JsonResponse:
         """Get the latest application .exe file."""
         try:
             # Validate application type
-            if app_type not in self.ALLOWED_TYPES:
-                return JsonResponse(
-                    {
-                        "status": "error",
-                        "error": f"Invalid application type: '{app_type}'",
-                        "detail": f"Application type must be one of: {', '.join(self.ALLOWED_TYPES)}",
-                    },
-                    status=400,
-                )
+            error_response = self.validate_app_type(app_type)
+            if error_response:
+                return error_response
 
             # Get rail_type parameter for Kalmar32
             rail_type = None
@@ -307,20 +477,12 @@ class AppFileDownloadView(View):
                         status=400,
                     )
 
-                if rail_type not in self.ALLOWED_RAIL_TYPES:
-                    return JsonResponse(
-                        {
-                            "status": "error",
-                            "error": f"Invalid rail type: '{rail_type}'",
-                            "detail": f"Rail type must be one of: {', '.join(self.ALLOWED_RAIL_TYPES)}",
-                            "provided_value": rail_type,
-                            "allowed_values": list(self.ALLOWED_RAIL_TYPES),
-                        },
-                        status=400,
-                    )
+                error_response = self.validate_rail_type(rail_type)
+                if error_response:
+                    return error_response
 
             # Find latest file
-            file_info = self._find_latest_file(app_type, rail_type)
+            file_info = self.find_latest_file(app_type, rail_type)
 
             if not file_info:
                 path_description = f"apps/{app_type}"
@@ -395,125 +557,37 @@ class AppFileDownloadView(View):
                 status=500,
             )
 
-    def _find_latest_file(self, app_type: str, rail_type: str | None = None) -> dict[str, Any] | None:
-        """Find the most recent application file."""
-        try:
-            base_path = Path("apps") / app_type
-
-            # Add rail_type subfolder for Kalmar32
-            if rail_type:
-                base_path = base_path / rail_type
-
-            app_name = {
-                "kalmar32": "Kalmar.exe",
-                "phasar32": "Phasar.exe",
-                "manual_app": "ManualApp.exe",
-            }.get(app_type)
-
-            date_dirs = []
-            if default_storage.exists(str(base_path)):
-                dirs, _ = default_storage.listdir(str(base_path))
-                date_dirs = [d for d in dirs if self._is_valid_date_dir(d)]
-
-            if not date_dirs:
-                return None
-
-            date_dirs.sort(reverse=True)
-
-            for date_dir in date_dirs:
-                file_path = base_path / date_dir / app_name
-                if default_storage.exists(str(file_path)):
-                    return {
-                        "file_path": str(file_path),
-                        "file_url": self._get_file_url(str(file_path)),
-                        "date": self._parse_date_from_dir(date_dir),
-                        "date_dir": date_dir,
-                        "app_type": app_type,
-                        "rail_type": rail_type,
-                        "file_name": app_name,
-                    }
-
-            return None
-
-        except Exception as e:
-            logger.exception(f"Error finding latest file for {app_type}")
-            return None
-
-    def _is_valid_date_dir(self, dir_name: str) -> bool:
-        """Check if directory name is in valid date format (yyyy_mm_dd)."""
-        try:
-            parts = dir_name.split("_")
-            if len(parts) != 3:
-                return False
-
-            year, month, day = parts
-            if (
-                len(year) == self.YEAR_LENGTH
-                and len(month) == self.MONTH_DAY_LENGTH
-                and len(day) == self.MONTH_DAY_LENGTH
-            ):
-                # Validate it's a real date
-                date(int(year), int(month), int(day))
-                return True
-        except (ValueError, TypeError):
-            pass
-        return False
-
-    def _parse_date_from_dir(self, dir_name: str) -> str:
-        """Parse date from directory name."""
-        try:
-            year, month, day = dir_name.split("_")
-            return f"{year}-{month}-{day}"
-        except (ValueError, TypeError):
-            return dir_name
-
-    def _get_file_url(self, file_path: str) -> str:
-        """Generate file URL for download."""
-        return f"/media/{file_path}"
-
 
 @method_decorator(csrf_exempt, name="dispatch")
-class AppFileListVersionsView(View):
+class AppFileListVersionsView(BaseAppVersionView):
     """View for listing all available versions of an application."""
 
     http_method_names: ClassVar[list[str]] = ["get"]
-    ALLOWED_TYPES: ClassVar[tuple[str, ...]] = ("kalmar32", "phasar32", "manual_app")
-    ALLOWED_RAIL_TYPES: ClassVar[tuple[str, ...]] = ("P65", "IRS52", "UIC60")
-    YEAR_LENGTH = 4
-    MONTH_DAY_LENGTH = 2
+
+    @property
+    def app_name_map(self) -> dict[str, str]:
+        return {
+            "kalmar32": "Kalmar.exe",
+            "phasar32": "Phasar.exe",
+            "manual_app": "ManualApp.exe",
+        }
 
     def get(self, request: HttpRequest, app_type: str) -> JsonResponse:
         """Get list of all available application versions."""
         try:
             # Validate application type
-            if app_type not in self.ALLOWED_TYPES:
-                return JsonResponse(
-                    {
-                        "status": "error",
-                        "error": f"Invalid application type: '{app_type}'",
-                        "detail": f"Application type must be one of: {', '.join(self.ALLOWED_TYPES)}",
-                        "provided_type": app_type,
-                        "allowed_types": list(self.ALLOWED_TYPES),
-                    },
-                    status=400,
-                )
+            error_response = self.validate_app_type(app_type)
+            if error_response:
+                return error_response
 
             # Get rail_type parameter for Kalmar32
             rail_type = None
             if app_type == "kalmar32":
                 rail_type = request.GET.get("rail_type", "").upper().strip()
 
-                if rail_type and rail_type not in self.ALLOWED_RAIL_TYPES:
-                    return JsonResponse(
-                        {
-                            "status": "error",
-                            "error": f"Invalid rail type: '{rail_type}'",
-                            "detail": f"Rail type must be one of: {', '.join(self.ALLOWED_RAIL_TYPES)}",
-                            "provided_value": rail_type,
-                            "allowed_values": list(self.ALLOWED_RAIL_TYPES),
-                        },
-                        status=400,
-                    )
+                error_response = self.validate_rail_type(rail_type)
+                if error_response:
+                    return error_response
 
             # Find all versions
             versions = self._find_all_versions(app_type, rail_type)
@@ -551,69 +625,26 @@ class AppFileListVersionsView(View):
     def _find_all_versions(self, app_type: str, rail_type: str | None = None) -> list[dict[str, Any]]:
         """Find all available versions of the application."""
         try:
-            base_path = Path("apps") / app_type
-
-            # Add rail_type subfolder for Kalmar32 if specified
             if rail_type:
-                base_path = base_path / rail_type
-                return self._find_versions_for_path(base_path, app_type, rail_type)
+                # Specific rail type requested
+                base_path = self.get_base_path(app_type, rail_type)
+                return self.find_versions_for_path(base_path, app_type, rail_type)
             elif app_type == "kalmar32":
-                # If no rail_type specified for Kalmar32, search all rail types
+                # No rail type specified for Kalmar32 - search all rail types
                 return self._find_all_versions_all_rails(app_type)
             else:
-                # For non-Kalmar32 apps without rail_type
-                return self._find_versions_for_path(base_path, app_type, None)
+                # Non-Kalmar32 app without rail type
+                base_path = self.get_base_path(app_type)
+                return self.find_versions_for_path(base_path, app_type, None)
 
         except Exception:
-            log_msg = f"Error finding versions for {app_type}"
-            logger.exception(log_msg)
+            logger.exception(f"Error finding versions for {app_type}")
             return []
-
-    def _find_versions_for_path(
-        self, base_path: Path, app_type: str, rail_type: str | None
-    ) -> list[dict[str, Any]]:
-        """Find versions for a specific path."""
-        versions = []
-        app_name = {
-            "kalmar32": "Kalmar.exe",
-            "phasar32": "Phasar.exe",
-            "manual_app": "ManualApp.exe",
-        }.get(app_type)
-
-        try:
-            if default_storage.exists(str(base_path)):
-                dirs, _ = default_storage.listdir(str(base_path))
-
-                for dir_name in dirs:
-                    if self._is_valid_date_dir(dir_name):
-                        file_path = base_path / dir_name / app_name
-                        if default_storage.exists(str(file_path)):
-                            version_data = {
-                                "date": self._parse_date_from_dir(dir_name),
-                                "date_dir": dir_name,
-                                "file_path": str(file_path),
-                                "file_url": f"/media/{file_path}",
-                                "file_name": app_name,
-                                "app_type": app_type,
-                                "exists": True,
-                                "size": self._get_file_size(str(file_path)),
-                            }
-                            if rail_type:
-                                version_data["rail_type"] = rail_type
-                            versions.append(version_data)
-        except Exception:
-            log_msg = f"Error listing versions in {base_path}"
-            logger.exception(log_msg)
-
-        # Sort by date (newest first)
-        versions.sort(key=lambda x: x["date_dir"], reverse=True)
-        return versions
 
     def _find_all_versions_all_rails(self, app_type: str) -> list[dict[str, Any]]:
         """Find all versions for Kalmar32 across all rail types."""
         versions = []
         base_path = Path("apps") / app_type
-        app_name = "Kalmar.exe"
 
         try:
             if default_storage.exists(str(base_path)):
@@ -622,47 +653,96 @@ class AppFileListVersionsView(View):
 
                 for rail_dir in rail_dirs:
                     if rail_dir in self.ALLOWED_RAIL_TYPES:
-                        rail_versions = self._find_versions_for_path(base_path / rail_dir, app_type, rail_dir)
+                        rail_versions = self.find_versions_for_path(base_path / rail_dir, app_type, rail_dir)
                         versions.extend(rail_versions)
-        except Exception as e:
+        except Exception:
             logger.exception("Error listing versions for all rail types")
 
         # Sort by date (newest first)
         versions.sort(key=lambda x: (x["date_dir"], x.get("rail_type", "")), reverse=True)
         return versions
 
-    def _get_file_size(self, file_path: str) -> int | None:
-        """Get file size in bytes."""
-        try:
-            if default_storage.exists(file_path):
-                return default_storage.size(file_path)
-        except Exception:
-            pass
-        return None
 
-    def _is_valid_date_dir(self, dir_name: str) -> bool:
-        """Check if directory name is in valid date format (yyyy_mm_dd)."""
-        try:
-            parts = dir_name.split("_")
-            if len(parts) != 3:
-                return False
+@method_decorator(csrf_exempt, name="dispatch")
+class AppFileLatestVersionDateView(BaseAppVersionView):
+    """View for getting the date of the latest application version."""
 
-            year, month, day = parts
-            if (
-                len(year) == self.YEAR_LENGTH
-                and len(month) == self.MONTH_DAY_LENGTH
-                and len(day) == self.MONTH_DAY_LENGTH
-            ):
-                date(int(year), int(month), int(day))
-                return True
-        except (ValueError, TypeError):
-            pass
-        return False
+    http_method_names: ClassVar[list[str]] = ["get"]
 
-    def _parse_date_from_dir(self, dir_name: str) -> str:
-        """Parse date from directory name."""
+    @property
+    def app_name_map(self) -> dict[str, str]:
+        return {
+            "kalmar32": "Kalmar.exe",
+            "phasar32": "Phasar.exe",
+            "manual_app": "ManualApp.exe",
+        }
+
+    def get(self, request: HttpRequest, app_type: str) -> JsonResponse:
+        """Get the date of the latest application version."""
         try:
-            year, month, day = dir_name.split("_")
-            return f"{year}-{month}-{day}"
-        except (ValueError, TypeError):
-            return dir_name
+            # Validate application type
+            error_response = self.validate_app_type(app_type)
+            if error_response:
+                return error_response
+
+            # Get rail_type parameter for Kalmar32
+            rail_type = None
+            if app_type == "kalmar32":
+                rail_type = request.GET.get("rail_type", "").upper().strip()
+
+                error_response = self.validate_rail_type(rail_type)
+                if error_response:
+                    return error_response
+
+            # Find latest file using base class method
+            file_info = self.find_latest_file(app_type, rail_type if rail_type else None)
+
+            if not file_info:
+                path_description = f"apps/{app_type}"
+                if rail_type:
+                    path_description += f"/{rail_type}"
+
+                return JsonResponse(
+                    {
+                        "status": "error",
+                        "error": "No application file found",
+                        "detail": f"No {app_type} application file found in {path_description}",
+                        "app_type": app_type,
+                        "rail_type": rail_type,
+                    },
+                    status=404,
+                )
+
+            # Build response
+            response_data = {
+                "status": "success",
+                "app_type": app_type,
+                "date": file_info["date"],
+                "date_dir": file_info["date_dir"],
+                "file_name": file_info["file_name"],
+                "file_exists": default_storage.exists(file_info["file_path"]),
+            }
+
+            if rail_type:
+                response_data["rail_type"] = rail_type
+            elif app_type == "kalmar32" and "rail_type" in file_info:
+                response_data["rail_type"] = file_info["rail_type"]
+
+            # Add file size if file exists
+            if response_data["file_exists"]:
+                try:
+                    response_data["file_size"] = default_storage.size(file_info["file_path"])
+                except Exception:
+                    pass
+
+            return JsonResponse(response_data, status=200)
+
+        except Exception as e:
+            logger.exception("Unexpected error getting latest version date")
+            return JsonResponse(
+                {
+                    "status": "error",
+                    "error": f"Failed to get latest version date: {e!s}",
+                },
+                status=500,
+            )

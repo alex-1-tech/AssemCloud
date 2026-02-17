@@ -65,6 +65,11 @@ urlpatterns += [
         name="app-versions",
     ),
     path(
+        "api/apps/last_version/<str:app_type>/",
+        views.AppFileLatestVersionDateView.as_view(),
+        name="app-versions",
+    ),
+    path(
         "api/apps/webhook/download/",
         views.AppWebhookDownloadView.as_view(),
         name="app-webhook-download",
