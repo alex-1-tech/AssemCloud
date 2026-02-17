@@ -42,13 +42,20 @@ class AuthCheckView(View):
 
     def get(self, request: HttpRequest) -> JsonResponse:
         """Check authentication status."""
-        return JsonResponse(
-            {
-                "is_authenticated": request.user.is_authenticated,
-                "is_staff": request.user.is_staff,
-                "username": request.user.username if request.user.is_authenticated else None,
-            }
-        )
+        try:
+            return JsonResponse(
+                {
+                    "status": "success",
+                    "is_authenticated": request.user.is_authenticated,
+                    "is_staff": request.user.is_staff,
+                    "username": request.user.username if request.user.is_authenticated else None,
+                }
+            )
+        except Exception as e:
+            logger.exception("Auth check failed")
+            return JsonResponse(
+                {"status": "error", "error": f"Authentication check failed: {str(e)}"}, status=500
+            )
 
 
 @method_decorator(csrf_exempt, name="dispatch")
@@ -66,10 +73,40 @@ class AppFileUploadView(View):
 
     def post(self, request: HttpRequest) -> JsonResponse:
         """Upload application .exe file."""
-        if not request.user.is_authenticated:
-            return JsonResponse({"error": "Authentication required", "status": "error"}, status=401)
-
         try:
+            # Check authentication
+            if not request.user.is_authenticated:
+                return JsonResponse(
+                    {
+                        "status": "error",
+                        "error": "Authentication required",
+                        "detail": "You must be logged in to upload files",
+                    },
+                    status=401,
+                )
+
+            # Check if user has staff permissions
+            if not request.user.is_staff:
+                return JsonResponse(
+                    {
+                        "status": "error",
+                        "error": "Permission denied",
+                        "detail": "Only staff members can upload application files",
+                    },
+                    status=403,
+                )
+
+            # Validate request has files
+            if not request.FILES:
+                return JsonResponse(
+                    {
+                        "status": "error",
+                        "error": "No file provided",
+                        "detail": "Request must contain a file in multipart/form-data format",
+                    },
+                    status=400,
+                )
+
             file_obj = self._get_uploaded_file(request)
             app_type = self._get_app_type(request)
             rail_type = self._get_rail_type(request, app_type)
@@ -79,33 +116,53 @@ class AppFileUploadView(View):
             return self._build_success_response(file_path, app_type, rail_type)
 
         except ValidationError as e:
-            return self._build_error_response(str(e), status=400)
+            return JsonResponse(
+                {"status": "error", "error": str(e), "detail": "Validation failed for the uploaded file"},
+                status=400,
+            )
+        except PermissionError as e:
+            return JsonResponse(
+                {"status": "error", "error": str(e), "detail": "Permission denied for file operation"},
+                status=403,
+            )
+        except OSError as e:
+            logger.exception("File system error during upload")
+            return JsonResponse(
+                {
+                    "status": "error",
+                    "error": f"File system error: {str(e)}",
+                    "detail": "Failed to save file to storage",
+                },
+                status=500,
+            )
         except Exception as e:
-            logger.exception("App file upload failed")
-            return self._build_error_response(str(e), status=500)
+            logger.exception("Unexpected error during file upload")
+            return JsonResponse(
+                {
+                    "status": "error",
+                    "error": f"Upload failed: {str(e)}",
+                    "detail": "An unexpected error occurred during file upload",
+                },
+                status=500,
+            )
 
     def _get_uploaded_file(self, request: HttpRequest) -> object:
         """Extract uploaded file from request."""
-        if not request.FILES:
-            msg = "No file provided"
-            raise ValidationError(msg)
-
         file_obj = request.FILES.get("file")
         if not file_obj:
-            msg = "File field is required"
+            msg = "File field 'file' is required"
             raise ValidationError(msg)
-
         return file_obj
 
     def _get_app_type(self, request: HttpRequest) -> str:
         """Extract and validate application type."""
         app_type = request.POST.get("type", "").lower().strip()
         if not app_type:
-            msg = "Type field is required"
+            msg = "Application type field 'type' is required"
             raise ValidationError(msg)
 
         if app_type not in self.ALLOWED_TYPES:
-            msg = f"Type must be one of: {', '.join(self.ALLOWED_TYPES)}"
+            msg = f"Invalid application type: '{app_type}'. Must be one of: {', '.join(self.ALLOWED_TYPES)}"
             raise ValidationError(msg)
 
         return app_type
@@ -117,23 +174,25 @@ class AppFileUploadView(View):
 
         rail_type = request.POST.get("rail_type", "").upper().strip()
         if not rail_type:
-            msg = "Rail type is required for Kalmar32"
+            msg = "Rail type field 'rail_type' is required for Kalmar32 applications"
             raise ValidationError(msg)
 
         if rail_type not in self.ALLOWED_RAIL_TYPES:
-            msg = f"Rail type must be one of: {', '.join(self.ALLOWED_RAIL_TYPES)}"
+            msg = f"Invalid rail type: '{rail_type}'. Must be one of: {', '.join(self.ALLOWED_RAIL_TYPES)}"
             raise ValidationError(msg)
 
         return rail_type
 
     def _validate_file(self, file_obj: object, app_type: str) -> None:
         """Validate uploaded file."""
+        # Check file extension
         if not file_obj.name.lower().endswith(".exe"):
-            msg = "File must be a .exe file"
+            msg = f"Invalid file type: '{file_obj.name}'. Only .exe files are allowed"
             raise ValidationError(msg)
 
+        # Check file size
         if file_obj.size > self.MAX_FILE_SIZE:
-            msg = f"File size exceeds maximum of {self.MAX_FILE_SIZE} bytes"
+            msg = f"File size ({file_obj.size} bytes) exceeds maximum allowed size of {self.MAX_FILE_SIZE} bytes"
             raise ValidationError(msg)
 
         # Validate file name based on type
@@ -145,36 +204,45 @@ class AppFileUploadView(View):
 
         if file_obj.name != expected_name:
             logger.warning(
-                "File name %s doesn't match expected name %s for type %s",
+                "File name '%s' doesn't match expected name '%s' for type '%s'",
                 file_obj.name,
                 expected_name,
                 app_type,
             )
+            # Don't raise ValidationError, just warn
 
     def _save_file(self, file_obj: object, app_type: str, rail_type: str | None = None) -> str:
         """Save file to media storage."""
-        today = timezone.now().date()
-        date_str = today.strftime("%Y_%m_%d")
+        try:
+            today = timezone.now().date()
+            date_str = today.strftime("%Y_%m_%d")
 
-        # Get file name based on app type
-        file_name = {
-            "kalmar32": "Kalmar.exe",
-            "phasar32": "Phasar.exe",
-            "manual_app": "ManualApp.exe",
-        }.get(app_type)
+            # Get file name based on app type
+            file_name = {
+                "kalmar32": "Kalmar.exe",
+                "phasar32": "Phasar.exe",
+                "manual_app": "ManualApp.exe",
+            }.get(app_type)
 
-        # Build file path based on app type
-        if app_type == "kalmar32" and rail_type:
-            file_path = f"apps/{app_type}/{rail_type}/{date_str}/{file_name}"
-        else:
-            file_path = f"apps/{app_type}/{date_str}/{file_name}"
+            # Build file path based on app type
+            if app_type == "kalmar32" and rail_type:
+                file_path = f"apps/{app_type}/{rail_type}/{date_str}/{file_name}"
+            else:
+                file_path = f"apps/{app_type}/{date_str}/{file_name}"
 
-        # Delete existing file if it exists
-        if default_storage.exists(file_path):
-            default_storage.delete(file_path)
+            # Delete existing file if it exists
+            if default_storage.exists(file_path):
+                logger.info(f"Deleting existing file: {file_path}")
+                default_storage.delete(file_path)
 
-        # Save new file
-        return default_storage.save(file_path, file_obj)
+            # Save new file
+            saved_path = default_storage.save(file_path, file_obj)
+            logger.info(f"File saved successfully: {saved_path}")
+            return saved_path
+
+        except Exception as e:
+            logger.exception(f"Failed to save file: {str(e)}")
+            raise
 
     def _build_success_response(
         self, file_path: str, app_type: str, rail_type: str | None = None
@@ -186,22 +254,14 @@ class AppFileUploadView(View):
             "file_path": file_path,
             "app_type": app_type,
             "upload_date": timezone.now().date().isoformat(),
+            "file_url": f"/media/{file_path}",
+            "uploaded_by": "staff",
         }
 
         if rail_type:
             response_data["rail_type"] = rail_type
 
         return JsonResponse(response_data, status=201)
-
-    def _build_error_response(self, message: str, status: int = 400, detail: str = "") -> JsonResponse:
-        """Build error response."""
-        response_data = {
-            "error": message,
-            "status": "error",
-            "detail": detail,
-        }
-        logger.error("App upload error: %s - %s", message, detail)
-        return JsonResponse(response_data, status=status)
 
 
 class AppFileDownloadView(View):
@@ -219,110 +279,180 @@ class AppFileDownloadView(View):
     def get(self, request: HttpRequest, app_type: str) -> FileResponse | JsonResponse:
         """Get the latest application .exe file."""
         try:
-            self._validate_app_type(app_type)
+            # Validate application type
+            if app_type not in self.ALLOWED_TYPES:
+                return JsonResponse(
+                    {
+                        "status": "error",
+                        "error": f"Invalid application type: '{app_type}'",
+                        "detail": f"Application type must be one of: {', '.join(self.ALLOWED_TYPES)}",
+                    },
+                    status=400,
+                )
 
             # Get rail_type parameter for Kalmar32
             rail_type = None
             if app_type == "kalmar32":
                 rail_type = request.GET.get("rail_type", "").upper().strip()
-                if not rail_type:
-                    return self._build_error_response(
-                        "rail_type parameter is required for Kalmar32", status=400
-                    )
-                if rail_type not in self.ALLOWED_RAIL_TYPES:
-                    msg = f"Rail type must be one of: {', '.join(self.ALLOWED_RAIL_TYPES)}"
-                    return self._build_error_response(msg, status=400)
 
+                if not rail_type:
+                    return JsonResponse(
+                        {
+                            "status": "error",
+                            "error": "Missing rail_type parameter",
+                            "detail": "Rail type parameter 'rail_type' is required for Kalmar32 applications",
+                            "required_parameter": "rail_type",
+                            "allowed_values": list(self.ALLOWED_RAIL_TYPES),
+                        },
+                        status=400,
+                    )
+
+                if rail_type not in self.ALLOWED_RAIL_TYPES:
+                    return JsonResponse(
+                        {
+                            "status": "error",
+                            "error": f"Invalid rail type: '{rail_type}'",
+                            "detail": f"Rail type must be one of: {', '.join(self.ALLOWED_RAIL_TYPES)}",
+                            "provided_value": rail_type,
+                            "allowed_values": list(self.ALLOWED_RAIL_TYPES),
+                        },
+                        status=400,
+                    )
+
+            # Find latest file
             file_info = self._find_latest_file(app_type, rail_type)
 
             if not file_info:
-                return self._build_error_response("No application file found", status=404)
+                path_description = f"apps/{app_type}"
+                if rail_type:
+                    path_description += f"/{rail_type}"
 
-            # Get the actual file path in the filesystem
-            file_path = file_info["file_path"]
+                return JsonResponse(
+                    {
+                        "status": "error",
+                        "error": "No application file found",
+                        "detail": f"No {app_type} application file found in {path_description}",
+                        "app_type": app_type,
+                        "rail_type": rail_type,
+                        "suggestion": "Upload a file first using the upload endpoint",
+                    },
+                    status=404,
+                )
 
-            if not default_storage.exists(file_path):
-                return self._build_error_response("File not found", status=404)
+            # Check if file exists in storage
+            if not default_storage.exists(file_info["file_path"]):
+                return JsonResponse(
+                    {
+                        "status": "error",
+                        "error": "File not found in storage",
+                        "detail": f"The file {file_info['file_path']} exists in database but not in storage",
+                        "file_path": file_info["file_path"],
+                    },
+                    status=404,
+                )
 
-            # Open the file and return it as a download response
-            file = default_storage.open(file_path, "rb")
-            file_name = Path(file_path).name
+            # Open and return the file
+            try:
+                file = default_storage.open(file_info["file_path"], "rb")
+                file_name = Path(file_info["file_path"]).name
 
-            response = FileResponse(
-                file,
-                as_attachment=True,
-                filename=file_name,
-                content_type="application/octet-stream",
-            )
+                response = FileResponse(
+                    file,
+                    as_attachment=True,
+                    filename=file_name,
+                    content_type="application/octet-stream",
+                )
 
-            # Add custom headers if needed
-            response["Content-Disposition"] = f'attachment; filename="{file_name}"'
+                # Add custom headers
+                response["Content-Disposition"] = f'attachment; filename="{file_name}"'
+                response["X-App-Type"] = app_type
+                if rail_type:
+                    response["X-Rail-Type"] = rail_type
+                response["X-File-Date"] = file_info.get("date", "")
 
-            return response
+                return response
 
-        except ValidationError as e:
-            return self._build_error_response(str(e), status=400)
+            except Exception as e:
+                logger.exception(f"Failed to open file: {file_info['file_path']}")
+                return JsonResponse(
+                    {
+                        "status": "error",
+                        "error": f"Failed to read file: {str(e)}",
+                        "detail": "The file exists but cannot be opened",
+                        "file_path": file_info["file_path"],
+                    },
+                    status=500,
+                )
+
         except Exception as e:
-            logger.exception("App file download failed")
-            return self._build_error_response(str(e), status=500)
-
-    def _validate_app_type(self, app_type: str) -> None:
-        """Validate application type."""
-        if app_type not in self.ALLOWED_TYPES:
-            msg = f"Type must be one of: {', '.join(self.ALLOWED_TYPES)}"
-            raise ValidationError(msg)
+            logger.exception("Unexpected error during file download")
+            return JsonResponse(
+                {
+                    "status": "error",
+                    "error": f"Download failed: {str(e)}",
+                    "detail": "An unexpected error occurred during file download",
+                },
+                status=500,
+            )
 
     def _find_latest_file(self, app_type: str, rail_type: str | None = None) -> dict[str, Any] | None:
         """Find the most recent application file."""
-        base_path = Path("apps") / app_type
-
-        # Add rail_type subfolder for Kalmar32
-        if rail_type:
-            base_path = base_path / rail_type
-
-        app_name = {
-            "kalmar32": "Kalmar.exe",
-            "phasar32": "Phasar.exe",
-            "manual_app": "ManualApp.exe",
-        }.get(app_type)
-
-        date_dirs = []
         try:
+            base_path = Path("apps") / app_type
+
+            # Add rail_type subfolder for Kalmar32
+            if rail_type:
+                base_path = base_path / rail_type
+
+            app_name = {
+                "kalmar32": "Kalmar.exe",
+                "phasar32": "Phasar.exe",
+                "manual_app": "ManualApp.exe",
+            }.get(app_type)
+
+            date_dirs = []
             if default_storage.exists(str(base_path)):
                 dirs, _ = default_storage.listdir(str(base_path))
                 date_dirs = [d for d in dirs if self._is_valid_date_dir(d)]
-        except (OSError, ValueError):
-            logger.exception("Error listing directories")
+
+            if not date_dirs:
+                return None
+
+            date_dirs.sort(reverse=True)
+
+            for date_dir in date_dirs:
+                file_path = base_path / date_dir / app_name
+                if default_storage.exists(str(file_path)):
+                    return {
+                        "file_path": str(file_path),
+                        "file_url": self._get_file_url(str(file_path)),
+                        "date": self._parse_date_from_dir(date_dir),
+                        "date_dir": date_dir,
+                        "app_type": app_type,
+                        "rail_type": rail_type,
+                        "file_name": app_name,
+                    }
+
             return None
 
-        if not date_dirs:
+        except Exception as e:
+            logger.exception(f"Error finding latest file for {app_type}")
             return None
-
-        date_dirs.sort(reverse=True)
-
-        for date_dir in date_dirs:
-            file_path = base_path / date_dir / app_name
-            if default_storage.exists(str(file_path)):
-                return {
-                    "file_path": str(file_path),
-                    "file_url": self._get_file_url(str(file_path)),
-                    "date": self._parse_date_from_dir(date_dir),
-                    "app_type": app_type,
-                    "rail_type": rail_type,
-                    "file_name": app_name,
-                }
-
-        return None
 
     def _is_valid_date_dir(self, dir_name: str) -> bool:
         """Check if directory name is in valid date format (yyyy_mm_dd)."""
         try:
-            year, month, day = dir_name.split("_")
+            parts = dir_name.split("_")
+            if len(parts) != 3:
+                return False
+
+            year, month, day = parts
             if (
                 len(year) == self.YEAR_LENGTH
                 and len(month) == self.MONTH_DAY_LENGTH
                 and len(day) == self.MONTH_DAY_LENGTH
             ):
+                # Validate it's a real date
                 date(int(year), int(month), int(day))
                 return True
         except (ValueError, TypeError):
@@ -333,40 +463,13 @@ class AppFileDownloadView(View):
         """Parse date from directory name."""
         try:
             year, month, day = dir_name.split("_")
+            return f"{year}-{month}-{day}"
         except (ValueError, TypeError):
             return dir_name
-        else:
-            return f"{year}-{month}-{day}"
 
     def _get_file_url(self, file_path: str) -> str:
         """Generate file URL for download."""
         return f"/media/{file_path}"
-
-    def _build_success_response(self, file_info: dict[str, Any]) -> JsonResponse:
-        """Build success response with file information."""
-        response_data = {
-            "status": "success",
-            "file_url": file_info["file_url"],
-            "file_path": file_info["file_path"],
-            "app_type": file_info["app_type"],
-            "file_name": file_info["file_name"],
-            "date": file_info["date"],
-            "download_url": file_info["file_url"],
-        }
-        if file_info.get("rail_type"):
-            response_data["rail_type"] = file_info["rail_type"]
-
-        return JsonResponse(response_data, status=200)
-
-    def _build_error_response(self, message: str, status: int = 400, detail: str = "") -> JsonResponse:
-        """Build error response."""
-        response_data = {
-            "error": message,
-            "status": "error",
-            "detail": detail,
-        }
-        logger.error("App download error: %s - %s", message, detail)
-        return JsonResponse(response_data, status=status)
 
 
 @method_decorator(csrf_exempt, name="dispatch")
@@ -382,62 +485,105 @@ class AppFileListVersionsView(View):
     def get(self, request: HttpRequest, app_type: str) -> JsonResponse:
         """Get list of all available application versions."""
         try:
-            self._validate_app_type(app_type)
+            # Validate application type
+            if app_type not in self.ALLOWED_TYPES:
+                return JsonResponse(
+                    {
+                        "status": "error",
+                        "error": f"Invalid application type: '{app_type}'",
+                        "detail": f"Application type must be one of: {', '.join(self.ALLOWED_TYPES)}",
+                        "provided_type": app_type,
+                        "allowed_types": list(self.ALLOWED_TYPES),
+                    },
+                    status=400,
+                )
 
             # Get rail_type parameter for Kalmar32
             rail_type = None
             if app_type == "kalmar32":
                 rail_type = request.GET.get("rail_type", "").upper().strip()
-                if rail_type and rail_type not in self.ALLOWED_RAIL_TYPES:
-                    msg = f"Rail type must be one of: {', '.join(self.ALLOWED_RAIL_TYPES)}"
-                    return self._build_error_response(msg, status=400)
 
+                if rail_type and rail_type not in self.ALLOWED_RAIL_TYPES:
+                    return JsonResponse(
+                        {
+                            "status": "error",
+                            "error": f"Invalid rail type: '{rail_type}'",
+                            "detail": f"Rail type must be one of: {', '.join(self.ALLOWED_RAIL_TYPES)}",
+                            "provided_value": rail_type,
+                            "allowed_values": list(self.ALLOWED_RAIL_TYPES),
+                        },
+                        status=400,
+                    )
+
+            # Find all versions
             versions = self._find_all_versions(app_type, rail_type)
 
+            response_data = {
+                "status": "success",
+                "app_type": app_type,
+                "total_versions": len(versions),
+                "versions": versions,
+            }
+
+            if rail_type:
+                response_data["rail_type"] = rail_type
+                response_data["filtered_by_rail"] = True
+            else:
+                response_data["filtered_by_rail"] = False
+
+            if versions:
+                response_data["latest"] = versions[0]
+                response_data["oldest"] = versions[-1]
+
+            return JsonResponse(response_data, status=200)
+
+        except Exception as e:
+            logger.exception("Unexpected error during versions list")
             return JsonResponse(
                 {
-                    "status": "success",
-                    "app_type": app_type,
-                    "rail_type": rail_type,
-                    "versions": versions,
-                    "latest": versions[0] if versions else None,
+                    "status": "error",
+                    "error": f"Failed to list versions: {e!s}",
+                    "detail": "An unexpected error occurred while listing versions",
                 },
-                status=200,
+                status=500,
             )
-
-        except ValidationError as e:
-            return self._build_error_response(str(e), status=400)
-        except Exception as e:
-            logger.exception("App versions list failed")
-            return self._build_error_response(str(e), status=500)
-
-    def _validate_app_type(self, app_type: str) -> None:
-        """Validate application type."""
-        if app_type not in self.ALLOWED_TYPES:
-            msg = f"Type must be one of: {', '.join(self.ALLOWED_TYPES)}"
-            raise ValidationError(msg)
 
     def _find_all_versions(self, app_type: str, rail_type: str | None = None) -> list[dict[str, Any]]:
         """Find all available versions of the application."""
-        base_path = Path("apps") / app_type
+        try:
+            base_path = Path("apps") / app_type
 
-        # Add rail_type subfolder for Kalmar32 if specified
-        if rail_type:
-            base_path = base_path / rail_type
-        elif app_type == "kalmar32":
-            # If no rail_type specified for Kalmar32, search all rail types
-            return self._find_all_versions_all_rails(app_type)
+            # Add rail_type subfolder for Kalmar32 if specified
+            if rail_type:
+                base_path = base_path / rail_type
+                return self._find_versions_for_path(base_path, app_type, rail_type)
+            elif app_type == "kalmar32":
+                # If no rail_type specified for Kalmar32, search all rail types
+                return self._find_all_versions_all_rails(app_type)
+            else:
+                # For non-Kalmar32 apps without rail_type
+                return self._find_versions_for_path(base_path, app_type, None)
 
+        except Exception:
+            log_msg = f"Error finding versions for {app_type}"
+            logger.exception(log_msg)
+            return []
+
+    def _find_versions_for_path(
+        self, base_path: Path, app_type: str, rail_type: str | None
+    ) -> list[dict[str, Any]]:
+        """Find versions for a specific path."""
+        versions = []
         app_name = {
             "kalmar32": "Kalmar.exe",
             "phasar32": "Phasar.exe",
             "manual_app": "ManualApp.exe",
         }.get(app_type)
 
-        versions = []
         try:
             if default_storage.exists(str(base_path)):
                 dirs, _ = default_storage.listdir(str(base_path))
+
                 for dir_name in dirs:
                     if self._is_valid_date_dir(dir_name):
                         file_path = base_path / dir_name / app_name
@@ -448,12 +594,16 @@ class AppFileListVersionsView(View):
                                 "file_path": str(file_path),
                                 "file_url": f"/media/{file_path}",
                                 "file_name": app_name,
+                                "app_type": app_type,
+                                "exists": True,
+                                "size": self._get_file_size(str(file_path)),
                             }
                             if rail_type:
                                 version_data["rail_type"] = rail_type
                             versions.append(version_data)
-        except (OSError, ValueError):
-            logger.exception("Error listing versions")
+        except Exception:
+            log_msg = f"Error listing versions in {base_path}"
+            logger.exception(log_msg)
 
         # Sort by date (newest first)
         versions.sort(key=lambda x: x["date_dir"], reverse=True)
@@ -472,35 +622,32 @@ class AppFileListVersionsView(View):
 
                 for rail_dir in rail_dirs:
                     if rail_dir in self.ALLOWED_RAIL_TYPES:
-                        rail_path = base_path / rail_dir
-                        if default_storage.exists(str(rail_path)):
-                            date_dirs, _ = default_storage.listdir(str(rail_path))
-
-                            for date_dir in date_dirs:
-                                if self._is_valid_date_dir(date_dir):
-                                    file_path = rail_path / date_dir / app_name
-                                    if default_storage.exists(str(file_path)):
-                                        versions.append(
-                                            {
-                                                "date": self._parse_date_from_dir(date_dir),
-                                                "date_dir": date_dir,
-                                                "rail_type": rail_dir,
-                                                "file_path": str(file_path),
-                                                "file_url": f"/media/{file_path}",
-                                                "file_name": app_name,
-                                            }
-                                        )
-        except (OSError, ValueError):
+                        rail_versions = self._find_versions_for_path(base_path / rail_dir, app_type, rail_dir)
+                        versions.extend(rail_versions)
+        except Exception as e:
             logger.exception("Error listing versions for all rail types")
 
         # Sort by date (newest first)
         versions.sort(key=lambda x: (x["date_dir"], x.get("rail_type", "")), reverse=True)
         return versions
 
+    def _get_file_size(self, file_path: str) -> int | None:
+        """Get file size in bytes."""
+        try:
+            if default_storage.exists(file_path):
+                return default_storage.size(file_path)
+        except Exception:
+            pass
+        return None
+
     def _is_valid_date_dir(self, dir_name: str) -> bool:
         """Check if directory name is in valid date format (yyyy_mm_dd)."""
         try:
-            year, month, day = dir_name.split("_")
+            parts = dir_name.split("_")
+            if len(parts) != 3:
+                return False
+
+            year, month, day = parts
             if (
                 len(year) == self.YEAR_LENGTH
                 and len(month) == self.MONTH_DAY_LENGTH
@@ -516,16 +663,6 @@ class AppFileListVersionsView(View):
         """Parse date from directory name."""
         try:
             year, month, day = dir_name.split("_")
+            return f"{year}-{month}-{day}"
         except (ValueError, TypeError):
             return dir_name
-        else:
-            return f"{year}-{month}-{day}"
-
-    def _build_error_response(self, message: str, status: int = 400, detail: str = "") -> JsonResponse:
-        """Build error response."""
-        response_data = {
-            "error": message,
-            "status": "error",
-            "detail": detail,
-        }
-        return JsonResponse(response_data, status=status)
