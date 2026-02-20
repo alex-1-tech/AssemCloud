@@ -21,6 +21,7 @@ from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
+import contextlib
 
 logger = logging.getLogger(__name__)
 
@@ -730,10 +731,8 @@ class AppFileLatestVersionDateView(BaseAppVersionView):
 
             # Add file size if file exists
             if response_data["file_exists"]:
-                try:
+                with contextlib.suppress(Exception):
                     response_data["file_size"] = default_storage.size(file_info["file_path"])
-                except Exception:
-                    pass
 
             return JsonResponse(response_data, status=200)
 
