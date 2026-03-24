@@ -8,15 +8,8 @@ from core.views.appfile import (
     AppUploadPageView,
 )
 from core.views.create_model import EquipmentCreateView
-from core.views.kalmar32 import (
-    Kalmar32GetReportsView,
-    Kalmar32RetrieveView,
-)
 from core.views.license import ActivateView
-from core.views.phasar32 import (
-    Phasar32GetReportsView,
-    Phasar32RetrieveView,
-)
+from core.views.models import EquipmentReportsView, EquipmentRetrieveView
 from core.views.report import ReportCreateView, ReportFileUploadView
 from core.views.webhook import AppWebhookDownloadView
 
@@ -29,10 +22,8 @@ __all__ = [
     "AppUploadPageView",
     "AppWebhookDownloadView",
     "EquipmentCreateView",
-    "Kalmar32GetReportsView",
-    "Kalmar32RetrieveView",
-    "Phasar32GetReportsView",
-    "Phasar32RetrieveView",
+    "EquipmentReportsView",
+    "EquipmentRetrieveView",
     "ReportCreateView",
     "ReportFileUploadView",
 ]
