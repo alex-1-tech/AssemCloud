@@ -9,6 +9,7 @@ from urllib.parse import urlparse
 
 import requests
 from django.core.exceptions import ValidationError
+from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.http import HttpRequest, JsonResponse
 from django.utils import timezone
@@ -23,12 +24,12 @@ logger = logging.getLogger(__name__)
 class AppWebhookDownloadView(View):
     """View for downloading application .exe files from URLs via webhook.
 
-    Handles POST requests with URL to download and save Kalmar32/Phasar32 applications.
+    Handles POST requests with URL to download and save Kalmar32/Phasar01 applications.
     Files are saved to media/apps/<type>/<yyyy_mm_dd>/<AppName>.exe
     """
 
     http_method_names: ClassVar[list[str]] = ["post"]
-    ALLOWED_TYPES: ClassVar[tuple[str, ...]] = ("kalmar32", "phasar32")
+    ALLOWED_TYPES: ClassVar[tuple[str, ...]] = ("kalmar32", "phasar01", "phasar02")
     MAX_FILE_SIZE: ClassVar[int] = 500 * 1024 * 1024  # 500MB
     TIMEOUT: ClassVar[int] = 30  # seconds
 
@@ -90,22 +91,21 @@ class AppWebhookDownloadView(View):
         if app_type not in self.ALLOWED_TYPES:
             msg = f"Type must be one of: {', '.join(self.ALLOWED_TYPES)}"
             raise ValidationError(msg)
+
     def _validate_file_content(self, content: bytes, file_name: str) -> None:
         """Validate downloaded file content."""
-        # Check minimum size (typical PE header size)
         if len(content) < 64:
             msg = "File is too small to be a valid executable"
             raise ValidationError(msg)
 
-        # Check for PE header (DOS header magic)
         if not content.startswith(b"MZ"):
             msg = "File does not appear to be a valid Windows executable (missing MZ header)"
             raise ValidationError(msg)
 
-        # Check file extension
         if not file_name.lower().endswith(".exe"):
             msg = "File must have .exe extension"
             raise ValidationError(msg)
+
     def _download_file(self, url: str, app_type: str) -> tuple[bytes, str]:
         """Download file from URL."""
         try:
@@ -156,7 +156,6 @@ class AppWebhookDownloadView(View):
         self, url: str, app_type: str, response: requests.Response
     ) -> str:
         """Extract or generate appropriate file name."""
-        # Try to get filename from Content-Disposition header
         content_disposition = response.headers.get("content-disposition", "")
         if "filename=" in content_disposition:
             filename_match = re.findall("filename=(.+)", content_disposition)
@@ -165,13 +164,11 @@ class AppWebhookDownloadView(View):
                 if filename.lower().endswith(".exe"):
                     return filename
 
-        # Try to get filename from URL path
         parsed_url = urlparse(url)
         url_path = Path(parsed_url.path)
         if url_path.suffix.lower() == ".exe" and url_path.name:
             return url_path.name
 
-        # Fallback to default name based on app type
         return "Kalmar.exe" if app_type == "kalmar32" else "Phasar.exe"
 
     def _save_file(self, file_content: bytes, file_name: str, app_type: str) -> str:
@@ -179,7 +176,6 @@ class AppWebhookDownloadView(View):
         today = timezone.now().date()
         date_str = today.strftime("%Y_%m_%d")
 
-        # Validate file name
         expected_name = "Kalmar.exe" if app_type == "kalmar32" else "Phasar.exe"
         if file_name != expected_name:
             logger.warning(
@@ -191,9 +187,6 @@ class AppWebhookDownloadView(View):
 
         # Build file path: apps/<type>/<yyyy_mm_dd>/<FileName>.exe
         file_path = f"apps/{app_type}/{date_str}/{file_name}"
-
-        # Convert bytes to file-like object and save
-        from django.core.files.base import ContentFile
 
         file_obj = ContentFile(file_content, name=file_name)
 
