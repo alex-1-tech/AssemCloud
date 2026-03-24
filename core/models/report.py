@@ -13,22 +13,23 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from core.models import Kalmar32, Phasar32
+from core.models import Kalmar32, Phasar01, Phasar02
 
 
 def _generate_timestamped_path(
     instance: Report, filename: str, subfolder: str
 ) -> str:
     """Generate timestamp-based upload path for report files."""
-    # Определяем тип оборудования и серийный номер
-    if instance.kalmar:
-        equipment_type = "kalmar"
-        serial_number = instance.kalmar.serial_number
-    elif instance.phasar:
-        equipment_type = "phasar"
-        serial_number = instance.phasar.serial_number
+    if instance.kalmar32:
+        equipment_type = "kalmar32"
+        serial_number = instance.kalmar32.serial_number
+    elif instance.phasar01:
+        equipment_type = "phasar01"
+        serial_number = instance.phasar01.serial_number
+    elif instance.phasar02:
+        equipment_type = "phasar02"
+        serial_number = instance.phasar02.serial_number
     else:
-        # Fallback для случаев, когда оборудование не указано
         equipment_type = "unknown"
         serial_number = "unknown"
 
@@ -63,8 +64,9 @@ class Report(models.Model):
     """Report model for equipment documentation.
 
     Attributes:
-        kalmar: Related Kalmar32 equipment (optional)
-        phasar: Related Phasar32 equipment (optional)
+        kalmar32: Related Kalmar32 equipment (optional)
+        phasar01: Related Phasar01 equipment (optional)
+        phasar02: Related Phasar02 equipment (optional)
         report_date: Date of report creation
         json_report: JSON version of report (report.json)
         pdf_report: PDF version of report (report.pdf)
@@ -73,7 +75,7 @@ class Report(models.Model):
 
     """
 
-    kalmar = models.ForeignKey(
+    kalmar32 = models.ForeignKey(
         Kalmar32,
         on_delete=models.CASCADE,
         related_name="reports",
@@ -83,12 +85,22 @@ class Report(models.Model):
         blank=True,
     )
 
-    phasar = models.ForeignKey(
-        Phasar32,
+    phasar01 = models.ForeignKey(
+        Phasar01,
         on_delete=models.CASCADE,
         related_name="reports",
-        verbose_name=_("Оборудование Фазар32"),
-        help_text=_("Связанное оборудование Phasar32"),
+        verbose_name=_("Оборудование Фазар01"),
+        help_text=_("Связанное оборудование Phasar01"),
+        null=True,
+        blank=True,
+    )
+
+    phasar02 = models.ForeignKey(
+        Phasar02,
+        on_delete=models.CASCADE,
+        related_name="reports",
+        verbose_name=_("Оборудование Фазар02"),
+        help_text=_("Связанное оборудование Phasar02"),
         null=True,
         blank=True,
     )
@@ -147,33 +159,19 @@ class Report(models.Model):
         ordering: ClassVar[list[str]] = ["-report_date"]
         indexes: ClassVar[list] = [
             models.Index(fields=["report_date"]),
-            models.Index(fields=["kalmar"]),
-            models.Index(fields=["phasar"]),
-        ]
-        constraints: ClassVar[list] = [
-            models.UniqueConstraint(
-                fields=["kalmar", "report_date", "number_to"],
-                name="unique_report_per_kalmar_by_date",
-            ),
-            models.UniqueConstraint(
-                fields=["phasar", "report_date", "number_to"],
-                name="unique_report_per_phasar_by_date",
-            ),
-            models.CheckConstraint(
-                check=(
-                    models.Q(kalmar__isnull=False, phasar__isnull=True)
-                    | models.Q(kalmar__isnull=True, phasar__isnull=False)
-                ),
-                name="only_one_equipment_type",
-            ),
+            models.Index(fields=["kalmar32"]),
+            models.Index(fields=["phasar01"]),
+            models.Index(fields=["phasar02"]),
         ]
 
     def __str__(self) -> str:
         """Representate string of the report."""
-        if self.kalmar:
-            equipment_info = f"Kalmar32 {self.kalmar.serial_number}"
-        elif self.phasar:
-            equipment_info = f"Phasar32 {self.phasar.serial_number}"
+        if self.kalmar32:
+            equipment_info = f"Kalmar32 {self.kalmar32.serial_number}"
+        elif self.phasar01:
+            equipment_info = f"Phasar01 {self.phasar01.serial_number}"
+        elif self.phasar02:
+            equipment_info = f"Phasar02 {self.phasar02.serial_number}"
         else:
             equipment_info = "Unknown equipment"
 
@@ -203,21 +201,23 @@ class Report(models.Model):
 
     def _validate_equipment_reference(self) -> None:
         """Validate that exactly one equipment reference is set."""
-        if not self.kalmar and not self.phasar:
+        if not self.kalmar32 and not self.phasar01 and not self.phasar02:
             raise ValidationError(
-                _("Отчет должен быть привязан либо к Kalmar32, либо к Phasar32")
+                _("Отчет должен быть привязан либо к Kalmar32, либо к Phasar01")
             )
 
-        if self.kalmar and self.phasar:
+        if (self.kalmar32 and self.phasar01) or \
+            (self.kalmar32 and self.phasar02) or \
+                (self.phasar01 and self.phasar02):
             raise ValidationError(
-                _("Отчет не может быть одновременно привязан и к Kalmar32 и к Phasar32")
+                _("Отчет не может быть одновременно привязан и к Kalmar32 и к Phasar01")
             )
 
     def _validate_unique_constraint(self) -> None:
         """Validate unique constraint for the equipment, date and TO number."""
-        if self.kalmar:
+        if self.kalmar32:
             queryset = Report.objects.filter(
-                kalmar=self.kalmar,
+                kalmar32=self.kalmar32,
                 report_date=self.report_date,
                 number_to=self.number_to,
             ).exclude(pk=self.pk)
@@ -230,32 +230,47 @@ class Report(models.Model):
                     )
                 )
 
-        elif self.phasar:
+        elif self.phasar01:
             queryset = Report.objects.filter(
-                phasar=self.phasar,
+                phasar=self.phasar01,
                 report_date=self.report_date,
                 number_to=self.number_to,
             ).exclude(pk=self.pk)
             if queryset.exists():
                 raise ValidationError(
                     _(
-                        "Отчет для этого Phasar32 с такой датой и номером ТО "
+                        "Отчет для этого Phasar01 с такой датой и номером ТО "
+                        "уже существует"
+                    )
+                )
+        elif self.phasar02:
+            queryset = Report.objects.filter(
+                phasar=self.phasar02,
+                report_date=self.report_date,
+                number_to=self.number_to,
+            ).exclude(pk=self.pk)
+            if queryset.exists():
+                raise ValidationError(
+                    _(
+                        "Отчет для этого Phasar02 с такой датой и номером ТО "
                         "уже существует"
                     )
                 )
 
     @property
-    def equipment(self) -> Kalmar32 | Phasar32:
+    def equipment(self) -> Kalmar32 | Phasar01 | Phasar02:
         """Return the associated equipment instance."""
-        return self.kalmar or self.phasar
+        return self.kalmar01 or self.phasar01 or  self.phasar02
 
     @property
     def equipment_type(self) -> str:
         """Return equipment type as string."""
-        if self.kalmar:
-            return "kalmar"
-        if self.phasar:
-            return "phasar"
+        if self.kalmar32:
+            return "kalmar32"
+        if self.phasar01:
+            return "phasar01"
+        if self.phasar02:
+            return "phasar02"
         return "unknown"
 
     @property
