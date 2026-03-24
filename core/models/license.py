@@ -1,3 +1,9 @@
+"""License model for managing Kalmar32 equipment licenses.
+
+This module provides the License model for storing and managing
+license information including version, product details, hardware IDs,
+expiration dates, and digital signatures.
+"""
 import base64
 import json
 from datetime import date
@@ -10,34 +16,34 @@ from django.utils.translation import gettext_lazy as _
 
 
 class License(models.Model):
-    """Лицензия для оборудования Kalmar32."""
+    """License for Kalmar32 equipment."""
 
     ver = models.CharField(
-        _("Версия лицензии"),
+        _("License version"),
         max_length=50,
         blank=True,
         default="",
-        help_text=_("Версия лицензионного ключа"),
+        help_text=_("Version of the license key"),
     )
 
     product = models.CharField(
-        _("Продукт"),
+        _("Product"),
         max_length=100,
-        help_text=_("Название продукта"),
+        help_text=_("Product name"),
     )
 
     company_name = models.CharField(
-        _("Название компании"),
+        _("Company name"),
         max_length=200,
         blank=True,
         default="",
-        help_text=_("Название компании="),
+        help_text=_("Company name"),
     )
 
     host_hwid = models.CharField(
         _("Host HWID"),
         max_length=150,
-        help_text=_("Hardware ID хоста"),
+        help_text=_("Hardware ID of the host"),
     )
 
     device_hwid = models.CharField(
@@ -45,60 +51,57 @@ class License(models.Model):
         max_length=150,
         blank=True,
         default="",
-        help_text=_("Hardware ID устройства"),
+        help_text=_("Hardware ID of the device"),
     )
 
     exp = models.DateField(
-        _("Дата истечения"),
+        _("Expiration date"),
         default=date(2100, 1, 1),
-        help_text=_("Дата истечения срока действия лицензии"),
+        help_text=_("Expiration date of the license"),
     )
 
     features = models.JSONField(
-        _("Функциональность"),
+        _("Features"),
         default=dict,
-        help_text=_("Дополнительные функции в формате JSON"),
+        help_text=_("Additional features in JSON format"),
     )
 
     signature = models.TextField(
-        _("Подпись"),
+        _("Signature"),
         blank=True,
-        help_text=_("Цифровая подпись лицензии"),
+        help_text=_("Digital signature of the license"),
     )
 
     license_key = models.TextField(
-        _("Лицензионный ключ"),
-        help_text=_(
-            "Сгенерированный лицензионный ключ\
-                 в формате base64url(payload).base64url(signature)"
-        ),
+        _("License key"),
+        help_text=_("Generated license key in base64url(payload).base64url(signature) format"),
     )
 
     created_at = models.DateTimeField(
-        _("Дата создания"),
+        _("Created at"),
         auto_now_add=True,
-        help_text=_("Дата создания лицензии"),
+        help_text=_("Creation date of the license"),
     )
 
     updated_at = models.DateTimeField(
-        _("Дата обновления"),
+        _("Updated at"),
         auto_now=True,
-        help_text=_("Дата последнего обновления лицензии"),
+        help_text=_("Last update date of the license"),
     )
 
     class Meta:
         """Meta options for License model."""
 
-        verbose_name = _("Лицензия")
-        verbose_name_plural = _("Лицензии")
+        verbose_name = _("License")
+        verbose_name_plural = _("Licenses")
         ordering: ClassVar[list[str]] = ["-created_at"]
 
     def __str__(self) -> str:
         """Return string representation of the object."""
-        return "Лицензия"
+        return "License"
 
     def get_license_payload(self) -> dict:
-        """Получить payload лицензии в виде словаря."""
+        """Get payload of the license as a dictionary."""
         return {
             "ver": self.ver,
             "product": self.product,
@@ -110,18 +113,14 @@ class License(models.Model):
         }
 
     def generate_license_key(self, signature_bytes: bytes) -> str:
-        """Генерация licenseKey в формате base64url(payload).base64url(signature)."""
+        """Generate license key in base64url(payload).base64url(signature) format."""
         payload_json = json.dumps(self.get_license_payload(), separators=(",", ":"))
         payload_bytes = payload_json.encode("utf-8")
 
         def to_base64url(data_bytes: bytes) -> str:
-            """Конвертация base64 в base64url."""
+            """Convert base64 to base64url."""
             return (
-                base64.b64encode(data_bytes)
-                .decode("utf-8")
-                .replace("+", "-")
-                .replace("/", "_")
-                .rstrip("=")
+                base64.b64encode(data_bytes).decode("utf-8").replace("+", "-").replace("/", "_").rstrip("=")
             )
 
         payload_b64 = to_base64url(payload_bytes)
@@ -130,13 +129,13 @@ class License(models.Model):
         return f"{payload_b64}.{signature_b64}"
 
     def clean(self) -> None:
-        """Дополнительная валидация модели."""
+        """Additional validation of the model."""
         super().clean()
         self._validate_exp_date()
 
     def _validate_exp_date(self) -> None:
-        """Проверка даты истечения срока действия."""
+        """Validate expiration date."""
         if self.exp and self.exp < timezone.now().date():
             raise ValidationError(
-                _("Дата истечения срока действия не может быть в прошлом"),
+                _("Expiration date cannot be in the past"),
             )
