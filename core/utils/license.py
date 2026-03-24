@@ -1,22 +1,31 @@
+"""License utilities for signing, generating, and attaching licenses to Kalmar32 devices.
+
+This module provides functions for loading private keys, signing license payloads,
+and generating licenses for devices, including error handling and database integration.
+"""
+
 import base64
 import json
+from pathlib import Path
 
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from django.http import HttpRequest, JsonResponse
 
-from core.models import Kalmar32, License
+from core.models import Kalmar32, License, Phasar01, Phasar02
 
 PRIVATE_KEY_PATH = "/opt/license/private.pem"
 
 
-def load_private_key():
-    with open(PRIVATE_KEY_PATH, "rb") as f:
+def load_private_key() -> rsa.RSAPrivateKey:
+    """Load the private key for signing licenses."""
+    with Path.open(PRIVATE_KEY_PATH, "rb") as f:
         return load_pem_private_key(f.read(), password=None)
 
 
 def sign_license(payload: dict) -> dict:
+    """Sign the license payload and return the license data."""
     private_key = load_private_key()
 
     canonical = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode(
@@ -43,12 +52,13 @@ def sign_license(payload: dict) -> dict:
     }
 
 
-def generate_license_view(self, request: HttpRequest, serial_number: str) -> JsonResponse:
+def generate_license_view(request: HttpRequest, serial_number: str) -> JsonResponse:
+    """Django view to generate a license for a Kalmar32 device."""
     try:
         try:
             raw_body = request.body
             data = json.loads(raw_body)
-        except json.JSONDecodeError as e:
+        except json.JSONDecodeError:
             return JsonResponse(
                 {"status": "error", "error": "Invalid JSON", "raw_body": raw_body.decode(errors="replace")},
                 status=400,
@@ -74,7 +84,7 @@ def generate_license_view(self, request: HttpRequest, serial_number: str) -> Jso
             }
         except Exception as e:
             return JsonResponse(
-                {"status": "error", "error": f"Failed to prepare license payload: {str(e)}"},
+                {"status": "error", "error": f"Failed to prepare license payload: {e!s}"},
                 status=500,
             )
 
@@ -92,7 +102,7 @@ def generate_license_view(self, request: HttpRequest, serial_number: str) -> Jso
             )
         except Exception as e:
             return JsonResponse(
-                {"status": "error", "error": f"Failed to sign license: {str(e)}"},
+                {"status": "error", "error": f"Failed to sign license: {e!s}"},
                 status=500,
             )
 
@@ -105,7 +115,7 @@ def generate_license_view(self, request: HttpRequest, serial_number: str) -> Jso
             )
         except Exception as e:
             return JsonResponse(
-                {"status": "error", "error": f"Database error retrieving device: {str(e)}"},
+                {"status": "error", "error": f"Database error retrieving device: {e!s}"},
                 status=500,
             )
 
@@ -123,7 +133,7 @@ def generate_license_view(self, request: HttpRequest, serial_number: str) -> Jso
             )
         except Exception as e:
             return JsonResponse(
-                {"status": "error", "error": f"Failed to create License object: {str(e)}"},
+                {"status": "error", "error": f"Failed to create License object: {e!s}"},
                 status=500,
             )
 
@@ -132,7 +142,7 @@ def generate_license_view(self, request: HttpRequest, serial_number: str) -> Jso
             kalmar32.save()
         except Exception as e:
             return JsonResponse(
-                {"status": "error", "error": f"Failed to attach license to device: {str(e)}"},
+                {"status": "error", "error": f"Failed to attach license to device: {e!s}"},
                 status=500,
             )
 
@@ -143,19 +153,21 @@ def generate_license_view(self, request: HttpRequest, serial_number: str) -> Jso
                     "license": license_data,
                     "equipment": {
                         "serial_number": kalmar32.serial_number,
-                        "shipment_date": kalmar32.shipment_date.isoformat() if kalmar32.shipment_date else None,
+                        "shipment_date": (
+                            kalmar32.shipment_date.isoformat() if kalmar32.shipment_date else None
+                        ),
                     },
                 }
             )
         except Exception as e:
             return JsonResponse(
-                {"status": "error", "error": f"Failed to serialize response: {str(e)}"},
+                {"status": "error", "error": f"Failed to serialize response: {e!s}"},
                 status=500,
             )
 
     except Exception as e:
         return JsonResponse(
-            {"status": "error", "error": f"Unhandled exception: {str(e)}"},
+            {"status": "error", "error": f"Unhandled exception: {e!s}"},
             status=500,
         )
 
