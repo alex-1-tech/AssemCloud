@@ -9,34 +9,19 @@ from core import views
 
 urlpatterns = [
     path(
-        "api/kalmar32/",
+        "api/<str:model_name>/",
         views.EquipmentCreateView.as_view(),
-        name="kalmar32-create",
+        name="create",
     ),
     path(
-        "api/kalmar32/<str:pk>/get_settings",
-        views.Kalmar32RetrieveView.as_view(),
-        name="kalmar32-get-settings",
+        "api/<str:model_name>/<str:serial_number>/get_settings",
+        views.EquipmentRetrieveView.as_view(),
+        name="get-settings",
     ),
     path(
-        "api/kalmar32/<str:pk>/get_reports",
-        views.Kalmar32GetReportsView.as_view(),
-        name="kalmar32-get-reports",
-    ),
-    path(
-        "api/phasar32/",
-        views.EquipmentCreateView.as_view(),
-        name="phasar32-create",
-    ),
-    path(
-        "api/phasar32/<str:pk>/get_settings",
-        views.Phasar32RetrieveView.as_view(),
-        name="phasar32-get-settings",
-    ),
-    path(
-        "api/phasar32/<str:pk>/get_reports",
-        views.Phasar32GetReportsView.as_view(),
-        name="phasar32-get-reports",
+        "api/<str:model_name>/<str:serial_number>/get_reports",
+        views.EquipmentReportsView.as_view(),
+        name="get-reports",
     ),
     path(
         "api/report/",
@@ -83,9 +68,7 @@ urlpatterns += [
     # auth
     path(
         "accounts/login/",
-        auth_views.LoginView.as_view(
-            template_name="admin/login.html", next_page="/apps/upload/"
-        ),
+        auth_views.LoginView.as_view(template_name="admin/login.html", next_page="/apps/upload/"),
     ),
     path("accounts/logout/", auth_views.LogoutView.as_view(next_page="/apps/upload/")),
 ]
