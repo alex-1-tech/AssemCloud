@@ -1,8 +1,10 @@
 """API views for equipment management with dynamic model selection.
 
-This module provides unified JSON processing for both Kalmar32 and Phasar32 models
+This module provides unified JSON processing for both Kalmar32 and Phasar01 models
 with automatic model selection based on equipment_type field.
 """
+
+from __future__ import annotations
 
 import json
 import logging
@@ -15,9 +17,8 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
-from core.models import Kalmar32, Phasar32
-from core.views.kalmar32 import build_kalmar32_response_data
-from core.views.phasar32 import build_phasar32_response_data
+from core.models import Kalmar32, Phasar01, Phasar02
+from core.views.models import convert_kalmar32, convert_phasar01, convert_phasar02
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +28,7 @@ class EquipmentCreateView(View):
     """View for creating equipment records via JSON API with dynamic model selection.
 
     Handles POST requests with JSON payload containing equipment data.
-    Automatically selects Kalmar32 or Phasar32 based on equipment_type field.
+    Automatically selects Kalmar32 or Phasar01 based on equipment_type field.
     """
 
     http_method_names: ClassVar[list[str]] = ["post"]
@@ -36,7 +37,7 @@ class EquipmentCreateView(View):
         "serial_number",
         "equipment_type",
     }
-    VALID_EQUIPMENT_TYPES: ClassVar[tuple[str]] = ("kalmar32", "phasar32")
+    VALID_EQUIPMENT_TYPES: ClassVar[tuple[str]] = ("kalmar32", "phasar01", "phasar02")
 
     DATE_FIELDS: ClassVar[tuple[str]] = {
         "shipment_date",
@@ -52,17 +53,22 @@ class EquipmentCreateView(View):
     MODEL_CONFIGS: ClassVar[dict] = {
         "kalmar32": {
             "model": Kalmar32,
-            "response_builder": build_kalmar32_response_data,
+            "response_builder": convert_kalmar32,
         },
-        "phasar32": {
-            "model": Phasar32,
-            "response_builder": build_phasar32_response_data,
+        "phasar01": {
+            "model": Phasar01,
+            "response_builder": convert_phasar01,
+        },
+        "phasar02": {
+            "model": Phasar02,
+            "response_builder": convert_phasar02,
         },
     }
 
     def post(
         self,
         request: HttpRequest,
+        model_name: str | None = None,
         *args: object,  # noqa: ARG002
     ) -> JsonResponse:
         """Create a new equipment record from JSON data with dynamic model selection."""
@@ -71,6 +77,13 @@ class EquipmentCreateView(View):
             self._validate_required_fields(data)
 
             equipment_type = data.pop("equipment_type")
+
+            if model_name and model_name != equipment_type:
+                return self._build_error_response(
+                    f"URL model name '{model_name}' does not match equipment_type '{equipment_type}'",
+                    status=400,
+                )
+
             model_config = self.MODEL_CONFIGS[equipment_type]
 
             processed_data = self._process_input_data(data, model_config)
@@ -82,6 +95,12 @@ class EquipmentCreateView(View):
             return self._build_error_response("Invalid JSON", status=400)
         except ValidationError as e:
             return self._build_error_response(str(e), status=400)
+        except KeyError as e:
+            return self._build_error_response(
+                f"Invalid equipment type. Valid types: {', '.join(self.VALID_EQUIPMENT_TYPES)}",
+                status=400,
+                detail=str(e),
+            )
         except ValueError as e:
             return self._build_error_response("Invalid input", status=400, detail=str(e))
 
@@ -97,15 +116,7 @@ class EquipmentCreateView(View):
             raise ValidationError(msg) from e
 
     def _validate_required_fields(self, data: dict[str, Any]) -> None:
-        """Validate presence of required fields.
-
-        Args:
-            data: Input data dictionary.
-
-        Raises:
-            ValidationError: If required fields are missing.
-
-        """
+        """Validate presence of required fields."""
         missing_fields = [field for field in self.REQUIRED_FIELDS if field not in data]
         if missing_fields:
             msg = f"Missing required fields: {', '.join(missing_fields)}"
@@ -150,21 +161,12 @@ class EquipmentCreateView(View):
 
     def _build_success_response(self, equipment: object, response_builder: object) -> JsonResponse:
         """Build success response with created equipment data."""
-        response_data = response_builder(equipment, "created")
+        response_data = response_builder(equipment)
+        response_data["status"] = "created"
         return JsonResponse(response_data, status=201)
 
     def _build_error_response(self, message: str, status: int = 400, detail: str = "") -> JsonResponse:
-        """Build error response.
-
-        Args:
-            message: Primary error message.
-            status: HTTP status code.
-            detail: Additional error details.
-
-        Returns:
-            JsonResponse: Error response in JSON format.
-
-        """
+        """Build error response."""
         response_data = {
             "error": message,
             "status": "error",
