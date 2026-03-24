@@ -1,4 +1,4 @@
-"""Admin configuration for Kalmar32, Phasar32, Report, and License models."""
+"""Admin configuration for Kalmar32, Phasar01, Report, and License models."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 
-from .models import Kalmar32, License, Phasar32, Report
+from .models import Kalmar32, License, Phasar01, Phasar02, Report
 
 if TYPE_CHECKING:
     from django.db import models
@@ -120,9 +120,9 @@ class Kalmar32Admin(admin.ModelAdmin):
     )
 
 
-@admin.register(Phasar32)
-class Phasar32Admin(admin.ModelAdmin):
-    """Admin configuration for managing Phasar32 equipment."""
+@admin.register(Phasar01)
+class Phasar01Admin(admin.ModelAdmin):
+    """Admin configuration for managing Phasar01 equipment."""
 
     list_display = (
         "serial_number",
@@ -169,7 +169,6 @@ class Phasar32Admin(admin.ModelAdmin):
             {
                 "fields": (
                     "pc_tablet_dell_7230",
-                    "personalised_name_tag",
                     "ac_dc_power_adapter_dell",
                     "dc_charger_adapter_battery",
                 ),
@@ -229,6 +228,120 @@ class Phasar32Admin(admin.ModelAdmin):
         ),
     )
 
+@admin.register(Phasar02)
+class Phasar02Admin(admin.ModelAdmin):
+    """Admin configuration for managing Phasar02 equipment."""
+
+    list_display = (
+        "serial_number",
+        "shipment_date",
+        "invoice",
+        "license",
+    )
+    list_filter = (
+        "shipment_date",
+        "has_installed_nameplate",
+        "has_ac_dc_charger_adapter_battery",
+    )
+    search_fields = (
+        "serial_number",
+        "invoice",
+        "packet_list",
+        "license__license_key",
+        "pc_tablet_dell_7230",
+        "ultrasonic_phased_array_pulsar",
+        "water_tank_with_tap",
+        "dc_battery_box",
+        "calibration_block_so_3r",
+    )
+    date_hierarchy = "shipment_date"
+    ordering = ("-shipment_date",)
+    fieldsets = (
+        (
+            _("Регистрационные данные"),
+            {
+                "fields": (
+                    "serial_number",
+                    "shipment_date",
+                    "invoice",
+                    "packet_list",
+                    "license",
+                ),
+            },
+        ),
+        (
+            _("Планшет Dell 7230"),
+            {
+                "fields": (
+                    "pc_tablet_dell_7230",
+                    "ac_dc_power_adapter_dell",
+                    "dc_charger_adapter_battery",
+                ),
+            },
+        ),
+        (
+            _("Ультразвуковая фазированная решетка PULSAR OEM 16/128"),
+            {
+                "fields": (
+                    "ultrasonic_phased_array_pulsar_left",
+                    "ultrasonic_phased_array_pulsar_right",
+                    "dcn_left",
+                    "ab_back_left",
+                    "gf_combo_left",
+                    "ff_combo_left",
+                    "ab_front_left",
+                    "flange_50_left",
+                    "manual_probs_left",
+                    "has_dc_cable_battery_left",
+                    "has_ethernet_cables_left",
+                    "dcn_right",
+                    "ab_back_right",
+                    "gf_combo_right",
+                    "ff_combo_right",
+                    "ab_front_right",
+                    "flange_50_right",
+                    "manual_probs_right",
+                    "has_dc_cable_battery_right",
+                    "has_ethernet_cables_right",
+                ),
+            },
+        ),
+        (
+            _("Дополнительное оборудование"),
+            {
+                "fields": (
+                    "water_tank_with_tap",
+                    "dc_battery_box",
+                    "has_ac_dc_charger_adapter_battery",
+                ),
+            },
+        ),
+        (
+            _("Калибровка и инструменты"),
+            {
+                "fields": (
+                    "calibration_block_so_3r",
+                    "has_repair_tool_bag",
+                    "has_installed_nameplate",
+                ),
+            },
+        ),
+        (
+            _("Сетевые настройки"),
+            {
+                "fields": (
+                    "wifi_router_address",
+                    "windows_password",
+                ),
+            },
+        ),
+        (
+            _("Дополнительная информация"),
+            {
+                "fields": ("notes",),
+            },
+        ),
+    )
 
 @admin.register(License)
 class LicenseAdmin(admin.ModelAdmin):
@@ -331,26 +444,13 @@ class LicenseAdmin(admin.ModelAdmin):
                 obj.kalmar32_license.id,
                 obj.kalmar32_license.serial_number,
             )
-        elif hasattr(obj, "phasar32_license") and obj.phasar32_license:
+        if hasattr(obj, "phasar01_license") and obj.phasar01_license:
             return format_html(
-                '<a href="/admin/core/phasar32/{}/change/">Phasar32: {}</a>',
-                obj.phasar32_license.id,
-                obj.phasar32_license.serial_number,
+                '<a href="/admin/core/phasar01/{}/change/">Phasar01: {}</a>',
+                obj.phasar01_license.id,
+                obj.phasar01_license.serial_number,
             )
         return "Не привязано"
-
-    def has_add_permission(self, request):
-        """Запрещаем добавление лицензий через админку (только через API)."""
-        return False
-
-    def has_change_permission(self, request, obj=None):
-        """Разрешаем только просмотр, но не изменение."""
-        return False
-
-    def has_delete_permission(self, request, obj=None):
-        """Запрещаем удаление лицензий через админку."""
-        return False
-
 
 @admin.register(Report)
 class ReportAdmin(admin.ModelAdmin):
@@ -368,10 +468,12 @@ class ReportAdmin(admin.ModelAdmin):
         "number_to",
     )
     search_fields = (
-        "kalmar__serial_number",
-        "kalmar__invoice",
-        "phasar__serial_number",
-        "phasar__invoice",
+        "kalmar32_serial_number",
+        "kalmar32__invoice",
+        "phasar01__serial_number",
+        "phasar01__invoice",
+        "phasar02__serial_number",
+        "phasar02__invoice",
     )
     date_hierarchy = "report_date"
     ordering = ("-report_date",)
@@ -381,8 +483,9 @@ class ReportAdmin(admin.ModelAdmin):
             _("Общие сведения"),
             {
                 "fields": (
-                    "kalmar",
-                    "phasar",
+                    "kalmar32",
+                    "phasar01",
+                    "phasar02",
                     "report_date",
                     "number_to",
                 ),
@@ -410,15 +513,17 @@ class ReportAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request: HttpRequest) -> models.QuerySet[Report]:
         """Optimize queryset with select_related."""
-        return super().get_queryset(request).select_related("kalmar", "phasar")
+        return super().get_queryset(request).select_related("kalmar32", "phasar01", "phasar02")
 
     @admin.display(description=_("Оборудование"))
     def equipment_display(self, obj: Report) -> str:
         """Display equipment information."""
-        if obj.kalmar:
-            return f"Kalmar32: {obj.kalmar.serial_number}"
-        if obj.phasar:
-            return f"Phasar32: {obj.phasar.serial_number}"
+        if obj.kalmar32:
+            return f"Kalmar32: {obj.kalmar32.serial_number}"
+        if obj.phasar01:
+            return f"Phasar01: {obj.phasar01.serial_number}"
+        if obj.phasar02:
+            return f"Phasar01: {obj.phasar02.serial_number}"
         return "-"
 
     @admin.display(description=_("Скачать PDF"))
@@ -445,8 +550,8 @@ class ReportAdmin(admin.ModelAdmin):
         self, db_field: Field, request: HttpRequest, **kwargs: object
     ) -> Field | None:
         """Limit choices for equipment fields to avoid conflicts."""
-        if db_field.name == "kalmar":
+        if db_field.name == "kalmar32":
             kwargs["queryset"] = Kalmar32.objects.all().order_by("serial_number")
-        elif db_field.name == "phasar":
-            kwargs["queryset"] = Phasar32.objects.all().order_by("serial_number")
+        elif db_field.name == "phasar01":
+            kwargs["queryset"] = Phasar01.objects.all().order_by("serial_number")
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
