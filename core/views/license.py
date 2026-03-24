@@ -7,7 +7,7 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
-from core.models import Kalmar32, License, Phasar32
+from core.models import Kalmar32, License, Phasar01, Phasar02
 from core.utils.license import sign_license
 
 
@@ -58,18 +58,20 @@ class ActivateView(View):
             }
 
             try:
-                if product == "Kalmar":
+                if product == "kalmar32":
                     model = Kalmar32.objects.get(serial_number=serial_number)
-                elif product == "Phasar":
-                    model = Phasar32.objects.get(serial_number=serial_number)
+                elif product == "phasar01":
+                    model = Phasar01.objects.get(serial_number=serial_number)
+                elif product == "phasar02":
+                    model = Phasar02.objects.get(serial_number=serial_number)
                 else:
                     return JsonResponse(
                         {"status": "error", "error": f"Unknown product type: {product}"},
                         status=400,
                     )
-            except Phasar32.DoesNotExist:
+            except Phasar01.DoesNotExist:
                 return JsonResponse(
-                    {"status": "error", "error": f"Phasar32 with serial number {serial_number} not found"},
+                    {"status": "error", "error": f"Phasar01 with serial number {serial_number} not found"},
                     status=404,
                 )
             except Kalmar32.DoesNotExist:
@@ -79,7 +81,7 @@ class ActivateView(View):
                 )
             except Exception as e:
                 return JsonResponse(
-                    {"status": "error", "error": f"Database error: {str(e)}"},
+                    {"status": "error", "error": f"Database error: {e!s}"},
                     status=500,
                 )
             try:
@@ -112,9 +114,9 @@ class ActivateView(View):
                 )
 
             try:
-                exp_date = datetime.strptime(exp, "%Y-%m-%d").date()
+                exp_date = datetime.strptime(exp, "%Y-%m-%d").date()  # noqa: DTZ007
             except (ValueError, TypeError):
-                exp_date = datetime(2100, 1, 1).date()
+                exp_date = datetime(2100, 1, 1).date()  # noqa: DTZ001
 
             try:
                 license_obj = License.objects.create(
@@ -130,7 +132,7 @@ class ActivateView(View):
                 )
             except Exception as e:
                 return JsonResponse(
-                    {"status": "error", "error": f"Failed to create License object: {str(e)}"},
+                    {"status": "error", "error": f"Failed to create License object: {e!s}"},
                     status=500,
                 )
 
@@ -139,7 +141,7 @@ class ActivateView(View):
                 model.save(update_fields=["license"])
             except Exception as e:
                 return JsonResponse(
-                    {"status": "error", "error": f"Failed to attach license to device: {str(e)}"},
+                    {"status": "error", "error": f"Failed to attach license to device: {e!s}"},
                     status=500,
                 )
 
@@ -156,13 +158,13 @@ class ActivateView(View):
                 )
             except Exception as e:
                 return JsonResponse(
-                    {"status": "error", "error": f"Failed to serialize response: {str(e)}"},
+                    {"status": "error", "error": f"Failed to serialize response: {e!s}"},
                     status=500,
                 )
 
         except Exception as e:
             return JsonResponse(
-                {"status": "error", "error": f"Unhandled exception: {str(e)}"},
+                {"status": "error", "error": f"Unhandled exception: {e!s}"},
                 status=500,
             )
 
