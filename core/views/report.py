@@ -20,7 +20,7 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
-from core.models import Kalmar32, Phasar32, Report
+from core.models import Kalmar32, Phasar01, Phasar02, Report
 
 if TYPE_CHECKING:
     from django.core.files.base import ContentFile
@@ -68,7 +68,7 @@ class ReportCreateView(View):
             return self._build_error_response("Invalid JSON data", status=400)
         except ValidationError as e:
             return self._build_error_response(str(e), status=400)
-        except (Kalmar32.DoesNotExist, Phasar32.DoesNotExist):
+        except (Kalmar32.DoesNotExist, Phasar01.DoesNotExist):
             return self._build_error_response("Equipment device not found", status=404)
         except Exception as e:
             logger.exception("Report creation failed")
@@ -107,18 +107,20 @@ class ReportCreateView(View):
 
         # Validate equipment_type
         equipment_type = metadata.get("equipment_type")
-        if equipment_type not in ["kalmar32", "phasar32"]:
+        if equipment_type not in ["kalmar32", "phasar01", "phasar02"]:
             msg = "Invalid equipment_type. Must be 'kalmar' or 'phasar'"
             raise ValidationError(msg)
 
     def _get_equipment_device(
         self, equipment_type: str, serial_number: str
-    ) -> Kalmar32 | Phasar32:
+    ) -> Kalmar32 | Phasar01:
         """Get equipment device by serial number."""
         if equipment_type == "kalmar32":
             return Kalmar32.objects.get(serial_number=serial_number)
-        if equipment_type == "phasar32":
-            return Phasar32.objects.get(serial_number=serial_number)
+        if equipment_type == "phasar01":
+            return Phasar01.objects.get(serial_number=serial_number)
+        if equipment_type == "phasar02":
+            return Phasar02.objects.get(serial_number=serial_number)
         msg = f"Unknown equipment type: {equipment_type}"
         raise ValidationError(msg)
 
@@ -133,7 +135,7 @@ class ReportCreateView(View):
     @transaction.atomic
     def _create_report(
         self,
-        equipment: Kalmar32 | Phasar32,
+        equipment: Kalmar32 | Phasar01,
         equipment_type: str,
         report_date: date,
         number_to: str,
@@ -165,7 +167,7 @@ class ReportCreateView(View):
             response_data["equipment_type"] = "kalmar32"
             response_data["equipment_serial"] = report.kalmar.serial_number
         elif report.phasar:
-            response_data["equipment_type"] = "phasar32"
+            response_data["equipment_type"] = "phasar01"
             response_data["equipment_serial"] = report.phasar.serial_number
 
         return JsonResponse(response_data, status=201)
@@ -274,7 +276,7 @@ class ReportFileUploadView(View):
                     number_to=number_to,
                     report_date=report_date,
                 )
-            if equipment_type == "phasar32":
+            if equipment_type == "phasar01":
                 return Report.objects.get(
                     phasar__serial_number=identifier,
                     number_to=number_to,
@@ -338,7 +340,7 @@ class ReportFileUploadView(View):
             response_data["equipment_type"] = "kalmar32"
             response_data["equipment_serial"] = report.kalmar.serial_number
         elif report.phasar:
-            response_data["equipment_type"] = "phasar32"
+            response_data["equipment_type"] = "phasar01"
             response_data["equipment_serial"] = report.phasar.serial_number
 
         return JsonResponse(response_data, status=200)
