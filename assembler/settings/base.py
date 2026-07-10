@@ -27,16 +27,19 @@ SECRET_KEY = config("SECRET_KEY")
 DEBUG = config("DEBUG", default=False, cast=bool)
 
 ALLOWED_HOSTS = [
-    "localhost",
-    "127.0.0.1",
-    "votum.asuscomm.com",
-    "37.203.240.41",
-    ".votum.asuscomm.com",
-    "votum.asuscomm.com:32222",
-    "37.203.240.41:32222",
-    "94.131.111.22",
-    "94.131.111.22:80",
+    # "cloud.pulsarndt.ae",
+    # "217.165.161.126",
+    # "localhost",
+    # "127.0.0.1",
+    # "votum.asuscomm.com",
+    # "37.203.240.41",
+    # ".votum.asuscomm.com",
+    # "votum.asuscomm.com:32222",
+    # "37.203.240.41:32222",
+    # "94.131.111.22",
+    # "94.131.111.22:80",
 ]
+
 
 CSRF_TRUSTED_ORIGINS = []  # ["https://2965-178-236-244-154.ngrok-free.app"]
 
