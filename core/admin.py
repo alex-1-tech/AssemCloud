@@ -1,4 +1,4 @@
-"""Admin configuration for Kalmar32, Phasar01, Report, and License models."""
+"""Admin configuration for Kalmar32, Phasar01, Phasar02, Report, and License models."""
 
 from __future__ import annotations
 
@@ -48,7 +48,7 @@ class Kalmar32Admin(admin.ModelAdmin):
     ordering = ("-shipment_date",)
     fieldsets = (
         (
-            _("Регистрационные данные"),
+            _("Registration Data"),
             {
                 "fields": (
                     "serial_number",
@@ -60,7 +60,7 @@ class Kalmar32Admin(admin.ModelAdmin):
             },
         ),
         (
-            _("Планшет Dell 7230"),
+            _("Dell 7230 Tablet"),
             {
                 "fields": (
                     "pc_tablet_dell_7230",
@@ -70,7 +70,7 @@ class Kalmar32Admin(admin.ModelAdmin):
             },
         ),
         (
-            _("Ультразвуковая фазированная решетка PULSAR OEM 16/64"),
+            _("Ultrasonic Phased Array PULSAR OEM 16/64"),
             {
                 "fields": (
                     "ultrasonic_phased_array_pulsar",
@@ -84,7 +84,7 @@ class Kalmar32Admin(admin.ModelAdmin):
             },
         ),
         (
-            _("Батарейный блок"),
+            _("Battery Pack"),
             {
                 "fields": (
                     "dc_battery_box",
@@ -93,7 +93,7 @@ class Kalmar32Admin(admin.ModelAdmin):
             },
         ),
         (
-            _("Калибровка и инструменты"),
+            _("Calibration & Tools"),
             {
                 "fields": (
                     "calibration_block_so_3r",
@@ -103,7 +103,7 @@ class Kalmar32Admin(admin.ModelAdmin):
             },
         ),
         (
-            _("Сетевые настройки"),
+            _("Network Settings"),
             {
                 "fields": (
                     "wifi_router_address",
@@ -112,7 +112,7 @@ class Kalmar32Admin(admin.ModelAdmin):
             },
         ),
         (
-            _("Дополнительная информация"),
+            _("Additional Information"),
             {
                 "fields": ("notes",),
             },
@@ -153,7 +153,7 @@ class Phasar01Admin(admin.ModelAdmin):
     ordering = ("-shipment_date",)
     fieldsets = (
         (
-            _("Регистрационные данные"),
+            _("Registration Data"),
             {
                 "fields": (
                     "serial_number",
@@ -165,7 +165,7 @@ class Phasar01Admin(admin.ModelAdmin):
             },
         ),
         (
-            _("Планшет Dell 7230"),
+            _("Dell 7230 Tablet"),
             {
                 "fields": (
                     "pc_tablet_dell_7230",
@@ -175,7 +175,7 @@ class Phasar01Admin(admin.ModelAdmin):
             },
         ),
         (
-            _("Ультразвуковая фазированная решетка PULSAR OEM 16/128"),
+            _("Ultrasonic Phased Array PULSAR OEM 16/128"),
             {
                 "fields": (
                     "ultrasonic_phased_array_pulsar",
@@ -192,7 +192,7 @@ class Phasar01Admin(admin.ModelAdmin):
             },
         ),
         (
-            _("Дополнительное оборудование"),
+            _("Additional Equipment"),
             {
                 "fields": (
                     "water_tank_with_tap",
@@ -202,7 +202,7 @@ class Phasar01Admin(admin.ModelAdmin):
             },
         ),
         (
-            _("Калибровка и инструменты"),
+            _("Calibration & Tools"),
             {
                 "fields": (
                     "calibration_block_so_3r",
@@ -212,7 +212,7 @@ class Phasar01Admin(admin.ModelAdmin):
             },
         ),
         (
-            _("Сетевые настройки"),
+            _("Network Settings"),
             {
                 "fields": (
                     "wifi_router_address",
@@ -221,12 +221,13 @@ class Phasar01Admin(admin.ModelAdmin):
             },
         ),
         (
-            _("Дополнительная информация"),
+            _("Additional Information"),
             {
                 "fields": ("notes",),
             },
         ),
     )
+
 
 @admin.register(Phasar02)
 class Phasar02Admin(admin.ModelAdmin):
@@ -258,7 +259,7 @@ class Phasar02Admin(admin.ModelAdmin):
     ordering = ("-shipment_date",)
     fieldsets = (
         (
-            _("Регистрационные данные"),
+            _("Registration Data"),
             {
                 "fields": (
                     "serial_number",
@@ -270,7 +271,7 @@ class Phasar02Admin(admin.ModelAdmin):
             },
         ),
         (
-            _("Планшет Dell 7230"),
+            _("Dell 7230 Tablet"),
             {
                 "fields": (
                     "pc_tablet_dell_7230",
@@ -280,7 +281,7 @@ class Phasar02Admin(admin.ModelAdmin):
             },
         ),
         (
-            _("Ультразвуковая фазированная решетка PULSAR OEM 16/128"),
+            _("Ultrasonic Phased Array PULSAR OEM 16/128"),
             {
                 "fields": (
                     "ultrasonic_phased_array_pulsar_left",
@@ -307,7 +308,7 @@ class Phasar02Admin(admin.ModelAdmin):
             },
         ),
         (
-            _("Дополнительное оборудование"),
+            _("Additional Equipment"),
             {
                 "fields": (
                     "water_tank_with_tap",
@@ -317,7 +318,7 @@ class Phasar02Admin(admin.ModelAdmin):
             },
         ),
         (
-            _("Калибровка и инструменты"),
+            _("Calibration & Tools"),
             {
                 "fields": (
                     "calibration_block_so_3r",
@@ -327,7 +328,7 @@ class Phasar02Admin(admin.ModelAdmin):
             },
         ),
         (
-            _("Сетевые настройки"),
+            _("Network Settings"),
             {
                 "fields": (
                     "wifi_router_address",
@@ -336,12 +337,13 @@ class Phasar02Admin(admin.ModelAdmin):
             },
         ),
         (
-            _("Дополнительная информация"),
+            _("Additional Information"),
             {
                 "fields": ("notes",),
             },
         ),
     )
+
 
 @admin.register(License)
 class LicenseAdmin(admin.ModelAdmin):
@@ -373,7 +375,7 @@ class LicenseAdmin(admin.ModelAdmin):
 
     fieldsets = (
         (
-            _("Основная информация"),
+            _("Main Information"),
             {
                 "fields": (
                     "product",
@@ -384,7 +386,7 @@ class LicenseAdmin(admin.ModelAdmin):
             },
         ),
         (
-            _("Аппаратные идентификаторы"),
+            _("Hardware Identifiers"),
             {
                 "fields": (
                     "host_hwid",
@@ -393,13 +395,13 @@ class LicenseAdmin(admin.ModelAdmin):
             },
         ),
         (
-            _("Функциональность"),
+            _("Functionality"),
             {
                 "fields": ("features",),
             },
         ),
         (
-            _("Технические данные"),
+            _("Technical Data"),
             {
                 "fields": (
                     "signature",
@@ -408,7 +410,7 @@ class LicenseAdmin(admin.ModelAdmin):
             },
         ),
         (
-            _("Даты"),
+            _("Dates"),
             {
                 "fields": (
                     "created_at",
@@ -425,9 +427,9 @@ class LicenseAdmin(admin.ModelAdmin):
         "signature",
     )
 
-    @admin.display(description=_("Ключ лицензии"))
+    @admin.display(description=_("License Key"))
     def license_short_key(self, obj: License) -> str:
-        """Отображение короткой версии ключа лицензии."""
+        """Display short version of license key."""
         if obj.license_key:
             key = obj.license_key
             if len(key) > 30:
@@ -435,9 +437,9 @@ class LicenseAdmin(admin.ModelAdmin):
             return key
         return "-"
 
-    @admin.display(description=_("Привязанное оборудование"))
+    @admin.display(description=_("Linked Equipment"))
     def linked_equipment(self, obj: License) -> str:
-        """Отображение привязанного оборудования."""
+        """Display linked equipment."""
         if hasattr(obj, "kalmar32_license") and obj.kalmar32_license:
             return format_html(
                 '<a href="/admin/core/kalmar32/{}/change/">Kalmar32: {}</a>',
@@ -450,7 +452,8 @@ class LicenseAdmin(admin.ModelAdmin):
                 obj.phasar01_license.id,
                 obj.phasar01_license.serial_number,
             )
-        return "Не привязано"
+        return "Not linked"
+
 
 @admin.register(Report)
 class ReportAdmin(admin.ModelAdmin):
@@ -480,7 +483,7 @@ class ReportAdmin(admin.ModelAdmin):
 
     fieldsets = (
         (
-            _("Общие сведения"),
+            _("General Information"),
             {
                 "fields": (
                     "kalmar32",
@@ -492,7 +495,7 @@ class ReportAdmin(admin.ModelAdmin):
             },
         ),
         (
-            _("Файлы отчета"),
+            _("Report Files"),
             {
                 "fields": (
                     "json_report",
@@ -501,7 +504,7 @@ class ReportAdmin(admin.ModelAdmin):
             },
         ),
         (
-            _("Записи рельсов"),
+            _("Rail Records"),
             {
                 "fields": (
                     "rail_record_before",
@@ -515,7 +518,7 @@ class ReportAdmin(admin.ModelAdmin):
         """Optimize queryset with select_related."""
         return super().get_queryset(request).select_related("kalmar32", "phasar01", "phasar02")
 
-    @admin.display(description=_("Оборудование"))
+    @admin.display(description=_("Equipment"))
     def equipment_display(self, obj: Report) -> str:
         """Display equipment information."""
         if obj.kalmar32:
@@ -523,10 +526,10 @@ class ReportAdmin(admin.ModelAdmin):
         if obj.phasar01:
             return f"Phasar01: {obj.phasar01.serial_number}"
         if obj.phasar02:
-            return f"Phasar01: {obj.phasar02.serial_number}"
+            return f"Phasar02: {obj.phasar02.serial_number}"
         return "-"
 
-    @admin.display(description=_("Скачать PDF"))
+    @admin.display(description=_("Download PDF"))
     def download_pdf(self, obj: Report) -> str:
         """Provide a download link for the PDF report."""
         if obj.pdf_report:
@@ -536,7 +539,7 @@ class ReportAdmin(admin.ModelAdmin):
             )
         return "-"
 
-    @admin.display(description=_("Скачать JSON"))
+    @admin.display(description=_("Download JSON"))
     def download_json(self, obj: Report) -> str:
         """Provide a download link for the JSON report."""
         if obj.json_report:

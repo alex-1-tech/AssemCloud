@@ -17,18 +17,18 @@ class Kalmar32(models.Model):
     """Kalmar32 model with equipment specification."""
 
     serial_number = models.CharField(
-        _("Серийный номер"),
+        _("Serial number"),
         max_length=50,
         unique=True,
         validators=[
             MinLengthValidator(1),
             MaxLengthValidator(50),
         ],
-        help_text=_("Уникальный серийный номер оборудования"),
+        help_text=_("Unique serial number of the equipment"),
     )
 
     rail_type = models.CharField(
-        _("Тип рельс"),
+        _("Rail type"),
         max_length=10,
         choices=[
             ("P65", "P65"),
@@ -36,7 +36,7 @@ class Kalmar32(models.Model):
             ("UIC60", "UIC60"),
         ],
         default="P65",
-        help_text=_("Тип рельсов (P65, IRS52, UIC60)"),
+        help_text=_("Rail type (P65, IRS52, UIC60)"),
     )
 
     license = models.OneToOneField(
@@ -45,21 +45,21 @@ class Kalmar32(models.Model):
         null=True,
         blank=True,
         related_name="kalmar32_license",
-        verbose_name=_("Лицензия"),
-        help_text=_("Лицензия для этого оборудования"),
+        verbose_name=_("License"),
+        help_text=_("License for this equipment"),
     )
 
     license_password = models.CharField(
         _("License password"),
         max_length=100,
         default=config("LICENSE_DEFAULT_PASSWORD", cast=str),
-        help_text=_("Пароль для активации лицензии"),
+        help_text=_("Password for license activation"),
     )
 
     shipment_date = models.DateField(
-        _("Дата отгрузки"),
+        _("Shipment date"),
         default=date.today,
-        help_text=_("Дата отгрузки оборудования со склада"),
+        help_text=_("Shipment date of the equipment from the warehouse"),
     )
 
     invoice = models.CharField(
@@ -78,7 +78,7 @@ class Kalmar32(models.Model):
 
     # PC tablet Latitude Dell 7230
     pc_tablet_dell_7230 = models.CharField(
-        _("Планшет Dell 7230"),
+        _("Dell 7230 Tablet"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
@@ -86,7 +86,7 @@ class Kalmar32(models.Model):
     )
 
     ac_dc_power_adapter_dell = models.CharField(
-        _("AC/DC адаптер питания для Dell 7230"),
+        _("AC/DC power adapter for Dell 7230"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
@@ -94,7 +94,7 @@ class Kalmar32(models.Model):
     )
 
     dc_charger_adapter_battery = models.CharField(
-        _("DC адаптер зарядки от батареи для Dell 7230"),
+        _("DC battery charger adapter for Dell 7230"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
@@ -103,7 +103,7 @@ class Kalmar32(models.Model):
 
     # Ultrasonic phased array PULSAR OEM 16/64
     ultrasonic_phased_array_pulsar = models.CharField(
-        _("Ультразвуковая фазированная решетка PULSAR OEM 16/64"),
+        _("Ultrasonic phased array PULSAR OEM 16/64"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
@@ -111,7 +111,7 @@ class Kalmar32(models.Model):
     )
 
     left_probs = models.CharField(
-        _("Левый преобразователь"),
+        _("Left probe"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
@@ -119,7 +119,7 @@ class Kalmar32(models.Model):
     )
 
     right_probs = models.CharField(
-        _("Правый преобразователь"),
+        _("Right probe"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
@@ -127,7 +127,7 @@ class Kalmar32(models.Model):
     )
 
     manual_probs = models.CharField(
-        _("Ручной преобразователь"),
+        _("Manual probe"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
@@ -135,7 +135,7 @@ class Kalmar32(models.Model):
     )
 
     straight_probs = models.CharField(
-        _("Прямой преобразователь"),
+        _("Straight probe"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
@@ -143,20 +143,20 @@ class Kalmar32(models.Model):
     )
 
     has_dc_cable_battery = models.BooleanField(
-        _("DC кабель от батарейного блока"),
+        _("DC cable from battery box"),
         default=False,
         help_text=_("DC Cable from battery box"),
     )
 
     has_ethernet_cables = models.BooleanField(
-        _("Ethernet кабель"),
+        _("Ethernet cable"),
         default=False,
         help_text=_("Ethernet cables"),
     )
 
     # DC Battery box
     dc_battery_box = models.CharField(
-        _("Батарейный блок DC"),
+        _("DC Battery box"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
@@ -164,14 +164,14 @@ class Kalmar32(models.Model):
     )
 
     has_ac_dc_charger_adapter_battery = models.BooleanField(
-        _("AC/DC адаптер зарядки для батареи"),
+        _("AC/DC charger adapter for battery"),
         default=False,
         help_text=_("AC/DC Charger adapter for battery"),
     )
 
     # Calibration and tools
     calibration_block_so_3r = models.CharField(
-        _("Калибровочный блок SO-3R"),
+        _("Calibration block SO-3R"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
@@ -179,20 +179,20 @@ class Kalmar32(models.Model):
     )
 
     has_repair_tool_bag = models.BooleanField(
-        _("Ремонтный инструмент с сумкой"),
+        _("Repair tool with bag"),
         default=False,
         help_text=_("Small repair tool with bag"),
     )
 
     has_installed_nameplate = models.BooleanField(
-        _("Установленная табличка с серийным номером"),
+        _("Installed nameplate with serial number"),
         default=False,
         help_text=_("Installed nameplate with serial number"),
     )
 
-    # network settings
+    # Network settings
     wifi_router_address = models.CharField(
-        _("Адресс вай-фай роутера"),
+        _("Wi-Fi router address"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
@@ -200,32 +200,32 @@ class Kalmar32(models.Model):
     )
 
     windows_password = models.CharField(
-        _("Пароль Windows"),
+        _("Windows password"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
-        help_text=_("Пароль учетной записи Windows"),
+        help_text=_("Windows account password"),
     )
 
-    # Дополнительные поля
+    # Additional fields
     notes = models.TextField(
-        _("Примечания"),
+        _("Notes"),
         blank=True,
-        help_text=_("Дополнительные заметки по оборудованию"),
+        help_text=_("Additional notes regarding the equipment"),
     )
 
     class Meta:
         """Meta options for Kalmar32 model."""
 
-        verbose_name = _("Кальмар32")
-        verbose_name_plural = _("Кальмары32")
+        verbose_name = _("Kalmar32")
+        verbose_name_plural = _("Kalmar32 items")
         ordering: ClassVar[list[str]] = ["-shipment_date", "serial_number"]
         constraints: ClassVar[list] = [
             models.UniqueConstraint(
                 fields=["serial_number"],
                 name="unique_serial_number",
                 violation_error_message=_(
-                    "Кальмар32 с таким серийным номером уже существует",
+                    "A Kalmar32 item with this serial number already exists",
                 ),
             ),
         ]

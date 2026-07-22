@@ -16,16 +16,16 @@ from django.utils.translation import gettext_lazy as _
 class Phasar01(models.Model):
     """Phasar01 model with equipment specification."""
 
-    # Регистрационные данные
+    # Registration data
     serial_number = models.CharField(
-        _("Серийный номер"),
+        _("Serial number"),
         max_length=50,
         unique=True,
         validators=[
             MinLengthValidator(1),
             MaxLengthValidator(50),
         ],
-        help_text=_("Уникальный серийный номер оборудования"),
+        help_text=_("Unique serial number of the equipment"),
     )
 
     license = models.OneToOneField(
@@ -34,21 +34,21 @@ class Phasar01(models.Model):
         null=True,
         blank=True,
         related_name="phasar01_license",
-        verbose_name=_("Лицензия"),
-        help_text=_("Лицензия для этого оборудования"),
+        verbose_name=_("License"),
+        help_text=_("License for this equipment"),
     )
 
     license_password = models.CharField(
         _("License password"),
         max_length=100,
         default=config("LICENSE_DEFAULT_PASSWORD", cast=str),
-        help_text=_("Пароль для активации лицензии"),
+        help_text=_("Password for license activation"),
     )
 
     shipment_date = models.DateField(
-        _("Дата отгрузки"),
+        _("Shipment date"),
         default=date.today,
-        help_text=_("Дата отгрузки оборудования со склада"),
+        help_text=_("Shipment date of the equipment from the warehouse"),
     )
 
     invoice = models.CharField(
@@ -67,7 +67,7 @@ class Phasar01(models.Model):
 
     # PC tablet Latitude Dell 7230
     pc_tablet_dell_7230 = models.CharField(
-        _("Планшет Dell 7230"),
+        _("Dell 7230 Tablet"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
@@ -75,7 +75,7 @@ class Phasar01(models.Model):
     )
 
     ac_dc_power_adapter_dell = models.CharField(
-        _("AC/DC адаптер питания для Dell 7230"),
+        _("AC/DC power adapter for Dell 7230"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
@@ -83,7 +83,7 @@ class Phasar01(models.Model):
     )
 
     dc_charger_adapter_battery = models.CharField(
-        _("DC адаптер зарядки от батареи для Dell 7230"),
+        _("DC battery charger adapter for Dell 7230"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
@@ -92,7 +92,7 @@ class Phasar01(models.Model):
 
     # Ultrasonic phased array PULSAR OEM 16/128
     ultrasonic_phased_array_pulsar = models.CharField(
-        _("Ультразвуковая фазированная решетка PULSAR OEM 16/128"),
+        _("Ultrasonic phased array PULSAR OEM 16/128"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
@@ -100,7 +100,7 @@ class Phasar01(models.Model):
     )
 
     dcn = models.CharField(
-        _("Блок 0° ФР"),
+        _("0° PA Block"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
@@ -108,7 +108,7 @@ class Phasar01(models.Model):
     )
 
     ab_back = models.CharField(
-        _("Отъезжающий  блок ФР ( преобразователь одинарный)"),
+        _("Trailing PA block (single probe)"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
@@ -117,8 +117,8 @@ class Phasar01(models.Model):
 
     gf_combo = models.CharField(
         _(
-            "блок ФР контроля рабочей грани головки рельса "
-            "( преобразовать комбинированный )"
+            "Rail head gauge face inspection PA block "
+            "(combined probe)"
         ),
         max_length=100,
         blank=True,
@@ -128,8 +128,8 @@ class Phasar01(models.Model):
 
     ff_combo = models.CharField(
         _(
-            "блок ФР контроля нерабочей грани головки рельса "
-            "( преобразовать комбинированный )"
+            "Rail head field side inspection PA block "
+            "(combined probe)"
         ),
         max_length=100,
         blank=True,
@@ -138,7 +138,7 @@ class Phasar01(models.Model):
     )
 
     ab_front = models.CharField(
-        _("Наезжающий  блок ФР ( преобразователь одинарный)"),
+        _("Leading PA block (single probe)"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
@@ -146,7 +146,7 @@ class Phasar01(models.Model):
     )
 
     flange_50 = models.CharField(
-        _("низкочастотный блок контроля перьев подошвы рельса"),
+        _("Low-frequency rail base flange inspection block"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
@@ -154,7 +154,7 @@ class Phasar01(models.Model):
     )
 
     manual_probs = models.CharField(
-        _("Ручной наклонный ( отдельный преобразователь )"),
+        _("Manual angle probe (separate probe)"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
@@ -162,19 +162,19 @@ class Phasar01(models.Model):
     )
 
     has_dc_cable_battery = models.BooleanField(
-        _("Dc cable кабель"),
+        _("DC cable"),
         default=False,
-        help_text=_("Dc cable battery"),
+        help_text=_("DC cable battery"),
     )
 
     has_ethernet_cables = models.BooleanField(
-        _("Ethernet кабель"),
+        _("Ethernet cable"),
         default=False,
         help_text=_("Ethernet cables"),
     )
 
     water_tank_with_tap = models.CharField(
-        _("Резервуар для воды с краном"),
+        _("Water tank with tap"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
@@ -183,7 +183,7 @@ class Phasar01(models.Model):
 
     # DC Battery box
     dc_battery_box = models.CharField(
-        _("Батарейный блок DC"),
+        _("DC Battery box"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
@@ -191,35 +191,35 @@ class Phasar01(models.Model):
     )
 
     has_ac_dc_charger_adapter_battery = models.BooleanField(
-        _("AC/DC адаптер зарядки для батареи"),
+        _("AC/DC charger adapter for battery"),
         default=False,
         help_text=_("AC/DC Charger adapter for battery"),
     )
 
     # Calibration and tools
     calibration_block_so_3r = models.CharField(
-        _("Калибровочный блок SO-3R"),
+        _("Calibration block SO-3R"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
-        help_text=_("Calibration bloc SO-3R"),
+        help_text=_("Calibration block SO-3R"),
     )
 
     has_repair_tool_bag = models.BooleanField(
-        _("Ремонтный инструмент с сумкой"),
+        _("Repair tool with bag"),
         default=False,
         help_text=_("Small repair tool with bag"),
     )
 
     has_installed_nameplate = models.BooleanField(
-        _("Установленная табличка с серийным номером"),
+        _("Installed nameplate with serial number"),
         default=False,
         help_text=_("Installed nameplate with serial number"),
     )
 
-    # network settings
+    # Network settings
     wifi_router_address = models.CharField(
-        _("Адресс вай-фай роутера"),
+        _("Wi-Fi router address"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
@@ -227,32 +227,32 @@ class Phasar01(models.Model):
     )
 
     windows_password = models.CharField(
-        _("Пароль для виндоус"),
+        _("Windows password"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
         help_text=_("Windows password"),
     )
 
-    # Дополнительные поля
+    # Additional fields
     notes = models.TextField(
-        _("Примечания"),
+        _("Notes"),
         blank=True,
-        help_text=_("Дополнительные заметки по оборудованию"),
+        help_text=_("Additional notes regarding the equipment"),
     )
 
     class Meta:
         """Meta options for Phasar01 model."""
 
-        verbose_name = _("Фазар01")
-        verbose_name_plural = _("Фазары01")
+        verbose_name = _("Phasar01")
+        verbose_name_plural = _("Phasar01 items")
         ordering: ClassVar[list[str]] = ["-shipment_date", "serial_number"]
         constraints: ClassVar[list] = [
             models.UniqueConstraint(
                 fields=["serial_number"],
                 name="unique_phasar01_serial_number",
                 violation_error_message=_(
-                    "Фазар01 с таким серийным номером уже существует",
+                    "A Phasar01 item with this serial number already exists",
                 ),
             ),
         ]
@@ -273,4 +273,3 @@ class Phasar01(models.Model):
     def clean(self) -> None:
         """Additional model validation."""
         super().clean()
-

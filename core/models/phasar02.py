@@ -17,14 +17,14 @@ class Phasar02(models.Model):
     """Phasar02 model with equipment specification (dual version)."""
 
     serial_number = models.CharField(
-        _("Серийный номер"),
+        _("Serial number"),
         max_length=50,
         unique=True,
         validators=[
             MinLengthValidator(1),
             MaxLengthValidator(50),
         ],
-        help_text=_("Уникальный серийный номер оборудования"),
+        help_text=_("Unique serial number of the equipment"),
     )
 
     license = models.OneToOneField(
@@ -33,21 +33,21 @@ class Phasar02(models.Model):
         null=True,
         blank=True,
         related_name="phasar02_license",
-        verbose_name=_("Лицензия"),
-        help_text=_("Лицензия для этого оборудования"),
+        verbose_name=_("License"),
+        help_text=_("License for this equipment"),
     )
 
     license_password = models.CharField(
         _("License password"),
         max_length=100,
         default=config("LICENSE_DEFAULT_PASSWORD", cast=str),
-        help_text=_("Пароль для активации лицензии"),
+        help_text=_("Password for license activation"),
     )
 
     shipment_date = models.DateField(
-        _("Дата отгрузки"),
+        _("Shipment date"),
         default=date.today,
-        help_text=_("Дата отгрузки оборудования со склада"),
+        help_text=_("Shipment date of the equipment from the warehouse"),
     )
 
     invoice = models.CharField(
@@ -65,7 +65,7 @@ class Phasar02(models.Model):
     )
 
     pc_tablet_dell_7230 = models.CharField(
-        _("Планшет Dell 7230"),
+        _("Dell 7230 Tablet"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
@@ -73,7 +73,7 @@ class Phasar02(models.Model):
     )
 
     ac_dc_power_adapter_dell = models.CharField(
-        _("AC/DC адаптер питания для Dell 7230"),
+        _("AC/DC power adapter for Dell 7230"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
@@ -81,7 +81,7 @@ class Phasar02(models.Model):
     )
 
     dc_charger_adapter_battery = models.CharField(
-        _("DC адаптер зарядки от батареи для Dell 7230"),
+        _("DC battery charger adapter for Dell 7230"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
@@ -89,7 +89,7 @@ class Phasar02(models.Model):
     )
 
     ultrasonic_phased_array_pulsar_left = models.CharField(
-        _("Ультразвуковая фазированная решетка PULSAR OEM 16/128 (ЛЕВЫЙ)"),
+        _("Ultrasonic phased array PULSAR OEM 16/128 (LEFT)"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
@@ -97,7 +97,7 @@ class Phasar02(models.Model):
     )
 
     dcn_left = models.CharField(
-        _("Блок 0° ФР (ЛЕВЫЙ)"),
+        _("0° PA Block (LEFT)"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
@@ -105,7 +105,7 @@ class Phasar02(models.Model):
     )
 
     ab_back_left = models.CharField(
-        _("Отъезжающий блок ФР (ЛЕВЫЙ)"),
+        _("Trailing PA block (LEFT)"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
@@ -113,7 +113,7 @@ class Phasar02(models.Model):
     )
 
     gf_combo_left = models.CharField(
-        _("Блок ФР рабочей грани (ЛЕВЫЙ)"),
+        _("Gauge face PA block (LEFT)"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
@@ -121,7 +121,7 @@ class Phasar02(models.Model):
     )
 
     ff_combo_left = models.CharField(
-        _("Блок ФР нерабочей грани (ЛЕВЫЙ)"),
+        _("Field side PA block (LEFT)"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
@@ -129,7 +129,7 @@ class Phasar02(models.Model):
     )
 
     ab_front_left = models.CharField(
-        _("Наезжающий блок ФР (ЛЕВЫЙ)"),
+        _("Leading PA block (LEFT)"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
@@ -137,7 +137,7 @@ class Phasar02(models.Model):
     )
 
     flange_50_left = models.CharField(
-        _("Низкочастотный блок подошвы (ЛЕВЫЙ)"),
+        _("Low-frequency rail base block (LEFT)"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
@@ -145,7 +145,7 @@ class Phasar02(models.Model):
     )
 
     manual_probs_left = models.CharField(
-        _("Ручной наклонный преобразователь (ЛЕВЫЙ)"),
+        _("Manual angle probe (LEFT)"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
@@ -153,19 +153,19 @@ class Phasar02(models.Model):
     )
 
     has_dc_cable_battery_left = models.BooleanField(
-        _("DC кабель от батареи (ЛЕВЫЙ)"),
+        _("DC cable from battery (LEFT)"),
         default=False,
         help_text=_("DC Cable from Battery (LEFT)"),
     )
 
     has_ethernet_cables_left = models.BooleanField(
-        _("Ethernet кабель (ЛЕВЫЙ)"),
+        _("Ethernet cable (LEFT)"),
         default=False,
         help_text=_("Ethernet Cables (LEFT)"),
     )
 
     ultrasonic_phased_array_pulsar_right = models.CharField(
-        _("Ультразвуковая фазированная решетка PULSAR OEM 16/128 (ПРАВЫЙ)"),
+        _("Ultrasonic phased array PULSAR OEM 16/128 (RIGHT)"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
@@ -173,7 +173,7 @@ class Phasar02(models.Model):
     )
 
     dcn_right = models.CharField(
-        _("Блок 0° ФР (ПРАВЫЙ)"),
+        _("0° PA Block (RIGHT)"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
@@ -181,7 +181,7 @@ class Phasar02(models.Model):
     )
 
     ab_back_right = models.CharField(
-        _("Отъезжающий блок ФР (ПРАВЫЙ)"),
+        _("Trailing PA block (RIGHT)"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
@@ -189,7 +189,7 @@ class Phasar02(models.Model):
     )
 
     gf_combo_right = models.CharField(
-        _("Блок ФР рабочей грани (ПРАВЫЙ)"),
+        _("Gauge face PA block (RIGHT)"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
@@ -197,7 +197,7 @@ class Phasar02(models.Model):
     )
 
     ff_combo_right = models.CharField(
-        _("Блок ФР нерабочей грани (ПРАВЫЙ)"),
+        _("Field side PA block (RIGHT)"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
@@ -205,7 +205,7 @@ class Phasar02(models.Model):
     )
 
     ab_front_right = models.CharField(
-        _("Наезжающий блок ФР (ПРАВЫЙ)"),
+        _("Leading PA block (RIGHT)"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
@@ -213,7 +213,7 @@ class Phasar02(models.Model):
     )
 
     flange_50_right = models.CharField(
-        _("Низкочастотный блок подошвы (ПРАВЫЙ)"),
+        _("Low-frequency rail base block (RIGHT)"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
@@ -221,7 +221,7 @@ class Phasar02(models.Model):
     )
 
     manual_probs_right = models.CharField(
-        _("Ручной наклонный преобразователь (ПРАВЫЙ)"),
+        _("Manual angle probe (RIGHT)"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
@@ -229,65 +229,61 @@ class Phasar02(models.Model):
     )
 
     has_dc_cable_battery_right = models.BooleanField(
-        _("DC кабель от батареи (ПРАВЫЙ)"),
+        _("DC cable from battery (RIGHT)"),
         default=False,
         help_text=_("DC Cable from Battery (RIGHT)"),
     )
 
     has_ethernet_cables_right = models.BooleanField(
-        _("Ethernet кабель (ПРАВЫЙ)"),
+        _("Ethernet cable (RIGHT)"),
         default=False,
         help_text=_("Ethernet Cables (RIGHT)"),
     )
 
     water_tank_with_tap = models.CharField(
-        _("Резервуар для воды с краном"),
+        _("Water tank with tap"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
         help_text=_("Water tank with a tap"),
     )
 
-
     dc_battery_box = models.CharField(
-        _("Батарейный блок DC"),
+        _("DC Battery box"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
         help_text=_("DC Battery box established"),
     )
 
-
     has_ac_dc_charger_adapter_battery = models.BooleanField(
-        _("AC/DC адаптер зарядки для батареи"),
+        _("AC/DC charger adapter for battery"),
         default=False,
         help_text=_("AC/DC Charger adapter for battery"),
     )
 
     calibration_block_so_3r = models.CharField(
-        _("Калибровочный блок SO-3R"),
+        _("Calibration block SO-3R"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
-        help_text=_("Calibration bloc SO-3R"),
+        help_text=_("Calibration block SO-3R"),
     )
 
-
     has_repair_tool_bag = models.BooleanField(
-        _("Ремонтный инструмент с сумкой"),
+        _("Repair tool with bag"),
         default=False,
         help_text=_("Small repair tool with bag"),
     )
 
     has_installed_nameplate = models.BooleanField(
-        _("Установленная табличка с серийным номером"),
+        _("Installed nameplate with serial number"),
         default=False,
         help_text=_("Installed nameplate with serial number"),
     )
 
-
     wifi_router_address = models.CharField(
-        _("Адрес Wi-Fi роутера"),
+        _("Wi-Fi router address"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
@@ -295,7 +291,7 @@ class Phasar02(models.Model):
     )
 
     windows_password = models.CharField(
-        _("Пароль для Windows"),
+        _("Windows password"),
         max_length=100,
         blank=True,
         validators=[MaxLengthValidator(100)],
@@ -303,23 +299,23 @@ class Phasar02(models.Model):
     )
 
     notes = models.TextField(
-        _("Примечания"),
+        _("Notes"),
         blank=True,
-        help_text=_("Дополнительные заметки по оборудованию"),
+        help_text=_("Additional notes regarding the equipment"),
     )
 
     class Meta:
         """Meta options for Phasar02 model."""
 
-        verbose_name = _("Фазар02")
-        verbose_name_plural = _("Фазары02")
+        verbose_name = _("Phasar02")
+        verbose_name_plural = _("Phasar02 items")
         ordering: ClassVar[list[str]] = ["-shipment_date", "serial_number"]
         constraints: ClassVar[list] = [
             models.UniqueConstraint(
                 fields=["serial_number"],
                 name="unique_phasar02_serial_number",
                 violation_error_message=_(
-                    "Фазар02 с таким серийным номером уже существует",
+                    "A Phasar02 item with this serial number already exists",
                 ),
             ),
         ]
