@@ -9,6 +9,11 @@ from core import views
 
 urlpatterns = [
     path(
+        "admin/api/get-schemes/",
+        views.get_schemes_for_model,
+        name="get_schemes_for_model"
+    ),
+    path(
         "api/<str:model_name>/",
         views.EquipmentCreateView.as_view(),
         name="create",

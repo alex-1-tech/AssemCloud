@@ -1,0 +1,192 @@
+# core/schemes/definitions/kalmar32.py
+from django.utils.translation import gettext_lazy as _
+
+KALMAR32_SCHEME_V1 = {
+    "title": "Kalmar32 Specification Scheme v1",
+    "model": "kalmar32",
+    "version": 1,
+    "sections": [
+        {
+            "key": "tablet_pc",
+            "title": _("PC tablet Latitude Dell 7230"),
+            "fields": [
+                {
+                    "name": "pc_tablet_dell_7230",
+                    "label": _("Dell 7230 Tablet"),
+                    "type": "string",
+                    "required": False,
+                    "max_length": 100,
+                    "help_text": _("PC tablet Latitude Dell 7230"),
+                },
+                {
+                    "name": "ac_dc_power_adapter_dell",
+                    "label": _("AC/DC power adapter for Dell 7230"),
+                    "type": "string",
+                    "required": False,
+                    "max_length": 100,
+                    "help_text": _("AC/DC Power adapter for Dell 7230"),
+                },
+                {
+                    "name": "dc_charger_adapter_battery",
+                    "label": _("DC battery charger adapter for Dell 7230"),
+                    "type": "string",
+                    "required": False,
+                    "max_length": 100,
+                    "help_text": _("DC Charger adapter for Dell 7230 from battery"),
+                },
+            ],
+        },
+        {
+            "key": "ultrasonic_hardware",
+            "title": _("Ultrasonic phased array & Probes"),
+            "fields": [
+                {
+                    "name": "ultrasonic_phased_array_pulsar",
+                    "label": _("Ultrasonic phased array PULSAR OEM 16/64"),
+                    "type": "string",
+                    "required": False,
+                    "max_length": 100,
+                    "help_text": _("Ultrasonic phased array PULSAR OEM 16/64 established"),
+                },
+                {
+                    "name": "left_probs",
+                    "label": _("Left probe"),
+                    "type": "string",
+                    "required": False,
+                    "max_length": 100,
+                    "help_text": _("Left probs PA2.25L16 1.1x10-17"),
+                },
+                {
+                    "name": "right_probs",
+                    "label": _("Right probe"),
+                    "type": "string",
+                    "required": False,
+                    "max_length": 100,
+                    "help_text": _("Right probs PA2.25L16 1.1x10-17"),
+                },
+                {
+                    "name": "manual_probs",
+                    "label": _("Manual probe"),
+                    "type": "string",
+                    "required": False,
+                    "max_length": 100,
+                    "help_text": _("Manual probs PA2.25L16 0.9x10-17"),
+                },
+                {
+                    "name": "straight_probs",
+                    "label": _("Straight probe"),
+                    "type": "string",
+                    "required": False,
+                    "max_length": 100,
+                    "help_text": _("Straight probs PA5.0L16 0.6x10-12"),
+                },
+            ],
+        },
+        {
+            "key": "power_and_cables",
+            "title": _("Power and Cables"),
+            "fields": [
+                {
+                    "name": "dc_battery_box",
+                    "label": _("DC Battery box"),
+                    "type": "string",
+                    "required": False,
+                    "max_length": 100,
+                    "help_text": _("DC Battery box established"),
+                },
+                {
+                    "name": "has_dc_cable_battery",
+                    "label": _("DC cable from battery box"),
+                    "type": "boolean",
+                    "default": False,
+                    "help_text": _("DC Cable from battery box"),
+                },
+                {
+                    "name": "has_ethernet_cables",
+                    "label": _("Ethernet cable"),
+                    "type": "boolean",
+                    "default": False,
+                    "help_text": _("Ethernet cables"),
+                },
+                {
+                    "name": "has_ac_dc_charger_adapter_battery",
+                    "label": _("AC/DC charger adapter for battery"),
+                    "type": "boolean",
+                    "default": False,
+                    "help_text": _("AC/DC Charger adapter for battery"),
+                },
+            ],
+        },
+        {
+            "key": "calibration_and_tools",
+            "title": _("Calibration and Tools"),
+            "fields": [
+                {
+                    "name": "calibration_block_so_3r",
+                    "label": _("Calibration block SO-3R"),
+                    "type": "string",
+                    "required": False,
+                    "max_length": 100,
+                    "help_text": _("Calibration bloc SO-3R"),
+                },
+                {
+                    "name": "has_repair_tool_bag",
+                    "label": _("Repair tool with bag"),
+                    "type": "boolean",
+                    "default": False,
+                    "help_text": _("Small repair tool with bag"),
+                },
+                {
+                    "name": "has_installed_nameplate",
+                    "label": _("Installed nameplate with serial number"),
+                    "type": "boolean",
+                    "default": False,
+                    "help_text": _("Installed nameplate with serial number"),
+                },
+            ],
+        },
+        {
+            "key": "network_and_credentials",
+            "title": _("Network and Security Settings"),
+            "fields": [
+                {
+                    "name": "wifi_router_address",
+                    "label": _("Wi-Fi router address"),
+                    "type": "string",
+                    "required": False,
+                    "max_length": 100,
+                    "help_text": _("WiFi router address"),
+                },
+                {
+                    "name": "windows_password",
+                    "label": _("Windows password"),
+                    "type": "string",
+                    "required": False,
+                    "max_length": 100,
+                    "help_text": _("Windows account password"),
+                },
+                {
+                    "name": "license_password",
+                    "label": _("License password"),
+                    "type": "string",
+                    "required": False,
+                    "max_length": 100,
+                    "help_text": _("Password for license activation"),
+                },
+            ],
+        },
+        {
+            "key": "notes",
+            "title": _("Additional Info"),
+            "fields": [
+                {
+                    "name": "notes",
+                    "label": _("Notes"),
+                    "type": "text",
+                    "required": False,
+                    "help_text": _("Additional notes regarding the equipment"),
+                },
+            ],
+        },
+    ],
+}

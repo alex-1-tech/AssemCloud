@@ -1,5 +1,6 @@
 """Views package exports for core application."""
 
+from core.views.admin_views import get_schemes_for_model
 from core.views.appfile import (
     AppFileDownloadView,
     AppFileLatestVersionDateView,
@@ -26,4 +27,5 @@ __all__ = [
     "EquipmentRetrieveView",
     "ReportCreateView",
     "ReportFileUploadView",
+    "get_schemes_for_model",
 ]
