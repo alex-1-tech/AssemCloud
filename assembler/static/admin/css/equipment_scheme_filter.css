@@ -1,0 +1,31 @@
+#scheme-dynamic-fields .form-row > div {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 12px;
+    width: 100%;
+}
+
+#scheme-dynamic-fields .form-row label {
+    flex: 0 0 160px;
+    max-width: 160px;
+}
+
+#scheme-dynamic-fields .form-row input[type="text"],
+#scheme-dynamic-fields .form-row input[type="number"],
+#scheme-dynamic-fields .form-row textarea {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+/* чекбоксы — без фиксированной ширины подписи, всё в одну строку слева */
+#scheme-dynamic-fields .form-row.checkbox-row > div {
+    justify-content: flex-start;
+}
+#scheme-dynamic-fields .form-row.checkbox-row label {
+    flex: none;
+}
+
+#scheme-dynamic-fields h2 {
+    margin-top: 20px;
+}
