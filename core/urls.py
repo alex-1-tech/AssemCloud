@@ -23,21 +23,6 @@ urlpatterns = [
         views.EquipmentRetrieveView.as_view(),
         name="get-settings",
     ),
-    path(
-        "api/<str:model_name>/<str:serial_number>/get_reports",
-        views.EquipmentReportsView.as_view(),
-        name="get-reports",
-    ),
-    path(
-        "api/report/",
-        views.ReportCreateView.as_view(),
-        name="report-create",
-    ),
-    path(
-        "api/report/<str:report_identifier>/<str:file_type>/",
-        views.ReportFileUploadView.as_view(),
-        name="report-upload-file",
-    ),
 ]
 
 urlpatterns += [
@@ -59,11 +44,6 @@ urlpatterns += [
         views.AppFileLatestVersionDateView.as_view(),
         name="app-versions",
     ),
-    path(
-        "api/apps/webhook/download/",
-        views.AppWebhookDownloadView.as_view(),
-        name="app-webhook-download",
-    ),
     # license
     path(
         "api/activate/<str:serial_number>/",
@@ -75,7 +55,7 @@ urlpatterns += [
         "accounts/login/",
         auth_views.LoginView.as_view(template_name="admin/login.html", next_page="/apps/upload/"),
     ),
-    path("accounts/logout/", auth_views.LogoutView.as_view(next_page="/apps/upload/")),
+    path("accounts/logout/", auth_views.LogoutView.as_view(next_page="/apps/upload/"), name="logout"),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

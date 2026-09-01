@@ -5,7 +5,7 @@ from core.schemes import KALMAR32_SCHEME_V1
 from core.schemes.models_registry import EQUIPMENT_MODELS_REGISTRY
 
 
-def stringify_lazy(obj):
+def stringify_lazy(obj: object) -> object:
     """Рекурсивно преобразует lazy-переводы Django (__proxy__) в обычные строки для JSON."""
     if isinstance(obj, Promise):
         return str(obj)

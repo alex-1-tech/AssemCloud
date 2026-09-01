@@ -10,9 +10,7 @@ from core.views.appfile import (
 )
 from core.views.create_model import EquipmentCreateView
 from core.views.license import ActivateView
-from core.views.models import EquipmentReportsView, EquipmentRetrieveView
-from core.views.report import ReportCreateView, ReportFileUploadView
-from core.views.webhook import AppWebhookDownloadView
+from core.views.models import EquipmentRetrieveView
 
 __all__ = [
     "ActivateView",
@@ -21,11 +19,7 @@ __all__ = [
     "AppFileListVersionsView",
     "AppFileUploadView",
     "AppUploadPageView",
-    "AppWebhookDownloadView",
     "EquipmentCreateView",
-    "EquipmentReportsView",
     "EquipmentRetrieveView",
-    "ReportCreateView",
-    "ReportFileUploadView",
     "get_schemes_for_model",
 ]

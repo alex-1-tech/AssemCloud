@@ -7,7 +7,7 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
-from core.models import Kalmar32, License, Phasar01, Phasar02
+from core.models import Equipment, License
 from core.utils.license import sign_license
 
 
@@ -26,6 +26,16 @@ class ActivateView(View):
                     status=400,
                 )
 
+            required_fields = ["product", "license_password"]
+            missing = [f for f in required_fields if f not in data]
+            if missing:
+                return JsonResponse(
+                    {"status": "error", "error": f"Missing fields: {', '.join(missing)}"},
+                    status=400,
+                )
+
+            product = data["product"]
+            license_password = data["license_password"]
             host_hwid = data.get("host_hwid", "")
             device_hwid = data.get("device_hwid", "")
             if not host_hwid and not device_hwid:
@@ -34,20 +44,41 @@ class ActivateView(View):
                     status=400,
                 )
 
+            ver = data.get("ver", "")
+            company_name = data.get("company_name", "")
+            exp = data.get("exp", "2100-01-01")
+            features = data.get("features", {})
+
             try:
-                ver = data.get("ver", "")
-                product = data["product"]
-                company_name = data.get("company_name", "")
-                exp = data.get("exp", "2100-01-01")
-                features = data.get("features", {})
-                license_password = data["license_password"]
-            except KeyError as e:
+                equipment = Equipment.objects.select_related("model").get(serial_number=serial_number)
+            except Equipment.DoesNotExist:
                 return JsonResponse(
-                    {"status": "error", "error": f"Missing field: {e}"},
+                    {"status": "error", "error": f"Equipment with serial number {serial_number} not found"},
+                    status=404,
+                )
+
+            if equipment.model.name != product:
+                return JsonResponse(
+                    {"status": "error", "error": f"Product mismatch: expected {equipment.model.name}, got {product}"},
                     status=400,
                 )
 
-            license_payload = {
+            stored_password = equipment.other_data.get("license_password")
+            if stored_password is None:
+                return JsonResponse(
+                    {"status": "error", "error": "License password not set for this equipment"},
+                    status=400,
+                )
+            if stored_password != license_password:
+                return JsonResponse(
+                    {"status": "error", "error": "Invalid license password"},
+                    status=403,
+                )
+
+            if equipment.license:
+                equipment.license.delete()
+
+            payload = {
                 "ver": ver,
                 "product": product,
                 "company_name": company_name,
@@ -58,45 +89,7 @@ class ActivateView(View):
             }
 
             try:
-                if product == "kalmar32":
-                    model = Kalmar32.objects.get(serial_number=serial_number)
-                elif product == "phasar01":
-                    model = Phasar01.objects.get(serial_number=serial_number)
-                elif product == "phasar02":
-                    model = Phasar02.objects.get(serial_number=serial_number)
-                else:
-                    return JsonResponse(
-                        {"status": "error", "error": f"Unknown product type: {product}"},
-                        status=400,
-                    )
-            except Phasar01.DoesNotExist:
-                return JsonResponse(
-                    {"status": "error", "error": f"Phasar01 with serial number {serial_number} not found"},
-                    status=404,
-                )
-            except Kalmar32.DoesNotExist:
-                return JsonResponse(
-                    {"status": "error", "error": f"Kalmar32 with serial number {serial_number} not found"},
-                    status=404,
-                )
-            except Exception as e:
-                return JsonResponse(
-                    {"status": "error", "error": f"Database error: {e!s}"},
-                    status=500,
-                )
-            try:
-                if model.license_password != license_password:
-                    return JsonResponse(
-                        {"status": "error", "error": "Invalid license password"},
-                        status=403,
-                    )
-            except AttributeError:
-                return JsonResponse(
-                    {"status": "error", "error": "Device model does not have license_password field"},
-                    status=500,
-                )
-            try:
-                license_data = sign_license(license_payload)
+                signed = sign_license(payload)
             except FileNotFoundError:
                 return JsonResponse(
                     {"status": "error", "error": "Private key not found"},
@@ -114,10 +107,11 @@ class ActivateView(View):
                 )
 
             try:
-                exp_date = datetime.strptime(exp, "%Y-%m-%d").date()  # noqa: DTZ007
+                exp_date = datetime.strptime(exp, "%Y-%m-%d").date()
             except (ValueError, TypeError):
-                exp_date = datetime(2100, 1, 1).date()  # noqa: DTZ001
+                exp_date = datetime(2100, 1, 1).date()
 
+            # 10. Создание License
             try:
                 license_obj = License.objects.create(
                     ver=ver,
@@ -127,45 +121,38 @@ class ActivateView(View):
                     device_hwid=device_hwid,
                     exp=exp_date,
                     features=features,
-                    signature=license_data.get("signature", ""),
-                    license_key=license_data.get("license_key", ""),
+                    signature=signed.get("signature", ""),
+                    license_key=signed.get("license_key", ""),
                 )
             except Exception as e:
                 return JsonResponse(
-                    {"status": "error", "error": f"Failed to create License object: {e!s}"},
+                    {"status": "error", "error": f"Failed to create License: {e!s}"},
                     status=500,
                 )
 
             try:
-                model.license = license_obj
-                model.save(update_fields=["license"])
+                equipment.license = license_obj
+                equipment.save(update_fields=["license"])
             except Exception as e:
+                license_obj.delete()
                 return JsonResponse(
-                    {"status": "error", "error": f"Failed to attach license to device: {e!s}"},
+                    {"status": "error", "error": f"Failed to attach license: {e!s}"},
                     status=500,
                 )
 
-            try:
-                return JsonResponse(
-                    {
-                        "status": "ok",
-                        "license": {
-                            "license_key": license_data.get("license_key"),
-                            "payload": license_data.get("payload"),
-                            "signature": license_data.get("signature"),
-                        },
-                    }
-                )
-            except Exception as e:
-                return JsonResponse(
-                    {"status": "error", "error": f"Failed to serialize response: {e!s}"},
-                    status=500,
-                )
+            return JsonResponse(
+                {
+                    "status": "ok",
+                    "license": {
+                        "license_key": signed.get("license_key"),
+                        "payload": signed.get("payload"),
+                        "signature": signed.get("signature"),
+                    },
+                }
+            )
 
         except Exception as e:
             return JsonResponse(
                 {"status": "error", "error": f"Unhandled exception: {e!s}"},
                 status=500,
             )
-
-

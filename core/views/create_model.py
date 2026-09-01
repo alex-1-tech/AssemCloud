@@ -1,13 +1,13 @@
-"""API views for equipment management with dynamic model selection.
+"""API views for equipment management using unified Equipment model.
 
-This module provides unified JSON processing for both Kalmar32 and Phasar01 models
-with automatic model selection based on equipment_type field.
+This module provides JSON API for creating/updating equipment records
+using the generic Equipment, Model, and Scheme models.
 """
-
 from __future__ import annotations
 
 import json
 import logging
+from datetime import date
 from typing import Any, ClassVar
 
 from django.core.exceptions import ValidationError
@@ -17,161 +17,149 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
-from core.models import Kalmar32, Phasar01, Phasar02
-from core.views.models import convert_kalmar32, convert_phasar01, convert_phasar02
+from core.models import Equipment, Model, Scheme
 
 logger = logging.getLogger(__name__)
 
 
 @method_decorator(csrf_exempt, name="dispatch")
 class EquipmentCreateView(View):
-    """View for creating equipment records via JSON API with dynamic model selection.
+    """View for creating/updating equipment records via JSON API using unified Equipment model.
 
-    Handles POST requests with JSON payload containing equipment data.
-    Automatically selects Kalmar32 or Phasar01 based on equipment_type field.
+    Expects JSON payload with at least 'serial_number' and 'equipment_type'.
+    Optional fields: 'version', 'rail_type', 'invoice', 'packet_list', 'shipment_date'.
+    All other fields are stored in 'other_data' JSONField.
     """
 
     http_method_names: ClassVar[list[str]] = ["post"]
 
-    REQUIRED_FIELDS: ClassVar[tuple[str]] = {
-        "serial_number",
-        "equipment_type",
-    }
-    VALID_EQUIPMENT_TYPES: ClassVar[tuple[str]] = ("kalmar32", "phasar01", "phasar02")
-
-    DATE_FIELDS: ClassVar[tuple[str]] = {
-        "shipment_date",
-    }
-
-    BOOLEAN_FIELDS: ClassVar[tuple[str]] = {
-        "has_dc_cable_battery",
-        "has_ethernet_cables",
-        "has_repair_tool_bag",
-        "has_installed_nameplate",
-    }
-
-    MODEL_CONFIGS: ClassVar[dict] = {
-        "kalmar32": {
-            "model": Kalmar32,
-            "response_builder": convert_kalmar32,
-        },
-        "phasar01": {
-            "model": Phasar01,
-            "response_builder": convert_phasar01,
-        },
-        "phasar02": {
-            "model": Phasar02,
-            "response_builder": convert_phasar02,
-        },
-    }
+    VALID_RAIL_TYPES = ("UIC60", "IRS52", "R65", "NONE")
+    DEFAULT_VERSION = "Ver_1"
+    DEFAULT_RAIL_TYPE = "NONE"
 
     def post(
         self,
         request: HttpRequest,
         model_name: str | None = None,
-        *args: object,  # noqa: ARG002
+        *args: object,
+        **kwargs: object,
     ) -> JsonResponse:
-        """Create a new equipment record from JSON data with dynamic model selection."""
+        """Create or update equipment record from JSON data."""
         try:
-            data = self._extract_request_data(request)
-            self._validate_required_fields(data)
+            data = self._extract_json(request)
+        except ValidationError as e:
+            return self._error_response(str(e), status=400)
 
-            equipment_type = data.pop("equipment_type")
+            # Обязательные поля
+            return self._error_response("Missing required field: serial_number", status=400)
 
-            if model_name and model_name != equipment_type:
-                return self._build_error_response(
-                    f"URL model name '{model_name}' does not match equipment_type '{equipment_type}'",
+        equipment_type = data.get("equipment_type")
+        if not equipment_type:
+            return self._error_response("Missing required field: equipment_type", status=400)
+
+        # Проверка соответствия URL, если передан model_name
+        if model_name and model_name != equipment_type:
+            return self._error_response(
+                f"URL model name '{model_name}' does not match equipment_type '{equipment_type}'",
+                status=400,
+            )
+
+        version = data.get("version", self.DEFAULT_VERSION)
+        rail_type = data.get("rail_type", self.DEFAULT_RAIL_TYPE).upper()
+        if rail_type not in self.VALID_RAIL_TYPES:
+            return self._error_response(f"Invalid rail_type: {rail_type}", status=400)
+
+        try:
+            model_obj, _ = Model.objects.get_or_create(
+                name=equipment_type,
+                version=version,
+                type_rail=rail_type,
+                defaults={"is_active": True},
+            )
+        except Exception as e:
+            logger.exception("Failed to get_or_create Model")
+            return self._error_response(f"Database error on Model: {e!s}", status=500)
+
+        scheme_obj = Scheme.objects.filter(model_name=equipment_type, is_latest=True).first()
+        if not scheme_obj:
+            return self._error_response(
+                f"No active Scheme found for model '{equipment_type}'. Please create a scheme first.",
+                status=400,
+            )
+
+        serial_number = data.pop("serial_number")
+        invoice = data.pop("invoice", "")
+        packet_list = data.pop("packet_list", "")
+        shipment_date = data.pop("shipment_date", None)
+
+        other_data = data.copy()
+        other_data.pop("equipment_type", None)
+        other_data.pop("version", None)
+        other_data.pop("rail_type", None)
+
+        if shipment_date:
+            if isinstance(shipment_date, str):
+                try:
+                    shipment_date = date.fromisoformat(shipment_date)
+                except ValueError:
+                    return self._error_response(
+                        "Invalid shipment_date format, use YYYY-MM-DD",
+                        status=400,
+                    )
+            elif not isinstance(shipment_date, date):
+                return self._error_response(
+                    "shipment_date must be a date or ISO string",
                     status=400,
                 )
 
-            model_config = self.MODEL_CONFIGS[equipment_type]
+        try:
+            with transaction.atomic():
+                equipment, created = Equipment.objects.update_or_create(
+                    serial_number=serial_number,
+                    defaults={
+                        "model": model_obj,
+                        "scheme": scheme_obj,
+                        "invoice": invoice,
+                        "packet_list": packet_list,
+                        "shipment_date": shipment_date,
+                        "other_data": other_data,
+                        # "license": license_obj,
+                    },
+                )
+        except Exception as e:
+            logger.exception("Failed to create/update Equipment")
+            return self._error_response(f"Database error on Equipment: {e!s}", status=500)
 
-            processed_data = self._process_input_data(data, model_config)
-            equipment = self._create_equipment(equipment_type, model_config, processed_data)
+        response_data = {
+            "id": equipment.id,
+            "serial_number": equipment.serial_number,
+            "invoice": equipment.invoice,
+            "packet_list": equipment.packet_list,
+            "shipment_date": equipment.shipment_date.isoformat() if equipment.shipment_date else None,
+            "license": equipment.license_id,
+            "model": {
+                "name": equipment.model.name,
+                "version": equipment.model.version,
+                "type_rail": equipment.model.type_rail,
+            },
+            "scheme": equipment.scheme_id,
+            "status": "created" if created else "updated",
+        }
+        response_data.update(equipment.other_data)
 
-            return self._build_success_response(equipment, model_config["response_builder"])
+        return JsonResponse(response_data, status=201 if created else 200)
 
-        except json.JSONDecodeError:
-            return self._build_error_response("Invalid JSON", status=400)
-        except ValidationError as e:
-            return self._build_error_response(str(e), status=400)
-        except KeyError as e:
-            return self._build_error_response(
-                f"Invalid equipment type. Valid types: {', '.join(self.VALID_EQUIPMENT_TYPES)}",
-                status=400,
-                detail=str(e),
-            )
-        except ValueError as e:
-            return self._build_error_response("Invalid input", status=400, detail=str(e))
-
-    def _extract_request_data(self, request: HttpRequest) -> dict[str, Any]:
+    def _extract_json(self, request: HttpRequest) -> dict[str, Any]:
         """Extract and parse JSON data from request body."""
         try:
             return json.loads(request.body.decode("utf-8"))
-        except json.JSONDecodeError as e:
-            msg = f"Invalid JSON format: {e}"
-            raise ValidationError(msg) from e
-        except UnicodeDecodeError as e:
-            msg = f"Invalid encoding: {e}"
-            raise ValidationError(msg) from e
+        except (json.JSONDecodeError, UnicodeDecodeError) as e:
+            raise ValidationError(f"Invalid JSON: {e!s}") from e
 
-    def _validate_required_fields(self, data: dict[str, Any]) -> None:
-        """Validate presence of required fields."""
-        missing_fields = [field for field in self.REQUIRED_FIELDS if field not in data]
-        if missing_fields:
-            msg = f"Missing required fields: {', '.join(missing_fields)}"
-            raise ValidationError(msg)
-
-    def _process_input_data(
-        self,
-        data: dict[str, Any],
-        model_config: dict,  # noqa: ARG002
-    ) -> dict[str, Any]:
-        """Convert and validate all field types for specific model."""
-        processed = data.copy()
-        processed = self._process_boolean_fields(processed)
-        return self._process_date_fields(processed)
-
-    def _process_boolean_fields(self, data: dict[str, Any]) -> dict[str, Any]:
-        """Process boolean fields."""
-        for field in self.BOOLEAN_FIELDS:
-            if field in data:
-                if isinstance(data[field], str):
-                    data[field] = data[field].lower() in ("true", "1", "yes")
-                elif not isinstance(data[field], bool):
-                    data[field] = bool(data[field])
-        return data
-
-    def _process_date_fields(self, data: dict[str, Any]) -> dict[str, Any]:
-        """Process date fields - remove empty string values."""
-        for field in self.DATE_FIELDS:
-            if field in data and data[field] == "":
-                del data[field]
-        return data
-
-    @transaction.atomic
-    def _create_equipment(self, equipment_type: str, model_config: dict, data: dict[str, Any]) -> object:
-        """Create equipment instance from validated data."""
-        try:
-            model_class = model_config["model"]
-            return model_class.objects.update_or_create(serial_number=data["serial_number"], defaults=data)[0]
-        except Exception as e:
-            msg = f"Error creating {equipment_type}: {e!s}"
-            raise ValidationError(msg) from e
-
-    def _build_success_response(self, equipment: object, response_builder: object) -> JsonResponse:
-        """Build success response with created equipment data."""
-        response_data = response_builder(equipment)
-        response_data["status"] = "created"
-        return JsonResponse(response_data, status=201)
-
-    def _build_error_response(self, message: str, status: int = 400, detail: str = "") -> JsonResponse:
-        """Build error response."""
-        response_data = {
-            "error": message,
-            "status": "error",
-            "detail": detail,
-        }
-        msg = f"Validation error: {message!s}"
-        logger.exception(msg)
+    def _error_response(self, message: str, status: int = 400, detail: str = "") -> JsonResponse:
+        """Build standardized error response."""
+        response_data = {"error": message, "status": "error"}
+        if detail:
+            response_data["detail"] = detail
+        logger.error("EquipmentCreateView error: %s (detail: %s)", message, detail)
         return JsonResponse(response_data, status=status)

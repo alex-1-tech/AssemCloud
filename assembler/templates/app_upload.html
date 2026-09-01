@@ -3,42 +3,38 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="Страница загрузки исполняемых файлов приложений для оборудования.">
+        <meta name="keywords" content="загрузка, приложения, файлы, exe, upload">
         <title>Загрузка приложений</title>
         <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 600px;
+            max-width: 700px;
             margin: 50px auto;
             padding: 20px;
             background-color: #f5f5f5;
         }
-
         .container {
             background: white;
             padding: 30px;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
-
         h1 {
             color: #333;
             text-align: center;
             margin-bottom: 30px;
         }
-
         .form-group {
             margin-bottom: 20px;
         }
-
         label {
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
             color: #555;
         }
-
-        select,
-        input[type="file"] {
+        select, input[type="file"] {
             width: 100%;
             padding: 10px;
             border: 2px solid #ddd;
@@ -46,13 +42,10 @@
             font-size: 16px;
             box-sizing: border-box;
         }
-
-        select:focus,
-        input[type="file"]:focus {
+        select:focus, input[type="file"]:focus {
             border-color: #4CAF50;
             outline: none;
         }
-
         .btn {
             background-color: #4CAF50;
             color: white;
@@ -63,40 +56,33 @@
             font-size: 16px;
             width: 100%;
         }
-
         .btn:hover {
             background-color: #45a049;
         }
-
         .btn:disabled {
             background-color: #cccccc;
             cursor: not-allowed;
         }
-
         .message {
             padding: 10px;
             border-radius: 4px;
             margin-top: 20px;
         }
-
         .success {
             background-color: #d4edda;
             color: #155724;
             border: 1px solid #c3e6cb;
         }
-
         .error {
             background-color: #f8d7da;
             color: #721c24;
             border: 1px solid #f5c6cb;
         }
-
         .info {
             background-color: #d1ecf1;
             color: #0c5460;
             border: 1px solid #bee5eb;
         }
-
         .progress {
             width: 100%;
             height: 20px;
@@ -105,7 +91,6 @@
             margin-top: 10px;
             display: none;
         }
-
         .progress-bar {
             height: 100%;
             background-color: #4CAF50;
@@ -113,7 +98,6 @@
             width: 0%;
             transition: width 0.3s ease;
         }
-
         .user-info {
             text-align: right;
             margin-bottom: 20px;
@@ -121,17 +105,26 @@
             background-color: #e8f5e8;
             border-radius: 4px;
         }
-
+        .inline-block {
+            display: inline;
+        }
+        .hidden {
+            display: none;
+        }
         .logout-link {
+            background: none;
+            border: none;
+            padding: 0;
             color: #d32f2f;
-            text-decoration: none;
-            margin-left: 10px;
-        }
-
-        .logout-link:hover {
             text-decoration: underline;
+            cursor: pointer;
+            margin-left: 10px;
+            font-size: inherit;
+            font-family: inherit;
         }
-        
+        .logout-link:hover {
+            text-decoration: none;
+        }
         .rail-type-group {
             display: none;
             margin-bottom: 20px;
@@ -140,17 +133,22 @@
             border-radius: 4px;
             border-left: 4px solid #4CAF50;
         }
-        
-        .rail-type-group label {
+        .version-group {
+            display: none;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+            border-left: 4px solid #2196F3;
+        }
+        .rail-type-group label, .version-group label {
             color: #2c662d;
         }
-        
         .required-field::after {
             content: " *";
             color: #d32f2f;
             font-weight: bold;
         }
-        
         .info-text {
             font-size: 12px;
             color: #666;
@@ -164,18 +162,11 @@
             <div class="user-info">
                 Вы вошли как: <strong>{{ user.username }}</strong>
                 <form id="logoutForm"
-                      action="/accounts/logout/"
+                      action="{% url 'logout' %}"
                       method="post"
-                      style="display: inline">
+                      class="inline-block">
                     {% csrf_token %}
-                    <button type="submit"
-                            class="logout-link"
-                            style="background: none;
-                                   border: none;
-                                   color: #d32f2f;
-                                   cursor: pointer;
-                                   text-decoration: underline;
-                                   margin-left: 10px">Выйти</button>
+                    <button type="submit" class="logout-link">Выйти</button>
                 </form>
             </div>
             <form id="uploadForm" enctype="multipart/form-data">
@@ -184,156 +175,249 @@
                     <label for="appType">Тип приложения:</label>
                     <select id="appType" name="type" required>
                         <option value="">Выберите тип приложения</option>
-                        <option value="kalmar32">Kalmar32</option>
-                        <option value="phasar01">Phasar01</option>
-                        <option value="phasar02">Phasar02</option>
-                        <option value="manual_app">ManualApp</option>
+                        {% for app in app_types %}
+                            <option value="{{ app.value }}"
+                                    data-rail-required="{{ app.rail_required|yesno:"true,false" }}"
+                                    data-versions='{{ app.versions_json|safe }}'
+                                    data-rail-types='{{ app.rail_types_json|safe }}'>{{ app.label }}</option>
+                        {% endfor %}
                     </select>
                 </div>
-                
                 <div class="form-group rail-type-group" id="railTypeGroup">
-                    <label for="railType" class="required-field">Тип рельс для Kalmar32:</label>
+                    <label for="railType" class="required-field">Тип рельс:</label>
                     <select id="railType" name="rail_type">
                         <option value="">Выберите тип рельс</option>
-                        <option value="P65">P65 (Российский стандарт, 65 кг/м)</option>
-                        <option value="IRS52">IRS52 (Индийский стандарт, 52 кг/м)</option>
-                        <option value="UIC60">UIC60 (Европейский стандарт, 60 кг/м)</option>
                     </select>
-                    <div class="info-text">Выберите тип рельс для соответствующей версии Kalmar32</div>
+                    <div class="info-text">Выберите тип рельс для соответствующей версии (если требуется)</div>
                 </div>
-                
+                <div class="form-group version-group" id="versionGroup">
+                    <label for="appVersion" class="required-field">Версия прибора:</label>
+                    <select id="appVersion" name="version">
+                        <option value="">Выберите версию</option>
+                    </select>
+                    <div class="info-text">Выберите версию оборудования, для которой предназначено приложение</div>
+                </div>
                 <div class="form-group">
                     <label for="appFile">Файл приложения (.exe):</label>
                     <input type="file" id="appFile" name="file" accept=".exe" required>
-                    <small>Максимальный размер: 500MB. Ожидаемое имя файла: Kalmar.exe, Phasar.exe или ManualApp.exe</small>
+                    <small>Максимальный размер: 500MB. Файл должен иметь расширение .exe.</small>
                 </div>
                 <button type="submit" class="btn" id="submitBtn">Загрузить файл</button>
             </form>
             <div class="progress" id="progressContainer">
                 <div class="progress-bar" id="progressBar"></div>
             </div>
-            <div id="message" class="message" style="display: none;"></div>
+                
+            <div id="message" class="message hidden"></div>
         </div>
-        
         <script>
-        document.getElementById('appType').addEventListener('change', function(e) {
-            const railTypeGroup = document.getElementById('railTypeGroup');
-            const railTypeSelect = document.getElementById('railType');
-            
-            if (e.target.value === 'kalmar32') {
-                railTypeGroup.style.display = 'block';
-                railTypeSelect.setAttribute('required', 'required');
-            } else {
-                railTypeGroup.style.display = 'none';
-                railTypeSelect.removeAttribute('required');
-                railTypeSelect.value = '';
-            }
+        document.addEventListener('DOMContentLoaded', function() {
+    const appTypeSelect = document.getElementById('appType');
+    const versionGroup = document.getElementById('versionGroup');
+    const versionSelect = document.getElementById('appVersion');
+    const railTypeGroup = document.getElementById('railTypeGroup');
+    const railTypeSelect = document.getElementById('railType');
+
+    const appData = {};
+    {% for app in app_types %}
+    appData['{{ app.value }}'] = {
+        rail_required: {{ app.rail_required|yesno:"true,false" }},
+        rail_types: {{ app.rail_types|safe }},
+        versions_by_rail: {{ app.versions_by_rail_json|safe }}
+    };
+    {% endfor %}
+
+    function fillVersions(versions) {
+        versionSelect.innerHTML = '<option value="">Выберите версию</option>';
+        versions.forEach(v => {
+            const opt = document.createElement('option');
+            opt.value = v;
+            opt.textContent = v;
+            versionSelect.appendChild(opt);
+        });
+        if (versions.length === 1) {
+            versionSelect.value = versions[0];
+        }
+        versionGroup.style.display = versions.length > 0 ? 'block' : 'none';
+    }
+
+    function updateFields() {
+        const selectedOption = appTypeSelect.options[appTypeSelect.selectedIndex];
+        if (!selectedOption || !selectedOption.value) {
+            versionGroup.style.display = 'none';
+            railTypeGroup.style.display = 'none';
+            return;
+        }
+
+        const appValue = selectedOption.value;
+        const data = appData[appValue];
+        if (!data) {
+            versionGroup.style.display = 'none';
+            railTypeGroup.style.display = 'none';
+            return;
+        }
+
+        const railTypes = data.rail_types || [];
+        railTypeSelect.innerHTML = '<option value="">Выберите тип рельс</option>';
+        railTypes.forEach(r => {
+            const opt = document.createElement('option');
+            opt.value = r.value;
+            opt.textContent = r.label;
+            railTypeSelect.appendChild(opt);
         });
 
-        document.getElementById('uploadForm').addEventListener('submit', function (e) {
-            e.preventDefault();
-            
-            const appType = document.getElementById('appType').value;
-            const railType = document.getElementById('railType').value;
-            
-            if (appType === 'kalmar32' && !railType) {
-                showMessage('Для Kalmar32 необходимо выбрать тип рельс', 'error');
+        if (data.rail_required) {
+            railTypeGroup.style.display = 'block';
+            railTypeSelect.setAttribute('required', 'required');
+            versionGroup.style.display = 'none';
+            versionSelect.innerHTML = '<option value="">Выберите версию</option>';
+        } else {
+            railTypeGroup.style.display = 'none';
+            railTypeSelect.removeAttribute('required');
+            const versions = data.versions_by_rail['NONE'] || [];
+            fillVersions(versions);
+        }
+    }
+
+    function updateVersions() {
+        const appValue = appTypeSelect.value;
+        if (!appValue) return;
+        const data = appData[appValue];
+        if (!data) return;
+
+        if (data.rail_required) {
+            const selectedRail = railTypeSelect.value;
+            if (!selectedRail) {
+                versionGroup.style.display = 'none';
+                versionSelect.innerHTML = '<option value="">Выберите версию</option>';
                 return;
             }
-            
-            uploadFile();
-        });
+            const versions = data.versions_by_rail[selectedRail] || [];
+            fillVersions(versions);
+        } else {
+            const versions = data.versions_by_rail['NONE'] || [];
+            fillVersions(versions);
+        }
+    }
 
-        function uploadFile() {
-            const form = document.getElementById('uploadForm');
-            const formData = new FormData(form);
-            const submitBtn = document.getElementById('submitBtn');
-            const progressContainer = document.getElementById('progressContainer');
-            const progressBar = document.getElementById('progressBar');
-            const messageDiv = document.getElementById('message');
+    appTypeSelect.addEventListener('change', function() {
+        updateFields();
+    });
 
-            messageDiv.style.display = 'none';
-            messageDiv.className = 'message';
+    railTypeSelect.addEventListener('change', function() {
+        updateVersions();
+    });
 
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Загрузка...';
+    updateFields();
 
-            progressContainer.style.display = 'block';
-            progressBar.style.width = '0%';
+    document.getElementById('uploadForm').addEventListener('submit', function (e) {
+        e.preventDefault();
 
-            const xhr = new XMLHttpRequest();
+        const version = versionSelect.value;
+        const railType = railTypeSelect.value;
 
-            xhr.upload.addEventListener('progress', function (e) {
-                if (e.lengthComputable) {
-                    const percentComplete = (e.loaded / e.total) * 100;
-                    progressBar.style.width = percentComplete + '%';
-                }
-            });
+        if (versionGroup.style.display !== 'none' && !version) {
+            showMessage('Необходимо выбрать версию прибора', 'error');
+            return;
+        }
+        if (railTypeGroup.style.display !== 'none' && !railType) {
+            showMessage('Для выбранного типа приложения необходимо выбрать тип рельс', 'error');
+            return;
+        }
 
-            xhr.addEventListener('load', function () {
-                progressBar.style.width = '100%';
+        uploadFile();
+    });
 
-                try {
-                    const response = JSON.parse(xhr.responseText);
+            function uploadFile() {
+                const form = document.getElementById('uploadForm');
+                const formData = new FormData(form);
+                const submitBtn = document.getElementById('submitBtn');
+                const progressContainer = document.getElementById('progressContainer');
+                const progressBar = document.getElementById('progressBar');
+                const messageDiv = document.getElementById('message');
 
-                    if (xhr.status === 201) {
-                        let successMessage = 'Файл успешно загружен!';
-                        if (response.rail_type) {
-                            successMessage += ` (Тип рельс: ${response.rail_type})`;
+                messageDiv.style.display = 'none';
+                messageDiv.className = 'message';
+
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Загрузка...';
+
+                progressContainer.style.display = 'block';
+                progressBar.style.width = '0%';
+
+                const xhr = new XMLHttpRequest();
+
+                xhr.upload.addEventListener('progress', function (e) {
+                    if (e.lengthComputable) {
+                        const percentComplete = (e.loaded / e.total) * 100;
+                        progressBar.style.width = percentComplete + '%';
+                    }
+                });
+
+                xhr.addEventListener('load', function () {
+                    progressBar.style.width = '100%';
+
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+
+                        if (xhr.status === 201) {
+                            let successMessage = 'Файл успешно загружен!';
+                            if (response.version) successMessage += ` (Версия: ${response.version})`;
+                            if (response.rail_type) successMessage += ` (Тип рельс: ${response.rail_type})`;
+                            showMessage(successMessage, 'success');
+                            form.reset();
+                            appTypeSelect.value = '';
+                            versionSelect.innerHTML = '<option value="">Выберите версию</option>';
+                            railTypeSelect.innerHTML = '<option value="">Выберите тип рельс</option>';
+                            versionGroup.style.display = 'none';
+                            railTypeGroup.style.display = 'none';
+                            setTimeout(updateFields, 0);
+                        } else {
+                            showMessage('Ошибка: ' + (response.error || 'Неизвестная ошибка'), 'error');
                         }
-                        showMessage(successMessage, 'success');
-                        form.reset();
-                        document.getElementById('railTypeGroup').style.display = 'none';
-                    } else {
-                        showMessage('Ошибка: ' + response.error, 'error');
+                    } catch (e) {
+                        if (xhr.status === 403) {
+                            showMessage('Ошибка доступа: необходимо войти в систему', 'error');
+                        } else if (xhr.status === 401) {
+                            showMessage('Ошибка авторизации', 'error');
+                        } else {
+                            showMessage('Ошибка при обработке ответа: ' + e.message, 'error');
+                        }
                     }
-                } catch (e) {
-                    if (xhr.status === 403) {
-                        showMessage('Ошибка доступа: необходимо войти в систему', 'error');
-                    } else if (xhr.status === 401) {
-                        showMessage('Ошибка авторизации', 'error');
-                    } else {
-                        showMessage('Ошибка при обработке ответа: ' + e.message, 'error');
-                    }
-                }
 
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Загрузить файл';
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Загрузить файл';
 
-                setTimeout(() => {
+                    setTimeout(() => {
+                        progressContainer.style.display = 'none';
+                    }, 2000);
+                });
+
+                xhr.addEventListener('error', function () {
+                    showMessage('Ошибка сети при загрузке файла', 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Загрузить файл';
                     progressContainer.style.display = 'none';
-                }, 2000);
-            });
+                });
 
-            xhr.addEventListener('error', function () {
-                showMessage('Ошибка сети при загрузке файла', 'error');
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Загрузить файл';
-                progressContainer.style.display = 'none';
-            });
-
-            // Добавляем CSRF токен в заголовки
-            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-            xhr.open('POST', '/api/apps/upload/');
-            xhr.setRequestHeader('X-CSRFToken', csrfToken);
-            xhr.send(formData);
-        }
-
-        function showMessage(text, type) {
-            const messageDiv = document.getElementById('message');
-            messageDiv.textContent = text;
-            messageDiv.className = `message ${type}`;
-            messageDiv.style.display = 'block';
-
-            if (type === 'success') {
-                setTimeout(() => {
-                    messageDiv.style.display = 'none';
-                }, 10000);
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                xhr.open('POST', '/api/apps/upload/');
+                xhr.setRequestHeader('X-CSRFToken', csrfToken);
+                xhr.send(formData);
             }
-        }
-        
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Страница загрузки приложений загружена');
+
+            function showMessage(text, type) {
+                const messageDiv = document.getElementById('message');
+                messageDiv.textContent = text;
+                messageDiv.className = 'message ' + type;
+                messageDiv.style.display = 'block';
+
+                if (type === 'success') {
+                    setTimeout(() => {
+                        messageDiv.style.display = 'none';
+                    }, 10000);
+                }
+            }
         });
         </script>
     </body>

@@ -1,11 +1,11 @@
 from __future__ import annotations
 
+import contextlib
 import json
 from typing import TYPE_CHECKING, Any, ClassVar
 
 from django import forms
 from django.contrib import admin
-from django.db import models
 from django.forms.widgets import Textarea
 from django.urls import path
 from django.utils.html import format_html
@@ -15,6 +15,7 @@ from core.models import Equipment, Model, Scheme
 from core.views import get_schemes_for_model
 
 if TYPE_CHECKING:
+    from django.db import models
     from django.forms import Widgets
 
 
@@ -159,10 +160,8 @@ class EquipmentAdminForm(forms.ModelForm):
 
         scheme_obj = None
         if self.data.get("scheme"):
-            try:
+            with contextlib.suppress(Scheme.DoesNotExist):
                 scheme_obj = Scheme.objects.get(pk=self.data.get("scheme"))
-            except Scheme.DoesNotExist:
-                pass
         elif self.instance and self.instance.pk and self.instance.scheme:
             scheme_obj = self.instance.scheme
 
@@ -184,9 +183,9 @@ class EquipmentAdminForm(forms.ModelForm):
 
                     field_key = f"json_field_{field_name}"
                     field_type = field_def.get("type", "string")
-                    label = (
-                        field_def.get("help_text") or field_name
-                    )
+                    
+                    # Изменено: берём label (или fallback на name), по умолчанию required = False
+                    label = field_def.get("label") or field_name
                     required = field_def.get("required", False)
                     initial_val = existing_data.get(field_name, field_def.get("default"))
 
@@ -210,6 +209,7 @@ class EquipmentAdminForm(forms.ModelForm):
                             initial=initial_val,
                         )
                     else:
+                        # По умолчанию max_length = 255, если не указано явно
                         max_len = field_def.get("max_length", 255)
                         self.fields[field_key] = forms.CharField(
                             label=label,

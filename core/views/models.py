@@ -2,7 +2,6 @@
 
 This module provides two view classes that handle all equipment models:
 - EquipmentRetrieveView: for retrieving equipment data
-- EquipmentReportsView: for retrieving equipment reports
 """
 
 import logging
@@ -15,7 +14,7 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
-from core.models import Kalmar32, Phasar01, Phasar02, Report
+from core.models import Kalmar32, Phasar01, Phasar02
 
 logger = logging.getLogger(__name__)
 
@@ -256,86 +255,3 @@ class EquipmentRetrieveView(BaseEquipmentView):
             data[field.name] = value
         return data
 
-
-@method_decorator(csrf_exempt, name="dispatch")
-class EquipmentReportsView(BaseEquipmentView):
-    """Unified view for retrieving equipment reports.
-
-    Handles GET requests to retrieve equipment reports by serial number.
-    URL pattern: /api/equipment/<model_name>/<serial_number>/reports/
-
-    Returns JSON response with report dates grouped by TO type:
-    {"TO-1": ["2025-10-31", "2025-10-30"], "TO-2": ["2025-10-29"], "TO-3": []}
-    """
-
-    http_method_names: ClassVar[list[str]] = ["get"]
-
-    def get(self, request: HttpRequest, model_name: str, serial_number: str) -> JsonResponse:  # noqa: ARG002
-        """Get reports for specific equipment grouped by TO type."""
-        try:
-            # Validate and get model class
-            model_class = self._get_model_class(model_name)
-
-            # Get equipment instance (just to verify it exists)
-            equipment = self._get_equipment(model_class, serial_number)
-
-            # Get reports for this equipment
-            reports = self._get_reports_for_equipment(model_name, equipment)
-
-            # Group by TO type and format dates
-            result = self._group_reports_with_status(reports)
-
-            # Add metadata
-            result["model_type"] = model_name
-            result["serial_number"] = serial_number
-
-            return JsonResponse(result, status=200)
-
-        except ValueError as e:
-            return self._build_error_response(str(e), status=400)
-        except models.ObjectDoesNotExist:
-            return self._build_error_response("Equipment not found", status=404)
-        except (AttributeError, TypeError) as e:
-            return self._build_error_response("Data processing error", status=500, detail=str(e))
-
-    def _get_reports_for_equipment(self, model_name: str, equipment: models.Model) -> list[dict]:
-        """Retrieve reports for specific equipment."""
-        try:
-            filter_kwargs = {model_name: equipment}
-            reports = (
-                Report.objects.filter(**filter_kwargs)
-                .values("number_to", "report_date", "json_report", "pdf_report")
-                .order_by("-report_date")
-            )
-            return list(reports)
-        except Exception as e:
-            msg = f"Error fetching reports: {e}"
-            logger.exception(msg)
-            return []
-
-    def _group_reports_with_status(self, reports: list[dict]) -> dict[str, list[dict]]:
-        """Group reports by TO type with file existence status."""
-        result = {"TO-1": [], "TO-2": [], "TO-3": []}
-
-        for report in reports:
-            to_type = report.get("number_to")
-            report_date = report.get("report_date")
-
-            if to_type not in result:
-                continue
-
-            if isinstance(report_date, date):
-                date_str = report_date.isoformat()
-                json_exists = bool(report.get("json_report"))
-                pdf_exists = bool(report.get("pdf_report"))
-
-                report_data = {"date": date_str, "json": json_exists, "pdf": pdf_exists}
-
-                if not any(item["date"] == date_str for item in result[to_type]):
-                    result[to_type].append(report_data)
-
-        # Sort each TO type list by date
-        for entries in result.values():
-            entries.sort(key=lambda x: x["date"], reverse=True)
-
-        return result

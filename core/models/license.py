@@ -4,6 +4,7 @@ This module provides the License model for storing and managing
 license information including version, product details, hardware IDs,
 expiration dates, and digital signatures.
 """
+
 import base64
 import json
 from datetime import date

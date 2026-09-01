@@ -38,7 +38,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const label = document.createElement('label');
         label.setAttribute('for', id);
-        label.textContent = (fieldDef.help_text || fieldDef.name) + (isCheckbox ? '' : ':');
+        
+        // Используем label из схемы, с фоллбеком на name
+        const labelText = fieldDef.label || fieldDef.name;
+        label.textContent = labelText + (isCheckbox ? '' : ':');
+
         if (fieldDef.required) label.classList.add('required');
         if (isCheckbox) label.classList.add('vCheckboxLabel');
 
@@ -81,13 +85,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 input = document.createElement('input');
                 input.type = 'text';
                 input.className = 'vTextField';
+                // Автоматическое ограничение длины 255, если не переопределено в схеме
                 input.maxLength = fieldDef.max_length || 255;
                 input.value = value ?? fieldDef.default ?? '';
         }
 
         input.name = name;
         input.id = id;
+        
+        // Значение по умолчанию false для обязательности
         if (fieldDef.required) input.required = true;
+        
         return input;
     }
 

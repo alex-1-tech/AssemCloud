@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from django.contrib.admin.views.decorators import staff_member_required
-from django.http import JsonResponse
+from django.http import JsonResponse, request
 from django.views.decorators.http import require_GET
 
 from core.models import Model, Scheme
@@ -9,7 +9,7 @@ from core.models import Model, Scheme
 
 @staff_member_required
 @require_GET
-def get_schemes_for_model(request):
+def get_schemes_for_model(request: request) -> JsonResponse:
     """Вернуть список схем для модели (по её base model_name), либо структуру полей схемы."""
     model_id = request.GET.get("model_id")
     scheme_id = request.GET.get("scheme_id")

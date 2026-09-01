@@ -1,11 +1,12 @@
-"""License utilities for signing, generating, and attaching licenses to Kalmar32 devices.
+"""License utilities for signing, generating, and attaching licenses to Equipment (unified model).
 
 This module provides functions for loading private keys, signing license payloads,
-and generating licenses for devices, including error handling and database integration.
+and generating licenses for unified Equipment, including error handling and database integration.
 """
 
 import base64
 import json
+from datetime import datetime
 from pathlib import Path
 
 from cryptography.hazmat.primitives import hashes
@@ -13,7 +14,7 @@ from cryptography.hazmat.primitives.asymmetric import padding, rsa
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from django.http import HttpRequest, JsonResponse
 
-from core.models import Kalmar32, License, Phasar01, Phasar02
+from core.models import Equipment, License
 
 PRIVATE_KEY_PATH = "/opt/license/private.pem"
 
@@ -53,7 +54,7 @@ def sign_license(payload: dict) -> dict:
 
 
 def generate_license_view(request: HttpRequest, serial_number: str) -> JsonResponse:
-    """Django view to generate a license for a Kalmar32 device."""
+    """Django view to generate a license for a unified Equipment instance."""
     try:
         try:
             raw_body = request.body
@@ -107,10 +108,10 @@ def generate_license_view(request: HttpRequest, serial_number: str) -> JsonRespo
             )
 
         try:
-            kalmar32 = Kalmar32.objects.get(serial_number=serial_number)
-        except Kalmar32.DoesNotExist:
+            equipment = Equipment.objects.select_related("model").get(serial_number=serial_number)
+        except Equipment.DoesNotExist:
             return JsonResponse(
-                {"status": "error", "error": f"Kalmar32 with serial number {serial_number} not found"},
+                {"status": "error", "error": f"Equipment with serial number {serial_number} not found"},
                 status=404,
             )
         except Exception as e:
@@ -119,6 +120,20 @@ def generate_license_view(request: HttpRequest, serial_number: str) -> JsonRespo
                 status=500,
             )
 
+        if equipment.model.name != license_payload["product"]:
+            return JsonResponse(
+                {"status": "error", "error": f"Product mismatch: expected {equipment.model.name}, got {license_payload['product']}"},
+                status=400,
+            )
+
+        if equipment.license:
+            equipment.license.delete()
+
+        try:
+            exp_date = datetime.strptime(license_payload["exp"], "%Y-%m-%d").date()
+        except (ValueError, TypeError):
+            exp_date = datetime(2100, 1, 1).date()
+
         try:
             license_obj = License.objects.create(
                 ver=license_payload["ver"],
@@ -126,7 +141,7 @@ def generate_license_view(request: HttpRequest, serial_number: str) -> JsonRespo
                 company_name=license_payload["company_name"],
                 host_hwid=license_payload["host_hwid"],
                 device_hwid=license_payload["device_hwid"],
-                exp=license_payload["exp"],
+                exp=exp_date,
                 features=license_payload["features"],
                 signature=license_data.get("signature", ""),
                 license_key=license_data.get("license_key", ""),
@@ -138,11 +153,12 @@ def generate_license_view(request: HttpRequest, serial_number: str) -> JsonRespo
             )
 
         try:
-            kalmar32.license = license_obj
-            kalmar32.save()
+            equipment.license = license_obj
+            equipment.save(update_fields=["license"])
         except Exception as e:
+            license_obj.delete()  # откат
             return JsonResponse(
-                {"status": "error", "error": f"Failed to attach license to device: {e!s}"},
+                {"status": "error", "error": f"Failed to attach license to equipment: {e!s}"},
                 status=500,
             )
 
@@ -152,9 +168,9 @@ def generate_license_view(request: HttpRequest, serial_number: str) -> JsonRespo
                     "status": "ok",
                     "license": license_data,
                     "equipment": {
-                        "serial_number": kalmar32.serial_number,
+                        "serial_number": equipment.serial_number,
                         "shipment_date": (
-                            kalmar32.shipment_date.isoformat() if kalmar32.shipment_date else None
+                            equipment.shipment_date.isoformat() if equipment.shipment_date else None
                         ),
                     },
                 }
@@ -170,4 +186,3 @@ def generate_license_view(request: HttpRequest, serial_number: str) -> JsonRespo
             {"status": "error", "error": f"Unhandled exception: {e!s}"},
             status=500,
         )
-

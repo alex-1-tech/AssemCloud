@@ -23,12 +23,20 @@ EQUIPMENT_MODELS_REGISTRY: list[ModelVariant] = [
     # FAZAR 01 (SL)
     {"name": "phasarsl", "version": "Ver_1"},
     {"name": "phasarsl", "version": "Ver_2"},
+    {"name": "phasarsl", "version": "Ver_3"},
+    # FAZAR 01 (LT)
+    {"name": "phasarlt", "version": "Ver_1"},
+    {"name": "phasarlt", "version": "Ver_2"},
     # FAZAR 02 (DL)
     {"name": "phasardl", "version": "Ver_1"},
     {"name": "phasardl","version": "Ver_2"},
     # CHAMELEON 32+
     {"name": "chameleon32", "version": "Ver_1"},
     {"name": "chameleon32", "version": "Ver_2"},
+    # WIZARD 6
+    {"name": "wizard6", "version": "Ver_1"},
+    # WIZARD 8
+    {"name": "wizard8", "version": "Ver_1"},
 ]
 
 
