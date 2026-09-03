@@ -9,6 +9,7 @@ from django.contrib import admin
 from django.forms.widgets import Textarea
 from django.urls import path
 from django.utils.html import format_html, format_html_join
+from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
 from core.models import Equipment, EquipmentType, Model, Scheme
@@ -121,7 +122,7 @@ class SchemeAdmin(admin.ModelAdmin):
         if not isinstance(sections, list):
             return "-"
 
-        section_blocks: list[str] = []
+        section_blocks = []
         for section in sections:
             if not isinstance(section, dict):
                 continue
@@ -132,7 +133,7 @@ class SchemeAdmin(admin.ModelAdmin):
             if not isinstance(fields, list):
                 continue
 
-            field_lines: list[str] = []
+            field_lines = []
             for field in fields:
                 if not isinstance(field, dict):
                     continue
@@ -146,14 +147,14 @@ class SchemeAdmin(admin.ModelAdmin):
                     field_lines.append(format_html("&nbsp;&nbsp;• <b>{}</b>", name))
 
             if field_lines:
-                joined_fields = format_html_join("<br>", "{}", ((line,) for line in field_lines))
+                joined_fields = format_html_join(mark_safe("<br>"), "{}", ((line,) for line in field_lines))
                 block = format_html("<b>{}</b>:<br>{}", section_title, joined_fields)
                 section_blocks.append(block)
 
         if not section_blocks:
             return "-"
 
-        return format_html_join("<br><br>", "{}", ((block,) for block in section_blocks))
+        return format_html_join(mark_safe("<br><br>"), "{}", ((block,) for block in section_blocks))
 
 
 class EquipmentAdminForm(forms.ModelForm):
