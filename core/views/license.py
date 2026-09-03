@@ -2,6 +2,7 @@ import json
 from datetime import datetime
 from typing import ClassVar
 
+from decouple import config
 from django.http import HttpRequest, JsonResponse
 from django.utils.decorators import method_decorator
 from django.views import View
@@ -10,6 +11,7 @@ from django.views.decorators.csrf import csrf_exempt
 from core.models import Equipment, License
 from core.utils.license import sign_license
 
+EXPECTED_PASSWORD = config("LICENSE_DEFAULT_PASSWORD", default="default_password")
 
 @method_decorator(csrf_exempt, name="dispatch")
 class ActivateView(View):
@@ -70,13 +72,7 @@ class ActivateView(View):
                     status=400,
                 )
 
-            stored_password = equipment.other_data.get("license_password")
-            if stored_password is None:
-                return JsonResponse(
-                    {"status": "error", "error": "License password not set for this equipment"},
-                    status=400,
-                )
-            if stored_password != license_password:
+            if license_password != EXPECTED_PASSWORD:
                 return JsonResponse(
                     {"status": "error", "error": "Invalid license password"},
                     status=403,
