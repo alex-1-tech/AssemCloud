@@ -28,7 +28,7 @@ def migrate_old_models(apps, schema_editor):
     )
 
     kalmar_model, _ = Model.objects.get_or_create(
-        equipment_type=kalmar_type, version="Ver_4", type_rail="UIC60", defaults={"is_active": True}
+        equipment_type=kalmar_type, version="ver_unavailable", type_rail="UIC60", defaults={"is_active": True}
     )
     phasar_model, _ = Model.objects.get_or_create(
         equipment_type=phasar_type, version="Ver_3", type_rail="NONE", defaults={"is_active": True}
