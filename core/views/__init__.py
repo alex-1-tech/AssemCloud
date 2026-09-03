@@ -11,9 +11,13 @@ from core.views.appfile import (
 from core.views.create_model import EquipmentCreateView
 from core.views.license import ActivateView
 from core.views.models import EquipmentRetrieveView
+from core.views.schemes import AllSchemesExportView
+from core.views.versions import AllVersionsView
 
 __all__ = [
     "ActivateView",
+    "AllSchemesExportView",
+    "AllVersionsView",
     "AppFileDownloadView",
     "AppFileLatestVersionDateView",
     "AppFileListVersionsView",
@@ -21,5 +25,5 @@ __all__ = [
     "AppUploadPageView",
     "EquipmentCreateView",
     "EquipmentRetrieveView",
-    "get_schemes_for_model",
+    "get_schemes_for_model"
 ]

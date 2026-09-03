@@ -11,7 +11,7 @@ from django.urls import path
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 
-from core.models import Equipment, Model, Scheme
+from core.models import Equipment, EquipmentType, Model, Scheme
 from core.views import get_schemes_for_model
 
 if TYPE_CHECKING:
@@ -19,19 +19,37 @@ if TYPE_CHECKING:
     from django.forms import Widgets
 
 
+@admin.register(EquipmentType)
+class EquipmentTypeAdmin(admin.ModelAdmin):
+    """Admin configuration for EquipmentType."""
+
+    list_display = ("name", "title", "description", "installer_path", "is_active")
+    list_filter = ("is_active",)
+    search_fields = ("name", "title", "description")
+    ordering = ("name",)
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": ("name", "title", "description", "installer_path", "is_active"),
+            },
+        ),
+    )
+
+
 @admin.register(Model)
 class ModelAdmin(admin.ModelAdmin):
     """Admin configuration for managing hardware model variants."""
 
-    list_display = ("name", "version", "type_rail", "is_active")
-    list_filter = ("name", "type_rail", "is_active")
-    search_fields = ("name", "version")
-    ordering = ("name", "version")
+    list_display = ("equipment_type", "version", "type_rail", "is_active")
+    list_filter = ("equipment_type", "type_rail", "is_active")
+    search_fields = ("equipment_type__name", "version")
+    ordering = ("equipment_type__name", "version")
     fieldsets = (
         (
             _("Model Info"),
             {
-                "fields": ("name", "version", "type_rail", "is_active"),
+                "fields": ("equipment_type", "version", "type_rail", "is_active"),
             },
         ),
     )
@@ -73,17 +91,17 @@ class SchemeAdmin(admin.ModelAdmin):
     """Admin configuration for managing JSON field schemes."""
 
     form = SchemeAdminForm
-    list_display = ("model_name", "version", "is_latest", "get_scheme_fields_summary")
+    list_display = ("equipment_type", "version", "is_latest", "get_scheme_fields_summary")
     readonly_fields = ("get_scheme_fields_summary",)
-    list_filter = ("model_name", "is_latest")
-    search_fields = ("model_name",)
-    ordering = ("model_name", "-version")
+    list_filter = ("equipment_type", "is_latest")
+    search_fields = ("equipment_type__name",)
+    ordering = ("equipment_type__name", "-version")
     fieldsets = (
         (
             None,
             {
                 "fields": (
-                    "model_name",
+                    "equipment_type",
                     "version",
                     "is_latest",
                     "get_scheme_fields_summary",
@@ -183,8 +201,7 @@ class EquipmentAdminForm(forms.ModelForm):
 
                     field_key = f"json_field_{field_name}"
                     field_type = field_def.get("type", "string")
-                    
-                    # Изменено: берём label (или fallback на name), по умолчанию required = False
+
                     label = field_def.get("label") or field_name
                     required = field_def.get("required", False)
                     initial_val = existing_data.get(field_name, field_def.get("default"))
@@ -209,7 +226,6 @@ class EquipmentAdminForm(forms.ModelForm):
                             initial=initial_val,
                         )
                     else:
-                        # По умолчанию max_length = 255, если не указано явно
                         max_len = field_def.get("max_length", 255)
                         self.fields[field_key] = forms.CharField(
                             label=label,
@@ -249,7 +265,7 @@ class EquipmentAdmin(admin.ModelAdmin):
         "license",
     )
     list_filter = (
-        "model__name",
+        "model__equipment_type",
         "model__type_rail",
         "scheme__version",
         "shipment_date",
@@ -290,7 +306,7 @@ class EquipmentAdmin(admin.ModelAdmin):
         js = ("admin/js/equipment_scheme_filter.js",)
         css = {"all": ("admin/css/equipment_scheme_filter.css",)}
 
-    @admin.display(description=_("Model Variant"), ordering="model__name")
+    @admin.display(description=_("Model Variant"), ordering="model__equipment_type__name")
     def get_model_display(self, obj: Equipment) -> str:
         return str(obj.model)
 

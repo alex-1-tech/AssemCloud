@@ -3,6 +3,7 @@
 This module provides JSON API for creating/updating equipment records
 using the generic Equipment, Model, and Scheme models.
 """
+
 from __future__ import annotations
 
 import json
@@ -17,7 +18,7 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
-from core.models import Equipment, Model, Scheme
+from core.models import Equipment, EquipmentType, Model, Scheme
 
 logger = logging.getLogger(__name__)
 
@@ -50,17 +51,18 @@ class EquipmentCreateView(View):
         except ValidationError as e:
             return self._error_response(str(e), status=400)
 
-            # Обязательные поля
-            return self._error_response("Missing required field: serial_number", status=400)
-
-        equipment_type = data.get("equipment_type")
-        if not equipment_type:
+        equipment_type_name = data.get("equipment_type")
+        if not equipment_type_name:
             return self._error_response("Missing required field: equipment_type", status=400)
+        try:
+            eq_type = EquipmentType.objects.get(name=equipment_type_name)
+        except EquipmentType.DoesNotExist:
+            return self._error_response(f"Unknown equipment_type: {equipment_type_name}", status=400)
 
         # Проверка соответствия URL, если передан model_name
-        if model_name and model_name != equipment_type:
+        if model_name and model_name != equipment_type_name:
             return self._error_response(
-                f"URL model name '{model_name}' does not match equipment_type '{equipment_type}'",
+                f"URL model name '{model_name}' does not match equipment_type '{equipment_type_name}'",
                 status=400,
             )
 
@@ -71,7 +73,7 @@ class EquipmentCreateView(View):
 
         try:
             model_obj, _ = Model.objects.get_or_create(
-                name=equipment_type,
+                equipment_type=eq_type,
                 version=version,
                 type_rail=rail_type,
                 defaults={"is_active": True},
@@ -80,10 +82,10 @@ class EquipmentCreateView(View):
             logger.exception("Failed to get_or_create Model")
             return self._error_response(f"Database error on Model: {e!s}", status=500)
 
-        scheme_obj = Scheme.objects.filter(model_name=equipment_type, is_latest=True).first()
+        scheme_obj = Scheme.objects.filter(equipment_type=eq_type, is_latest=True).first()
         if not scheme_obj:
             return self._error_response(
-                f"No active Scheme found for model '{equipment_type}'. Please create a scheme first.",
+                f"No active Scheme found for model '{eq_type}'. Please create a scheme first.",
                 status=400,
             )
 
@@ -138,7 +140,7 @@ class EquipmentCreateView(View):
             "shipment_date": equipment.shipment_date.isoformat() if equipment.shipment_date else None,
             "license": equipment.license_id,
             "model": {
-                "name": equipment.model.name,
+                "name": equipment.model.equipment_type.name,
                 "version": equipment.model.version,
                 "type_rail": equipment.model.type_rail,
             },

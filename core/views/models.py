@@ -1,257 +1,71 @@
 """Unified API views for equipment management.
 
-This module provides two view classes that handle all equipment models:
-- EquipmentRetrieveView: for retrieving equipment data
+This module provides view classes for retrieving equipment data
+using the new unified Equipment model with dynamic schemes.
 """
 
 import logging
-from datetime import date
-from typing import Any, ClassVar
 
-from django.db import models
 from django.http import HttpRequest, JsonResponse
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
-from core.models import Kalmar32, Phasar01, Phasar02
+from core.models import Equipment
 
 logger = logging.getLogger(__name__)
 
 
-# Registry of available equipment models
-EQUIPMENT_MODELS: dict[str, type[models.Model]] = {
-    "phasar01": Phasar01,
-    "phasar02": Phasar02,
-    "kalmar32": Kalmar32,
-}
-
-
-def convert_phasar01(equipment: Phasar01) -> dict[str, Any]:
-    """Convert Phasar01 to dictionary with specific field names."""
-    return {
-        "id": equipment.id,
-        "serial_number": equipment.serial_number,
-        "shipment_date": equipment.shipment_date.isoformat(),
-        "invoice": equipment.invoice,
-        "packet_list": equipment.packet_list,
-        # PC tablet Latitude Dell 7230
-        "pc_tablet_dell_7230": equipment.pc_tablet_dell_7230,
-        "ac_dc_power_adapter_dell": equipment.ac_dc_power_adapter_dell,
-        "dc_charger_adapter_battery": equipment.dc_charger_adapter_battery,
-        # Ultrasonic phased array PULSAR OEM 16/128
-        "ultrasonic_phased_array_pulsar": equipment.ultrasonic_phased_array_pulsar,
-        "dcn": equipment.dcn,
-        "ab_back": equipment.ab_back,
-        "gf_combo": equipment.gf_combo,
-        "ff_combo": equipment.ff_combo,
-        "ab_front": equipment.ab_front,
-        "flange_50": equipment.flange_50,
-        "manual_probs": equipment.manual_probs,
-        "has_dc_cable_battery": equipment.has_dc_cable_battery,
-        "has_ethernet_cables": equipment.has_ethernet_cables,
-        "water_tank_with_tap": equipment.water_tank_with_tap,
-        # DC Battery box
-        "dc_battery_box": equipment.dc_battery_box,
-        "has_ac_dc_charger_adapter_battery": equipment.has_ac_dc_charger_adapter_battery,
-        # Calibration and tools
-        "calibration_block_so_3r": equipment.calibration_block_so_3r,
-        "has_repair_tool_bag": equipment.has_repair_tool_bag,
-        "has_installed_nameplate": equipment.has_installed_nameplate,
-        # network settings
-        "wifi_router_address": equipment.wifi_router_address,
-        "windows_password": equipment.windows_password,
-        # Additional fields
-        "notes": equipment.notes,
-    }
-
-
-def convert_phasar02(equipment: Phasar02) -> dict[str, Any]:
-    """Convert Phasar02 to dictionary with specific field names."""
-    return {
-        "id": equipment.id,
-        "serial_number": equipment.serial_number,
-        "license": equipment.license.id if equipment.license else None,
-        "license_password": equipment.license_password,
-        "shipment_date": equipment.shipment_date.isoformat(),
-        "invoice": equipment.invoice,
-        "packet_list": equipment.packet_list,
-        # PC tablet Latitude Dell 7230
-        "pc_tablet_dell_7230": equipment.pc_tablet_dell_7230,
-        "ac_dc_power_adapter_dell": equipment.ac_dc_power_adapter_dell,
-        "dc_charger_adapter_battery": equipment.dc_charger_adapter_battery,
-        # Ultrasonic phased array PULSAR OEM 16/128 (LEFT)
-        "ultrasonic_phased_array_pulsar_left": equipment.ultrasonic_phased_array_pulsar_left,
-        "dcn_left": equipment.dcn_left,
-        "ab_back_left": equipment.ab_back_left,
-        "gf_combo_left": equipment.gf_combo_left,
-        "ff_combo_left": equipment.ff_combo_left,
-        "ab_front_left": equipment.ab_front_left,
-        "flange_50_left": equipment.flange_50_left,
-        "manual_probs_left": equipment.manual_probs_left,
-        "has_dc_cable_battery_left": equipment.has_dc_cable_battery_left,
-        "has_ethernet_cables_left": equipment.has_ethernet_cables_left,
-        # Ultrasonic phased array PULSAR OEM 16/128 (RIGHT)
-        "ultrasonic_phased_array_pulsar_right": equipment.ultrasonic_phased_array_pulsar_right,
-        "dcn_right": equipment.dcn_right,
-        "ab_back_right": equipment.ab_back_right,
-        "gf_combo_right": equipment.gf_combo_right,
-        "ff_combo_right": equipment.ff_combo_right,
-        "ab_front_right": equipment.ab_front_right,
-        "flange_50_right": equipment.flange_50_right,
-        "manual_probs_right": equipment.manual_probs_right,
-        "has_dc_cable_battery_right": equipment.has_dc_cable_battery_right,
-        "has_ethernet_cables_right": equipment.has_ethernet_cables_right,
-        # Water tanks
-        "water_tank_with_tap": equipment.water_tank_with_tap,
-        # DC Battery boxes
-        "dc_battery_box": equipment.dc_battery_box,
-        "has_ac_dc_charger_adapter_battery": equipment.has_ac_dc_charger_adapter_battery,
-        # Calibration blocks
-        "calibration_block_so_3r": equipment.calibration_block_so_3r,
-        # Repair tools
-        "has_repair_tool_bag": equipment.has_repair_tool_bag,
-        # Nameplates
-        "has_installed_nameplate": equipment.has_installed_nameplate,
-        # network settings
-        "wifi_router_address": equipment.wifi_router_address,
-        "windows_password": equipment.windows_password,
-        # Additional fields
-        "notes": equipment.notes,
-    }
-
-
-def convert_kalmar32(equipment: Kalmar32) -> dict[str, Any]:
-    """Convert Kalmar32 to dictionary with specific field names."""
-    return {
-        "id": equipment.id,
-        "serial_number": equipment.serial_number,
-        "shipment_date": equipment.shipment_date.isoformat(),
-        "invoice": equipment.invoice,
-        "packet_list": equipment.packet_list,
-        # PC tablet Latitude Dell 7230
-        "pc_tablet_dell_7230": equipment.pc_tablet_dell_7230,
-        "ac_dc_power_adapter_dell": equipment.ac_dc_power_adapter_dell,
-        "dc_charger_adapter_battery": equipment.dc_charger_adapter_battery,
-        # Ultrasonic phased array PULSAR OEM 16/64
-        "ultrasonic_phased_array_pulsar": equipment.ultrasonic_phased_array_pulsar,
-        "left_probs": equipment.left_probs,
-        "right_probs": equipment.right_probs,
-        "manual_probs": equipment.manual_probs,
-        "straight_probs": equipment.straight_probs,
-        "has_dc_cable_battery": equipment.has_dc_cable_battery,
-        "has_ethernet_cables": equipment.has_ethernet_cables,
-        # DC Battery box
-        "dc_battery_box": equipment.dc_battery_box,
-        "has_ac_dc_charger_adapter_battery": equipment.has_ac_dc_charger_adapter_battery,
-        # Calibration and tools
-        "calibration_block_so_3r": equipment.calibration_block_so_3r,
-        "has_repair_tool_bag": equipment.has_repair_tool_bag,
-        "has_installed_nameplate": equipment.has_installed_nameplate,
-        # network settings
-        "wifi_router_address": equipment.wifi_router_address,
-        "windows_password": equipment.windows_password,
-        # Additional fields
-        "notes": equipment.notes,
-    }
-
-
-class BaseEquipmentView(View):
-    """Base class with common functionality for equipment views."""
-
-    def _get_model_class(self, model_name: str) -> type[models.Model]:
-        """Get model class by name."""
-        model_name = model_name.lower()
-        if model_name not in EQUIPMENT_MODELS:
-            available = ", ".join(EQUIPMENT_MODELS.keys())
-            msg = f"Unknown model: {model_name}. Available models: {available}"
-            raise ValueError(msg)
-        return EQUIPMENT_MODELS[model_name]
-
-    def _get_equipment(self, model_class: type[models.Model], serial_number: str) -> models.Model:
-        """Retrieve equipment instance by serial number."""
-        try:
-            return model_class.objects.get(serial_number=serial_number)
-        except model_class.DoesNotExist:
-            msg = f"Equipment with serial number {serial_number} not found"
-            logger.warning(msg)
-            raise
-        except Exception as e:
-            msg = f"Database error: {e}"
-            logger.exception(msg)
-            raise
-
-    def _build_error_response(self, message: str, status: int = 400, detail: str = "") -> JsonResponse:
-        """Build error response."""
-        response_data = {
-            "error": message,
-            "status": "error",
-            "detail": detail,
-        }
-        logger.error("Error: %s, Detail: %s", message, detail)
-        return JsonResponse(response_data, status=status)
-
-
 @method_decorator(csrf_exempt, name="dispatch")
-class EquipmentRetrieveView(BaseEquipmentView):
-    """Unified view for retrieving equipment data.
+class EquipmentRetrieveView(View):
+    """Unified view for retrieving equipment data by serial number.
 
-    Handles GET requests to retrieve equipment data by serial number.
-    URL pattern: /api/equipment/<model_name>/<serial_number>/
+    Works with the new Equipment model and returns all fields,
+    including dynamic data from other_data JSONField.
+    URL pattern: /api/<model_name>/<serial_number>/get_settings
     """
 
-    http_method_names: ClassVar[list[str]] = ["get"]
+    http_method_names = ["get"]
 
-    def get(self, request: HttpRequest, model_name: str, serial_number: str) -> JsonResponse:  # noqa: ARG002
-        """Retrieve equipment data by serial number."""
+    def get(self, request: HttpRequest, model_name: str, serial_number: str) -> JsonResponse:
+        """Retrieve equipment data by serial number using unified Equipment model."""
         try:
-            # Validate and get model class
-            model_class = self._get_model_class(model_name)
+            equipment = Equipment.objects.select_related("model", "scheme", "license").get(
+                serial_number=serial_number
+            )
+        except Equipment.DoesNotExist:
+            return self._error_response("Equipment not found", status=404)
 
-            # Get equipment instance
-            equipment = self._get_equipment(model_class, serial_number)
+        if equipment.model.equipment_type.name != model_name:
+            return self._error_response(
+                f"Model name mismatch: expected '{model_name}', got '{equipment.model.equipment_type.name}'",
+                status=400,
+            )
 
-            # Convert to dict based on model type
-            response_data = self._convert_to_dict(equipment, model_name)
-            response_data["status"] = "retrieved"
-            response_data["model_type"] = model_name
-
-            return JsonResponse(response_data, status=200)
-
-        except ValueError as e:
-            return self._build_error_response(str(e), status=400)
-        except models.ObjectDoesNotExist:
-            return self._build_error_response("Equipment not found", status=404)
-        except Exception as e:
-            logger.exception("Unexpected error")
-            return self._build_error_response("Internal server error", status=500, detail=str(e))
-
-    def _convert_to_dict(self, equipment: models.Model, model_name: str) -> dict[str, Any]:
-        """Convert equipment model instance to dictionary based on model type."""
-        converters = {
-            "phasar01": convert_phasar01,
-            "phasar02": convert_phasar02,
-            "kalmar32": convert_kalmar32,
+        response_data = {
+            "id": equipment.id,
+            "serial_number": equipment.serial_number,
+            "invoice": equipment.invoice,
+            "packet_list": equipment.packet_list,
+            "shipment_date": (equipment.shipment_date.isoformat() if equipment.shipment_date else None),
+            "license": equipment.license_id,
+            "model": {
+                "name": equipment.model.equipment_type.name,
+                "version": equipment.model.version,
+                "type_rail": equipment.model.type_rail,
+            },
+            "scheme": {
+                "id": equipment.scheme.id if equipment.scheme else None,
+                "version": equipment.scheme.version if equipment.scheme else None,
+            },
+            "other_data": equipment.other_data,
+            "status": "retrieved",
+            "model_type": model_name,
         }
 
-        converter = converters.get(model_name)
-        if converter:
-            return converter(equipment)
+        return JsonResponse(response_data, status=200)
 
-        # Fallback to generic conversion for unknown models
-        error_msg = f"No specific converter for {model_name}, using generic conversion"
-        logger.warning(error_msg)
-        return self._generic_convert(equipment)
-
-    def _generic_convert(self, equipment: models.Model) -> dict[str, Any]:
-        """Generate conversion for any model."""
-        data = {}
-        for field in equipment._meta.fields:  # noqa: SLF001
-            value = getattr(equipment, field.name)
-            if isinstance(value, date):
-                value = value.isoformat()
-            elif isinstance(value, models.Model):
-                value = value.id if value else None
-            data[field.name] = value
-        return data
-
+    def _error_response(self, message: str, status: int = 400) -> JsonResponse:
+        """Build standardized error response."""
+        logger.error("EquipmentRetrieveView error: %s", message)
+        return JsonResponse({"error": message, "status": "error"}, status=status)

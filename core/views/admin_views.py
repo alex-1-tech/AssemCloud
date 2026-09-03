@@ -15,22 +15,11 @@ def get_schemes_for_model(request: request) -> JsonResponse:
     scheme_id = request.GET.get("scheme_id")
 
     if model_id:
-        model_name = Model.objects.filter(id=model_id).values_list("name", flat=True).first()
-        if not model_name:
+        model_instance = Model.objects.filter(id=model_id).only("equipment_type").first()
+        if not model_instance:
             return JsonResponse({"schemes": []})
-
-        schemes = (
-            Scheme.objects.for_model(model_id=model_id)
-            .order_by("-version")
-            .values("id", "version", "is_latest")
-        )
-        data = [
-            {
-                "id": s["id"],
-                "name": f"v{s['version']}" + (" (latest)" if s["is_latest"] else ""),
-            }
-            for s in schemes
-        ]
+        schemes = Scheme.objects.filter(equipment_type=model_instance.equipment_type).order_by("-version")
+        data = [{"id": s.id, "name": f"v{s.version}" + (" (latest)" if s.is_latest else "")} for s in schemes]
         return JsonResponse({"schemes": data})
 
     if scheme_id:

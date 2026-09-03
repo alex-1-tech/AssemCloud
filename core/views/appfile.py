@@ -8,13 +8,12 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 import re
 from collections import defaultdict
 from datetime import date
 from pathlib import Path
 from typing import Any
-from pathlib import Path
+
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import redirect_to_login
@@ -26,7 +25,7 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
-from core.models import Model, RailType
+from core.models import EquipmentType, Model, RailType
 
 logger = logging.getLogger(__name__)
 MANUAL_APP_TYPE = "manual_app"
@@ -155,18 +154,15 @@ class AppUploadPageView(View):
         if not request.user.is_authenticated:
             return redirect_to_login(request.get_full_path())
 
-        models_by_name = defaultdict(list)
-        for m in Model.objects.all():
-            models_by_name[m.name].append(m)
-
+        equipment_types = EquipmentType.objects.filter(is_active=True)
         app_types = []
-        for name, models in models_by_name.items():
+        for eq_type in equipment_types:
+            variants = eq_type.variants.all()
             rail_types = set()
             versions_by_rail = defaultdict(set)
-            for m in models:
-                rail = m.type_rail
-                rail_types.add(rail)
-                versions_by_rail[rail].add(m.version)
+            for v in variants:
+                rail_types.add(v.type_rail)
+                versions_by_rail[v.type_rail].add(v.version)
 
             versions_by_rail = {k: sorted(v) for k, v in versions_by_rail.items()}
 
@@ -180,8 +176,8 @@ class AppUploadPageView(View):
 
             app_types.append(
                 {
-                    "value": name,
-                    "label": name.capitalize(),
+                    "value": eq_type.name,
+                    "label": eq_type.title,
                     "rail_required": rail_required,
                     "rail_types": rail_options,
                     "versions_by_rail_json": json.dumps(versions_by_rail),
@@ -258,8 +254,15 @@ class AppFileUploadView(View):
                 return self._error("Invalid rail_type format", status=400)
             rail_type = rail_type or None
 
+            try:
+                eq_type = EquipmentType.objects.get(name=app_type)
+            except EquipmentType.DoesNotExist:
+                return self._error("Unknown app_type", status=400)
+
             if not Model.objects.filter(
-                name=app_type, version=version, type_rail=rail_type or "NONE"
+                equipment_type=eq_type,
+                version=version,
+                type_rail=rail_type or "NONE"
             ).exists():
                 return self._error("Invalid combination: no such model variant", status=400)
         else:

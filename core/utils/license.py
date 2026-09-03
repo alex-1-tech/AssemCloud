@@ -120,9 +120,9 @@ def generate_license_view(request: HttpRequest, serial_number: str) -> JsonRespo
                 status=500,
             )
 
-        if equipment.model.name != license_payload["product"]:
+        if equipment.model.equipment_type.name != license_payload["product"]:
             return JsonResponse(
-                {"status": "error", "error": f"Product mismatch: expected {equipment.model.name}, got {license_payload['product']}"},
+                {"status": "error", "error": f"Product mismatch: expected {equipment.model.equipment_type.name}, got {license_payload['product']}"},
                 status=400,
             )
 

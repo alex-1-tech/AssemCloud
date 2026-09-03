@@ -8,11 +8,9 @@ from django.urls import path
 from core import views
 
 urlpatterns = [
-    path(
-        "admin/api/get-schemes/",
-        views.get_schemes_for_model,
-        name="get_schemes_for_model"
-    ),
+    path("admin/api/get-schemes/", views.get_schemes_for_model, name="get_schemes_for_model"),
+    path("api/versions/", views.AllVersionsView.as_view(), name="all-versions"),
+    path("api/schemes/all/", views.AllSchemesExportView.as_view(), name="all-schemes-export"),
     path(
         "api/<str:model_name>/",
         views.EquipmentCreateView.as_view(),

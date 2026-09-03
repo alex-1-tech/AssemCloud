@@ -22,7 +22,11 @@ class ActivateView(View):
                 data = json.loads(raw_body)
             except json.JSONDecodeError:
                 return JsonResponse(
-                    {"status": "error", "error": "Invalid JSON", "raw_body": raw_body.decode(errors="replace")},
+                    {
+                        "status": "error",
+                        "error": "Invalid JSON",
+                        "raw_body": raw_body.decode(errors="replace"),
+                    },
                     status=400,
                 )
 
@@ -57,9 +61,12 @@ class ActivateView(View):
                     status=404,
                 )
 
-            if equipment.model.name != product:
+            if equipment.model.equipment_type.name != product:
                 return JsonResponse(
-                    {"status": "error", "error": f"Product mismatch: expected {equipment.model.name}, got {product}"},
+                    {
+                        "status": "error",
+                        "error": f"Product mismatch: expected {equipment.model.equipment_type.name}, got {product}",
+                    },
                     status=400,
                 )
 
