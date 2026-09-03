@@ -8,7 +8,7 @@ from django import forms
 from django.contrib import admin
 from django.forms.widgets import Textarea
 from django.urls import path
-from django.utils.html import format_html
+from django.utils.html import format_html, format_html_join
 from django.utils.translation import gettext_lazy as _
 
 from core.models import Equipment, EquipmentType, Model, Scheme
@@ -141,18 +141,19 @@ class SchemeAdmin(admin.ModelAdmin):
                 label = field.get("label", "")
 
                 if name and label:
-                    field_lines.append(f"&nbsp;&nbsp;• <b>{name}</b> ({label})")
+                    field_lines.append(format_html("&nbsp;&nbsp;• <b>{}</b> ({})", name, label))
                 elif name:
-                    field_lines.append(f"&nbsp;&nbsp;• <b>{name}</b>")
+                    field_lines.append(format_html("&nbsp;&nbsp;• <b>{}</b>", name))
 
             if field_lines:
-                block = f"<b>{section_title}</b>:<br>" + "<br>".join(field_lines)
+                joined_fields = format_html_join("<br>", "{}", ((line,) for line in field_lines))
+                block = format_html("<b>{}</b>:<br>{}", section_title, joined_fields)
                 section_blocks.append(block)
 
         if not section_blocks:
             return "-"
 
-        return format_html("<br><br>".join(section_blocks))
+        return format_html_join("<br><br>", "{}", ((block,) for block in section_blocks))
 
 
 class EquipmentAdminForm(forms.ModelForm):
