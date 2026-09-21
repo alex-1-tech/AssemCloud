@@ -59,17 +59,55 @@ class EquipmentCreateView(View):
         except EquipmentType.DoesNotExist:
             return self._error_response(f"Unknown equipment_type: {equipment_type_name}", status=400)
 
-        # Проверка соответствия URL, если передан model_name
         if model_name and model_name != equipment_type_name:
             return self._error_response(
                 f"URL model name '{model_name}' does not match equipment_type '{equipment_type_name}'",
                 status=400,
             )
 
-        version = data.get("version", self.DEFAULT_VERSION)
-        rail_type = data.get("rail_type", self.DEFAULT_RAIL_TYPE).upper()
+        other_data = data.copy()
+        other_data.pop("equipment_type", None)
+
+        def get_value(key: str, default: Any = None) -> Any:
+            """Get value from top-level data, falling back to other_data, and remove from other_data."""
+            val = data.get(key)
+            if val is None or (isinstance(val, str) and val.strip() == ""):
+                val = other_data.pop(key, default)
+            else:
+                other_data.pop(key, None)
+            return val
+
+        version = get_value("version", self.DEFAULT_VERSION)
+
+        rail_type_raw = get_value("rail_type", self.DEFAULT_RAIL_TYPE)
+        if not isinstance(rail_type_raw, str):
+            rail_type_raw = self.DEFAULT_RAIL_TYPE
+        rail_type = rail_type_raw.upper()
         if rail_type not in self.VALID_RAIL_TYPES:
             return self._error_response(f"Invalid rail_type: {rail_type}", status=400)
+
+        serial_number = get_value("serial_number")
+        if not serial_number:
+            return self._error_response("Missing required field: serial_number", status=400)
+
+        invoice = get_value("invoice", "")
+        packet_list = get_value("packet_list", "")
+        shipment_date = get_value("shipment_date", None)
+
+        if shipment_date is not None:
+            if isinstance(shipment_date, str):
+                try:
+                    shipment_date = date.fromisoformat(shipment_date)
+                except ValueError:
+                    return self._error_response(
+                        "Invalid shipment_date format, use YYYY-MM-DD",
+                        status=400,
+                    )
+            elif not isinstance(shipment_date, date):
+                return self._error_response(
+                    "shipment_date must be a date or ISO string",
+                    status=400,
+                )
 
         try:
             model_obj, _ = Model.objects.get_or_create(
@@ -89,31 +127,6 @@ class EquipmentCreateView(View):
                 status=400,
             )
 
-        serial_number = data.pop("serial_number")
-        invoice = data.pop("invoice", "")
-        packet_list = data.pop("packet_list", "")
-        shipment_date = data.pop("shipment_date", None)
-
-        other_data = data.copy()
-        other_data.pop("equipment_type", None)
-        other_data.pop("version", None)
-        other_data.pop("rail_type", None)
-
-        if shipment_date:
-            if isinstance(shipment_date, str):
-                try:
-                    shipment_date = date.fromisoformat(shipment_date)
-                except ValueError:
-                    return self._error_response(
-                        "Invalid shipment_date format, use YYYY-MM-DD",
-                        status=400,
-                    )
-            elif not isinstance(shipment_date, date):
-                return self._error_response(
-                    "shipment_date must be a date or ISO string",
-                    status=400,
-                )
-
         try:
             with transaction.atomic():
                 equipment, created = Equipment.objects.update_or_create(
@@ -125,7 +138,6 @@ class EquipmentCreateView(View):
                         "packet_list": packet_list,
                         "shipment_date": shipment_date,
                         "other_data": other_data,
-                        # "license": license_obj,
                     },
                 )
         except Exception as e:
