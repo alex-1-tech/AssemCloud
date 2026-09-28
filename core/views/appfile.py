@@ -94,7 +94,7 @@ class BaseAppVersionView(View):
         Find all version directories and return info about .exe files found.
         Returns list sorted by date descending.
         """
-        base_path = cls.get_base_path(app_type, rail_type, version)
+        base_path = cls.get_base_path(app_type, version, rail_type)
         versions = []
 
         try:
@@ -361,7 +361,6 @@ class AppFileDownloadView(BaseAppVersionView):
             return self._error("Invalid version format", status=400)
         if rail_type and not re.match(r"^[a-zA-Z0-9_\-]+$", rail_type):
             return self._error("Invalid rail_type", status=400)
-
         file_info = self.find_latest(app_type, version, rail_type)
         if not file_info:
             return self._error("No application file found", status=404)
