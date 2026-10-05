@@ -44,6 +44,7 @@ class BaseAppVersionView(View):
         path = Path("apps") / app_type / version
         if rail_type:
             path = path / rail_type
+        print(path)
         return path
 
     @staticmethod
@@ -260,9 +261,7 @@ class AppFileUploadView(View):
                 return self._error("Unknown app_type", status=400)
 
             if not Model.objects.filter(
-                equipment_type=eq_type,
-                version=version,
-                type_rail=rail_type or "NONE"
+                equipment_type=eq_type, version=version, type_rail=rail_type or "NONE"
             ).exists():
                 return self._error("Invalid combination: no such model variant", status=400)
         else:
@@ -282,10 +281,7 @@ class AppFileUploadView(View):
         if is_manual:
             base_path = Path("apps") / MANUAL_APP_TYPE
         else:
-            base_path = Path("apps") / app_type
-            if rail_type:
-                base_path = base_path / rail_type
-            base_path = base_path / version
+            base_path = BaseAppVersionView.get_base_path(app_type, version, rail_type)
 
         date_path = base_path / today
         full_path = str(date_path / original_name)
